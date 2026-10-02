@@ -1,0 +1,8 @@
+#!/bin/sh
+# Stable entry point (same convention as ~/.agents/bin/*): resolves symlinks, then runs the CLI.
+SELF="$0"
+while [ -h "$SELF" ]; do
+  LINK="$(readlink "$SELF")"
+  case "$LINK" in /*) SELF="$LINK" ;; *) SELF="$(dirname "$SELF")/$LINK" ;; esac
+done
+exec node "$(cd "$(dirname "$SELF")/../src" && pwd)/cli.mjs" "$@"
