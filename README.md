@@ -67,6 +67,8 @@ Only the router and the schema are always loaded. A lens body is read only when 
 
 ## Using it
 
+Full guides are in [`docs/`](docs/README.md): getting started, concepts, hooks, and reference.
+
 Point your agent at `skills/actualize-product/SKILL.md` and `product-model/SCHEMA.md` with the product's files and a goal
 ("a closed-beta page", "a launch film", "a store listing"). Work products land in an `actualize/` folder beside the
 product: `product-model.md`, `proposals.md`, and `artifacts/<lens>/`.

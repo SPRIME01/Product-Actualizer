@@ -22,7 +22,7 @@ const USAGE = `actualize <command>
   pause --reason "<question for the user>"
   model restore                           revert product-model.md to the last reconciled version
   validate [file]                         check a Product Model against SCHEMA.md
-  hook <client> <event>                   native hook entry (claude|codex|cline) -- see hooks/README.md
+  hook <client> <event>                   native hook entry (claude|codex|cline) -- see docs/hooks.md
   install ...                             see hooks/install.mjs`;
 
 function parseArgs(argv) {
