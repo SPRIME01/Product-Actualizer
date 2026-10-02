@@ -63,7 +63,8 @@ function cockpitLine(run) {
     if (!c || !c.connected) return null;
     try { process.kill(c.pid, 0); } catch { return null; }   // a crashed server must not leave a claim that someone is looking
     const asks = c.asking?.length ? ` · asking: ${c.asking.slice(0, 2).map((a) => a.prompt).join(" | ")}` : "";
-    return `[cockpit] connected · focus: ${c.focus ?? "none"} · ${c.visible?.length ?? 0} surface(s)${asks} (full: ${cliCmd()} ui context)`;
+    const w = c.world && c.world.mode !== "current" ? ` · viewing ${c.world.mode}${c.world.worlds?.length ? " " + c.world.worlds.join(",") : ""}${c.world.subject ? " " + c.world.subject : ""} (read-only; the run is unchanged)` : "";
+    return `[cockpit] connected · focus: ${c.focus ?? "none"} · ${c.visible?.length ?? 0} surface(s)${w}${asks} (full: ${cliCmd()} ui context)`;
   } catch { return null; }
 }
 

@@ -7,7 +7,7 @@ import { findRun, loadState } from "../hooks/src/lib/store.mjs";
 import { readInbox, appendInbox, ackInbox, describe, unhandled } from "../hooks/src/lib/inbox.mjs";
 import { parseSurfaceText, SurfaceSchema } from "./protocol/spec";
 import { issuesOf } from "./protocol/actions";
-import { TOOLS } from "./protocol/tools";
+import { TOOLS, BASE_TOOLS } from "./protocol/tools";
 import { IS_COMPILED, CLI_PATH } from "../hooks/src/lib/store.mjs";
 
 
@@ -105,8 +105,29 @@ export async function uiMain(args: string[], opt: Record<string, any>, cwd: stri
     case "annotate": return out(await call(cwd, "annotate", { target: need(args[1], "<ref|surface:id> <text>"), text: need(args[2], "<ref|surface:id> <text>") }));
     case "responses": return out(await call(cwd, "read_responses", { unhandled: !opt.all }));
     case "tool": return out(await call(cwd, need(args[1], "<name> '<json>'"), args[2] ? JSON.parse(args[2]) : {}));
+    case "tools": { const r: any = await call(cwd, "get_workspace", {}); const names = opt.all ? TOOLS.map((t) => t.name) : r.result?.tools ?? r.tools ?? BASE_TOOLS; console.log(names.join("\n")); return 0; }
+    case "world": return worldMain(args.slice(1), opt, cwd);
     default:
       console.error(`usage: actualize ui <status|context|catalog [block]|list <what>|entity <ref>|put <file>|show <ref>|compare <a> <b>|ask '<json>'|arrange '<json>'|annotate <target> <text>|responses|tool <name> '<json>'>\n tools: ${TOOLS.map((t) => t.name).join(", ")}`);
+      return 2;
+  }
+}
+
+// ---- world: ask the product world a question. Read-only; works with the cockpit closed (the answer is a function of the run files).
+async function worldMain(args: string[], opt: Record<string, any>, cwd: string): Promise<number> {
+  const op = args[0]; const show = opt.show === true;
+  const need = (v: any, what: string) => { if (!v || v === true) throw new Error(`usage: actualize world ${op} ${what}`); return v as string; };
+  const preds = (s: any) => String(s ?? "").split(",").filter(Boolean).map((t) => { const [field, o, ...v] = t.split("~"); return { field, op: o || "eq", value: v.join("~") }; });
+  switch (op) {
+    case "why": return out(await call(cwd, "world_why", { ref: need(args[1], "<ref> [--show]"), show }));
+    case "impact": return out(await call(cwd, "world_impact", { ref: need(args[1], "<ref> [--dir up|down|both] [--depth n] [--kinds claim,artifact] [--gate] [--show]"), ...(opt.dir ? { dir: opt.dir } : {}), ...(opt.depth ? { depth: Number(opt.depth) } : {}), ...(opt.kinds ? { kinds: String(opt.kinds).split(",") } : {}), gate: opt.gate === true, show }));
+    case "diff": return out(await call(cwd, "world_diff", { a: need(args[1], "<a> [b|current] [--show]"), ...(args[2] ? { b: args[2] } : {}), show }));
+    case "timeline": return out(await call(cwd, "world_timeline", { ...(args[1] ? { ref: args[1] } : {}), show }));
+    case "counterfactual": return out(await call(cwd, "world_counterfactual", { candidate: need(args[1], "<proposal-ref> [--show]"), show }));
+    case "reach": return out(await call(cwd, "world_reach", opt.need ? { need: opt.need } : { ref: need(args[1], "<ref> | --need <capability>") }));
+    case "replay": return out(await call(cwd, "world_replay", { selects: need(opt.selects, "--selects file:evidence/<lens>/<file>#tableN --expect field~op~value[,...] [--where ...]"), expect: preds(need(opt.expect, "--expect field~op~value")), ...(opt.where ? { where: preds(opt.where) } : {}), show }));
+    default:
+      console.error("usage: actualize world <why <ref> | impact <ref> | diff <a> [b] | timeline [ref] | counterfactual <proposal> | reach <ref>|--need <cap> | replay --selects ... --expect ...> [--show]");
       return 2;
   }
 }

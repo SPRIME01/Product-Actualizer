@@ -46,7 +46,7 @@ Argument parsing is hand-rolled (`cli.mjs:31-43`): `--k v` sets `opt[k]=v` and p
 | `install ...` | see below | delegates to `hooks/install.mjs` |
 | `help`, `--help`, no args | — | usage text, exit 0 |
 
-`cockpit`, `ui`, and `inbox` are dispatched to `cockpit/cli.ts` (lazily imported, `cli.mjs:92-97`).
+`cockpit`, `ui`, `inbox`, and `world` are dispatched to `cockpit/cli.ts` (lazily imported, `cli.mjs:92-97`).
 
 ## Gate blocker codes
 
@@ -88,7 +88,25 @@ Every subcommand goes over HTTP to `/api/agent/tool` when a server is up, or app
 | `arrange '<json>'` | one `AgentAction` | `arrange` |
 | `annotate <target> <text>` | — | `annotate` |
 | `responses` | `--all` → `{unhandled:false}` | `read_responses` (default `{unhandled:true}`) |
-| `tool <name> '<json>'` | any of the twelve tools; `{}` when the JSON arg is omitted | that tool |
+| `tool <name> '<json>'` | any tool; `{}` when the JSON arg is omitted | that tool |
+| `tools [--all]` | the tools currently offered for what the owner is looking at, or every definition | one name per line |
+| `world …` | see below | |
+
+### `actualize world` (`cockpit/cli.ts`, also reachable as `actualize ui world …`)
+
+Read-only questions about the product world, answered from the run's files, so they work with the cockpit closed (and over HTTP when it is up, with identical output). `--show` also composes the answer as a surface for the owner. Exit 1 with `{ ok: false, code, message }` for a bad ref (`BAD_REF`), missing history (`BAD_SOURCE`), or a malformed request (`SCHEMA`); nothing changes in any case.
+
+| command | answers |
+|---|---|
+| `world why <ref>` | how the ref came to be; each answer `recorded`, `derived`, or `unavailable` |
+| `world impact <ref> [--dir up\|down\|both] [--depth n] [--kinds a,b] [--gate]` | what depends on it, a focused graph |
+| `world diff <a> [b]` | what changed in the Product Model between two settled worlds (`3`, `model@3`, `current`) |
+| `world timeline [ref]` | settled transitions |
+| `world counterfactual <proposal-ref>` | the preview of an open proposal; applies nothing |
+| `world reach <ref>` or `world reach --need <capability>` | providers for the evidence a gap needs, with the six-rung ladder |
+| `world replay --selects file:evidence/<lens>/<file>#tableN --expect field~op~value[,…] [--where …]` | an observation criterion over recorded evidence |
+
+See [the world debugger](../world-debugger.md).
 
 ## `actualize inbox` (`cockpit/cli.ts:115-136`)
 
@@ -234,7 +252,9 @@ Stdlib only, 661 lines. It currently prints `lenses: 17`, validates both walkthr
 | `tests/cockpit/cli.test.ts` | the cockpit lifecycle in **both** distributions (Bun script and compiled executable): `up`/`status`/`down`, the bearer link suppressed in a pipe, `ui` and `inbox` output |
 | `tests/cockpit/live.test.ts` | a real run: the rail with no run, events and rail updates without polling, the nested trace tree, the cockpit not halting the run, reconnect restoring the workspace exactly, deleting SQLite losing only preferences, owner responses surviving, pinned surfaces surviving eviction, the ninth-surface eviction rule, layout save/restore, minimize/maximize, and the compactness of `ui context` |
 | `tests/cockpit/hooks-bun.test.ts` | the installed entry points as subprocesses: installer → each client's native config → the generated command → `bin/actualize` → Bun → engine → the client's native output; idempotence, fail-open on missing Bun, 127 otherwise |
-| `tests/cockpit/ui.e2e.test.ts` | system Chrome via `playwright-core`: rail sizing and live updates, fixed-component rendering, drag/pin/minimize/restore/close, the empty-workspace affordances and keyboard palette, answering and ruling in the UI, the preflight confirm path, ref chips opening beside, offline/reconnect, WebMCP tool routing and its absence, and the software-only run |
+| `tests/cockpit/ui.e2e.test.ts` | system Chrome via `playwright-core`: rail sizing and live updates, fixed-component rendering, drag/pin/minimize/restore/close, the empty-workspace affordances and keyboard palette, answering and ruling in the UI, the preflight confirm path, ref chips opening beside, offline/reconnect, WebMCP on `document.modelContext` (registration, abort-based withdrawal as the context changes, refusals, the deprecated alias, and its absence), the world debugger's banners and entity actions, and the software-only run |
+| `tests/cockpit/world.test.ts` | the world kernel against both walkthroughs: no operation changes a run file; diff against an independent reading of the model files; identity and digest convergence; `why` bases and gaps for every entity class; impact reduction; candidates and counterfactual classes; replay; the reach ladder; dynamic tool context; debugger surfaces validate against the fixed schema; malformed requests |
+| `tests/cockpit/world.transport.test.ts` | one question, the same answer from the cockpit, HTTP, MCP and the CLI; the catalogues are the same definitions; the agent token cannot forge or carry an owner operation; opening a view writes no inbox entry; the hook line reports history and candidate views; answers with the cockpit closed and after deleting SQLite |
 | `tests/cockpit/layoutMap.test.ts` | server tree → dockview → server tree is lossless for each shape |
 
 `tests/cockpit/helpers.ts` and `tests/hooks/helpers.mjs` are shared harnesses, not test files. `bun test` exercises the engine and the cockpit directly, not a live client session. `just test` / `bun run test` adds `tsc` and `tests/check.py`.
@@ -247,7 +267,7 @@ Stdlib only, 661 lines. It currently prints `lenses: 17`, validates both walkthr
 - `hooks/src/lib/md.mjs` — `validateModel`, `parseStamp`, `inlineCites`, `validateArtifact`
 - `hooks/src/lib/inbox.mjs:9` — inbox `KINDS`
 - `cockpit/cli.ts` — `cockpitMain` (all seven verbs; the usage string at `cli.ts:70` names them), `uiMain`, `inboxMain`, `call`/`out`
-- `cockpit/protocol/tools.ts` — the twelve tool definitions and their defaults
+- `cockpit/protocol/tools.ts` — the tool definitions (twelve base, seven world), their defaults, annotations, and `activeTools`
 - `cockpit/server/main.ts:6-14`, `cockpit/server/serve.ts:119` — `runDaemon`, `server.json`
 - `hooks/install.mjs` — flags, `resolveAdapters`, `runtimeProblem`, `MIN_BUN`, exit codes
 - `hooks/adapters/common.mjs:15-20` — `backupDir`, `ACTUALIZE_BACKUP_DIR`

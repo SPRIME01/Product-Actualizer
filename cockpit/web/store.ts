@@ -5,9 +5,9 @@ export type Panel = { id: string; spec: any; placedBy: "agent" | "human"; pinned
 export type State = {
   conn: "connecting" | "live" | "offline"; role: string; rev: number;
   panels: Record<string, Panel>; tree: any; focus: string | null; maximized: string | null; asks: Record<string, any>; notes: any[];
-  rail: any | null; hints: any[]; events: any[]; epoch: number; kinds: string[]; toast: { text: string; bad?: boolean } | null; agentToken?: string;
+  rail: any | null; tools: string[]; hints: any[]; events: any[]; epoch: number; kinds: string[]; toast: { text: string; bad?: boolean } | null; agentToken?: string;
 };
-const init: State = { conn: "connecting", role: "", rev: 0, panels: {}, tree: null, focus: null, maximized: null, asks: {}, notes: [], rail: null, hints: [], events: [], epoch: 0, kinds: [], toast: null };
+const init: State = { conn: "connecting", role: "", rev: 0, panels: {}, tree: null, focus: null, maximized: null, asks: {}, notes: [], rail: null, tools: [], hints: [], events: [], epoch: 0, kinds: [], toast: null };
 
 let state = init;
 const subs = new Set<() => void>();
@@ -45,9 +45,10 @@ export function connect() {
     ws.onmessage = (e) => {
       const m = JSON.parse(e.data);
       switch (m.t) {
-        case "snapshot": applyDelta(m.ws, true); set({ conn: "live", rail: m.rail, hints: m.hints ?? [], events: m.events, epoch: state.epoch + 1, kinds: ["all"] }); break;
+        case "snapshot": applyDelta(m.ws, true); set({ conn: "live", tools: m.tools ?? [], rail: m.rail, hints: m.hints ?? [], events: m.events, epoch: state.epoch + 1, kinds: ["all"] }); break;
         case "ws": applyDelta(m, false); break;
         case "rail": set({ rail: m.rail }); break;
+        case "tools": set({ tools: m.tools }); break;
         case "hints": set({ hints: m.hints }); break;
         case "events": set({ events: [...state.events, ...m.events].slice(-200) }); break;
         case "invalidate": set({ epoch: state.epoch + 1, kinds: m.kinds }); break;
@@ -98,3 +99,6 @@ export function useDetail(ref: string | undefined) {
   return d;
 }
 export const fileUrl = (rel: string) => `/api/file?path=${encodeURIComponent(rel)}&t=${TOKEN}`;
+
+// Plain subscription for code outside React (WebMCP re-registers tools when the server's active set changes).
+export const subscribe = (f: () => void) => { subs.add(f); return () => { subs.delete(f); }; };

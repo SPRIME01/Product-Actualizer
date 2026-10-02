@@ -124,7 +124,7 @@ just cockpit-up        # or: actualize cockpit up      (opens your browser; PROJ
 just cockpit-down
 ```
 
-See `docs/cockpit.md`.
+See `docs/cockpit.md`. The same run can be interrogated, read-only, with `actualize world why <ref>`, `impact`, `diff`, `timeline`, `counterfactual`, `reach` and `replay`: why something is true, what depends on it, what a candidate would do, and who could gather missing evidence. See `docs/world-debugger.md`.
 
 ## Provenance
 

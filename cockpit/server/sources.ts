@@ -6,17 +6,20 @@ import path from "node:path";
 import type { Database } from "bun:sqlite";
 import { entities, entity, searchEntities } from "./db";
 import { parseRef, fmtRef } from "../protocol/refs";
+import type { Proj } from "./project";
+import { worldOfSource, parseWorldId, type Viewing } from "../protocol/world";
+import * as K from "./world";
 import { frontmatter } from "../../hooks/src/lib/md.mjs";
 
 export type Col = { field: string; label?: string; kind?: string; unit?: string };
-export type Rows = { kind: "rows"; provenance: "process" | "file" | "agent"; columns: Col[]; rows: Record<string, any>[]; total: number; truncated?: boolean; source?: string };
+export type Rows = { world?: Viewing; kind: "rows"; provenance: "process" | "file" | "agent"; columns: Col[]; rows: Record<string, any>[]; total: number; truncated?: boolean; source?: string };
 export type TreeNode = { id: string; label: string; ref?: string; status?: string; duration?: number; detail?: string; children: TreeNode[] };
 export type TreeData = { kind: "tree"; provenance: "process" | "file"; nodes: TreeNode[] };
 export type DocData = { kind: "doc"; provenance: "file"; path: string; ext: string; text: string; truncated: boolean; anchorLine?: number; bytes: number };
-export type GraphData = { kind: "graph"; provenance: "process" | "agent"; nodes: any[]; edges: any[] };
+export type GraphData = { world?: Viewing; kind: "graph"; provenance: "process" | "agent"; nodes: any[]; edges: any[] };
 export type Resolved = Rows | TreeData | DocData | GraphData | { kind: "error"; code: string; message: string };
 
-export type Env = { db: Database; runDir: string };
+export type Env = { db: Database; runDir: string; proj?: Proj; reach?: import("./reach").ReachEnv };
 export const MAX_FILE = 240_000;
 
 const PA: Record<string, { kind: string; refKind: string; cols: Col[] }> = {
@@ -29,13 +32,16 @@ const PA: Record<string, { kind: string; refKind: string; cols: Col[] }> = {
   lenses: { kind: "lens", refKind: "lens", cols: [{ field: "name", kind: "ref" }, { field: "status", kind: "status" }, { field: "needs" }, { field: "runs", kind: "number" }] },
   waves: { kind: "wave", refKind: "", cols: [{ field: "wave", kind: "number" }, { field: "lenses" }, { field: "status", kind: "status" }, { field: "done", kind: "number" }, { field: "total", kind: "number" }] },
   blockers: { kind: "blocker", refKind: "", cols: [{ field: "id" }, { field: "text" }, { field: "fix" }] },
-  versions: { kind: "version", refKind: "version", cols: [{ field: "version", kind: "ref" }, { field: "claims", kind: "number" }, { field: "unknowns", kind: "number" }, { field: "decisions", kind: "number" }, { field: "latest" }] },
+  versions: { kind: "version", refKind: "version", cols: [{ field: "version", kind: "ref" }, { field: "world" }, { field: "settled" }, { field: "claims", kind: "number" }, { field: "unknowns", kind: "number" }, { field: "decisions", kind: "number" }, { field: "latest" }, { field: "digest" }] },
   responses: { kind: "response", refKind: "", cols: [{ field: "id" }, { field: "kind" }, { field: "outcome" }, { field: "ref" }, { field: "value" }, { field: "status", kind: "status" }] },
+  candidates: { kind: "proposal", refKind: "proposal", cols: [{ field: "id", kind: "ref" }, { field: "parent", label: "parent world" }, { field: "intention" }, { field: "producer" }, { field: "delta" }, { field: "status", kind: "status" }, { field: "requires", label: "settles by" }] },
 };
 
 export type Filter = { field: string; op?: string; value: any };
 export type Sort = { field: string; dir?: "asc" | "desc" };
 
+// "2.76 A" compares as 2.76: evidence tables carry units in the cell
+const num = (v: any) => { const n = Number(v); return Number.isFinite(n) ? n : parseFloat(String(v)); };
 const norm = (v: any) => (v === null || v === undefined ? "" : typeof v === "string" ? v : Array.isArray(v) ? v.join(",") : String(v));
 export function applyFilters(rows: any[], filters: Filter[] = [], sort?: Sort) {
   let out = rows.filter((r) => filters.every((f) => {
@@ -45,8 +51,8 @@ export function applyFilters(rows: any[], filters: Filter[] = [], sort?: Sort) {
       case "ne": return norm(a).toLowerCase() !== norm(b).toLowerCase();
       case "contains": return norm(a).toLowerCase().includes(norm(b).toLowerCase());
       case "in": return (Array.isArray(b) ? b : [b]).map((x) => norm(x).toLowerCase()).includes(norm(a).toLowerCase());
-      case "gt": return Number(a) > Number(b);
-      case "lt": return Number(a) < Number(b);
+      case "gt": return num(a) > num(b);
+      case "lt": return num(a) < num(b);
       default: return true;
     }
   }));
@@ -205,7 +211,14 @@ function treeOfPaths(rows: any[], label: (r: any) => string, ref: (r: any) => st
 // ---- entry points ---------------------------------------------------------------------------------------------
 export type ResolveOpts = { filter?: Filter[]; sort?: Sort; limit?: number; offset?: number; data?: Record<string, any>[]; as?: "rows" | "tree" | "graph" | "doc" };
 
+// Every result says which world it looked at, so a block can never present history or a candidate as the current world.
 export function resolve(env: Env, source: string | undefined, o: ResolveOpts = {}): Resolved {
+  const r = resolveInner(env, source, o);
+  if ((r.kind === "rows" || r.kind === "graph") && source) { const v = worldOfSource(source); if (v.mode !== "current") r.world = v; }
+  return r;
+}
+
+function resolveInner(env: Env, source: string | undefined, o: ResolveOpts = {}): Resolved {
   const limit = o.limit ?? 100;
   if (!source) {
     const rows = applyFilters(o.data ?? [], o.filter, o.sort);
@@ -218,14 +231,22 @@ export function resolve(env: Env, source: string | undefined, o: ResolveOpts = {
     if (o.as === "rows" || m[2]?.startsWith("table")) return fileRows(env, m[1], m[2], o.filter, o.sort, limit);
     return readFile(env, m[1], m[2]);
   }
-  const [, kind, name, qs] = /^(pa|graph):([a-z-]+)(\?.*)?$/.exec(source) ?? [];
+  const [, kind, name, qs] = /^(pa|graph|world):([a-z-]+)(\?.*)?$/.exec(source) ?? [];
   if (!kind) return { kind: "error", code: "BAD_SOURCE", message: `cannot parse source ${source}` };
   const q = parseQuery(qs?.slice(1));
+  if (kind === "world") return worldSource(env, name, q, o, source);
+  if (kind === "graph" && (name === "impact" || name === "why")) return worldGraph(env, name, q);
   if (kind === "graph") return graph(env, name, q);
+  if (q.at && q.at !== "current") return historical(env, name, q, o, source);
   if (name === "trace") return trace(env);
   if (o.as === "tree" && name === "artifacts") return treeOfPaths(entities(env.db, "artifact"), (r) => r.id.split("/").pop(), (r) => `artifact:${r.id}`, (r) => r.status);
   if (o.as === "tree" && name === "evidence") return treeOfPaths(entities(env.db, "evidence"), (r) => r.id.split("/").pop(), (r) => `evidence:${r.id}`);
   const def = PA[name];
+  if (name === "candidates") {
+    if (!env.proj) return noProj();
+    const all = applyFilters(K.candidates({ proj: env.proj, runDir: env.runDir }).filter((c) => !q.status || c.status.startsWith(q.status)), o.filter, o.sort);
+    return { kind: "rows", provenance: "process", columns: def.cols, rows: all.slice(0, limit), total: all.length, source };
+  }
   if (!def && name !== "events") return { kind: "error", code: "BAD_SOURCE", message: `unknown projection ${name}` };
   let rows: any[];
   if (name === "events") {
@@ -244,6 +265,106 @@ export function resolve(env: Env, source: string | undefined, o: ResolveOpts = {
   const all = applyFilters(rows, [...qf.filter((f) => f.field !== "stale"), ...(o.filter ?? [])], o.sort);
   const off = o.offset ?? 0;
   return { kind: "rows", provenance: "process", columns: def!.cols, rows: all.slice(off, off + limit), total: all.length, source };
+}
+
+// ---- worlds: history, candidates, and the debugger's questions, all read-only ---------------------------------------
+const noProj = (): Resolved => ({ kind: "error", code: "BAD_SOURCE", message: "world sources need the run projection (this environment has none)" });
+const bad = (message: string): Resolved => ({ kind: "error", code: "BAD_SOURCE", message });
+const W = (env: Env): K.WorldEnv | null => (env.proj ? { proj: env.proj, runDir: env.runDir, reach: env.reach } : null);
+const refRow = (r: any, ref = r.ref) => ({ ...r, _ref: ref && parseRef(String(ref)) ? ref : undefined });
+const rowsOut = (columns: Col[], all: any[], o: ResolveOpts, source: string): Rows => {
+  const f = applyFilters(all, o.filter, o.sort); const off = o.offset ?? 0;
+  return { kind: "rows", provenance: "process", columns, rows: f.slice(off, off + (o.limit ?? 100)), total: f.length, source };
+};
+
+// pa:claims?at=3 and friends: the settled Product Model as it was. Only what the run snapshots can be asked; the rest is "not recorded".
+function historical(env: Env, name: string, q: Record<string, string>, o: ResolveOpts, source: string): Resolved {
+  const w0 = W(env); if (!w0) return noProj();
+  const id = parseWorldId(q.at); if (id === null) return bad(`at=${q.at} is not a world: use at=<model version> or at=current`);
+  if (!["claims", "unknowns", "decisions", "versions"].includes(name)) return bad(`pa:${name} has no recorded history: the run versions the Product Model (claims, unknowns, decisions), not ${name}`);
+  const wl = K.worlds(w0); const snap = wl.load(id);
+  if (!snap) return bad(`no readable snapshot for ${q.at}; recorded versions: ${wl.versions.join(", ") || "none"}`);
+  const m = snap.model as any;
+  if (name === "claims") return rowsOut(PA.claims.cols, [...m.claims.values()].map((c: any) => ({ ...c, _ref: `claim:${c.id}` })), o, source);
+  if (name === "unknowns") return rowsOut(PA.unknowns.cols, [...m.unknowns.values()].map((u: any) => ({ ...u, _ref: `unknown:${u.id}` })), o, source);
+  if (name === "decisions") return rowsOut(PA.decisions.cols, m.decisions.map((d: any) => ({ ...d, id: d.n, _ref: `decision:${d.n}` })), o, source);
+  return resolveInner(env, `pa:versions`, o);
+}
+
+function worldSource(env: Env, name: string, q: Record<string, string>, o: ResolveOpts, source: string): Resolved {
+  const w = W(env); if (!w) return noProj();
+  const refOf = () => (q.ref && parseRef(q.ref) ? q.ref : null);
+  const statusCol = (field: string, label?: string): Col => ({ field, label, kind: "status" });
+  switch (name) {
+    case "why": {
+      const ref = refOf(); if (!ref) return bad("world:why needs ?ref=<ref>");
+      const r = K.why(w, ref); if (!r.ok) return bad(r.message);
+      const cols: Col[] = [{ field: "question" }, { field: "answer" }, statusCol("basis"), { field: "refs", label: "refs" }];
+      return rowsOut(cols, r.answers.map((a, i) => ({ id: String(i), question: a.q, answer: a.a, basis: a.basis, refs: (a.refs ?? []).map((x) => `[[${x}]]`).join(" ") })), o, source);
+    }
+    case "diff": {
+      const a = parseWorldId(q.a ?? ""), b = parseWorldId(q.b ?? "current");
+      if (a === null || b === null) return bad("world:diff needs ?a=<version>&b=<version|current>");
+      const d = K.diff(w, a, b); if (!d.ok) return bad(d.message);
+      const cols: Col[] = [{ field: "ref", kind: "ref" }, statusCol("change"), { field: "field" }, { field: "before" }, { field: "after" }, { field: "because", label: "because" }];
+      return rowsOut(cols, d.rows.map((r) => refRow(r)), o, source);
+    }
+    case "timeline": {
+      const ref = q.ref ? (refOf() ?? undefined) : undefined; if (q.ref && !ref) return bad(`${q.ref} is not a ref`);
+      return rowsOut([{ field: "seq", kind: "number" }, { field: "ts" }, { field: "type" }, { field: "subject", kind: "ref" }, { field: "detail" }], K.timeline(w, ref).map((e) => ({ ...e, id: String(e.seq) })).reverse(), o, source);
+    }
+    case "impact": {
+      const ref = refOf(); if (!ref) return bad("world:impact needs ?ref=<ref>");
+      const r = K.impact(w, ref, impactOpts(q)); if (!r.ok) return bad(r.message);
+      const cols: Col[] = [{ field: "ref", kind: "ref" }, { field: "label" }, statusCol("status"), { field: "distance", label: "hops", kind: "number" }, { field: "via", label: "through" }, { field: "gate", label: "gate" }];
+      return rowsOut(cols, r.rows.map((x) => refRow({ ...x, id: x.ref, gate: x.gate ? "gate-relevant" : "" })), o, source);
+    }
+    case "counterfactual": {
+      const ref = refOf(); if (!ref) return bad("world:counterfactual needs ?ref=proposal:P<n>");
+      const r = K.counterfactual(w, ref); if (!r.ok) return bad(r.message);
+      const cols: Col[] = [statusCol("class"), { field: "subject", kind: "ref" }, { field: "effect" }, { field: "basis" }, { field: "via", label: "reach" }];
+      return rowsOut(cols, r.effects.map((e, i) => refRow({ id: String(i), class: e.class, subject: e.subject, effect: e.effect, basis: e.basis, via: e.via ?? "" }, e.subject)), o, source);
+    }
+    case "reach": {
+      const r = K.worldReach(w, { need: q.need, ref: q.ref }); if (!r.ok) return bad(r.message);
+      const rung = (f: string): Col => ({ field: f, kind: "status" });
+      const cols: Col[] = [{ field: "capability" }, { field: "provider" }, statusCol("status"), rung("available"), rung("installed"), rung("configured"), rung("probed"), rung("reachable"), rung("authorized"), { field: "next" }];
+      return rowsOut(cols, ((r as any).rows ?? []).map((x: any, i: number) => ({ id: String(i), ...x })), o, source);
+    }
+    case "replay": {
+      const def = observerOf(q);
+      if (typeof def === "string") return bad(def);
+      const res = observe(env, def);
+      if (res.result === "source-error" || res.result === "not-selected") return rowsOut([{ field: "result", kind: "status" }, { field: "message" }, { field: "observer" }], [{ id: "0", result: res.result, message: res.message, observer: res.observer }], o, source);
+      return rowsOut([{ field: "row", kind: "number" }, statusCol("verdict"), { field: "observed" }, { field: "expected" }, { field: "failed" }], res.rows.map((r) => ({ ...r, id: String(r.row) })), o, source);
+    }
+  }
+  return bad(`unknown world source ${name}`);
+}
+
+const normPreds = (ps: K.Pred[]) => ps.map((p) => ({ ...p, value: p.op === "in" && typeof p.value === "string" ? p.value.split("|") : p.value }));
+export function observerOf(q: Record<string, string>): K.ObserverDef | string {
+  const selects = q.selects; if (!selects || !/^file:evidence\/[^?]+#table\d+$/.test(selects) || selects.includes("..")) return "world:replay needs ?selects=file:evidence/<lens>/<file>#tableN, expect=field~op~value[,...] and optionally where=...";
+  const expect = K.parsePreds(q.expect); if (!expect.length) return "world:replay needs ?expect=field~op~value";
+  return { selects, where: normPreds(K.parsePreds(q.where)), expect: normPreds(expect), discriminates: (q.discriminates ?? "").split(",").filter((x) => parseRef(x)) };
+}
+// Run an observer over evidence the run already holds. Selection can only read files safeRunFile admits; the result never settles anything.
+export function observe(env: Env, def: K.ObserverDef) {
+  const m = /^file:([^#]+)(?:#(.+))?$/.exec(def.selects)!;
+  return K.replay(def, (_s, where) => { const r = fileRows(env, m[1], m[2], where as Filter[], undefined, 500); return r.kind === "rows" ? { rows: r.rows } : { error: (r as any).message }; }, (row, p) => applyFilters([row], [p as Filter]).length === 1);
+}
+
+function impactOpts(q: Record<string, string>): K.ImpactOpts {
+  return { dir: q.dir === "up" || q.dir === "both" ? q.dir : "down", depth: q.depth ? Number(q.depth) : undefined, kinds: q.kinds ? q.kinds.split(",") : undefined, status: q.status ? q.status.split(",") : undefined, gate: q.gate === "1", limit: q.limit ? Number(q.limit) : undefined };
+}
+
+const nodeLabel = (n: { ref: string; label: string; kind: string }) => (["claim", "unknown", "decision", "proposal"].includes(n.kind) ? n.ref.split(":")[1] : n.kind === "artifact" || n.kind === "evidence" ? n.ref.split("/").pop()! : n.kind === "gate" ? "gate" : n.ref.split(":")[1]);
+function worldGraph(env: Env, name: string, q: Record<string, string>): Resolved {
+  const w = W(env); if (!w) return noProj();
+  const ref = q.focus && parseRef(q.focus) ? q.focus : null; if (!ref) return bad(`graph:${name} needs ?focus=<ref>`);
+  const r = K.impact(w, ref, name === "why" ? { dir: "up", depth: q.depth ? Number(q.depth) : 3, limit: 30 } : impactOpts(q)); if (!r.ok) return bad(r.message);
+  const nodes = r.graph.nodes.map((n) => ({ id: n.ref, label: nodeLabel(n), kind: n.kind, tone: n.tone, ref: parseRef(n.ref) ? n.ref : undefined, status: n.status, detail: n.label }));
+  return { kind: "graph", provenance: "process", nodes, edges: r.graph.edges.map((e) => ({ from: e.from, to: e.to, label: e.rel })) };
 }
 
 // ---- entity detail --------------------------------------------------------------------------------------------

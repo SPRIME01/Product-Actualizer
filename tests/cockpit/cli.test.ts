@@ -55,6 +55,18 @@ for (const [label, cmd] of [["bun script", SCRIPT], ["compiled executable", BIN]
       expect(run(cmd as any, ["cockpit", "down"], fx.project).code).toBe(0);
     }, 30000);
 
+    test("the world debugger answers identically with the cockpit down and up, and a bad request fails without changing anything", async () => {
+      const ask = () => ["world why claim:C5", "world impact decision:D4", "world diff 1 current", "world timeline", "world reach --need repo.inspect"].map((c) => { const r = run(cmd as any, c.split(" "), fx.project); expect(r.code, `${c}: ${r.err}`).toBe(0); return r.out; });
+      const before = fs.readFileSync(path.join(fx.run.dir, "product-model.md"), "utf8");
+      const down = ask();
+      expect(run(cmd as any, ["cockpit", "up", "--no-open"], fx.project).code).toBe(0);
+      expect(ask()).toEqual(down);
+      const bad = run(cmd as any, ["world", "why", "claim:C9999"], fx.project);
+      expect(bad.code).toBe(1); expect(JSON.parse(bad.out)).toMatchObject({ ok: false, code: "BAD_REF" });
+      expect(run(cmd as any, ["cockpit", "down"], fx.project).code).toBe(0);
+      expect(fs.readFileSync(path.join(fx.run.dir, "product-model.md"), "utf8")).toBe(before);
+    }, 60000);
+
     test("the status line the hooks inject mentions the cockpit only while a browser is connected", async () => {
       expect(run(cmd as any, ["cockpit", "up", "--no-open"], fx.project).code).toBe(0);
       const status = () => run(cmd as any, ["hook", "claude", "UserPromptSubmit"], fx.project).out;

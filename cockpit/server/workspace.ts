@@ -5,6 +5,7 @@
 //   agent   surfaces: content (what they show), requests for placement, annotations, questions.
 //   human   layout preference (topology, sizes, pins, minimized), controls the human set, answers. Agent actions that would
 //           move a human-placed surface, remove a pinned one, or answer anything are refused with a code the agent can act on.
+import { worldOfSource, mergeViewing } from "../protocol/world";
 import { AgentActionSchema, HumanOpSchema, AUTHORITY_OPS, fail, issuesOf, type ActionResult, type AgentAction, type HumanOp, type Issue } from "../protocol/actions";
 import { SurfaceSchema, type Surface, type Placement } from "../protocol/spec";
 import { parseRef, REF_TOKEN, expandRef } from "../protocol/refs";
@@ -429,6 +430,23 @@ export function applyHuman(prev: WS, raw: unknown, ctx: Ctx): Outcome {
 export const isAuthorityOp = (op: string) => AUTHORITY_OPS.has(op);
 
 // ---- agent-visible context: progressive disclosure for UI state -----------------------------------------------
+// What the focused surface is looking at, in the world sense: current, a historical world, or a candidate, and about which ref.
+// Derived from the surface's own sources and selection, so it cannot disagree with what the owner sees.
+export function viewingOf(ws: WS) {
+  const f = ws.focus ? ws.panels[ws.focus] : null;
+  if (!f) return { mode: "current" as const, worlds: [] as string[], subjects: [] as string[] };
+  const sources: string[] = []; const subjects = new Set<string>();
+  for (const b of f.spec.blocks as any[]) {
+    if (b.source) sources.push(b.source);
+    for (const i of b.items ?? []) if (i.source) sources.push(i.source);
+    if (b.type === "entity" && b.ref) subjects.add(b.ref);
+  }
+  for (const v of Object.values(f.selection)) if (v) subjects.add(v as string);
+  const v = mergeViewing(sources.map(worldOfSource));
+  if (v.subject) subjects.add(v.subject);
+  return { ...v, subjects: [...subjects].filter((x) => parseRef(x)).slice(0, 6) };
+}
+
 export function contextOf(ws: WS, recent: { ts: string; op: string; summary: string }[] = []) {
   const title = (id: string) => ws.panels[id]?.spec.title ?? id;
   const asking = Object.entries(ws.asks).filter(([, a]) => a.state === "open").map(([id, a]) => ({ ask: id, surface: a.surface, prompt: a.prompt, input: a.input }));
@@ -442,6 +460,7 @@ export function contextOf(ws: WS, recent: { ts: string; op: string; summary: str
     answered: Object.entries(ws.asks).filter(([, a]) => a.state === "answered" || a.state === "deferred" || a.state === "cancelled").slice(-4).map(([id, a]) => ({ ask: id, state: a.state })),
     notes: ws.notes.filter((n) => n.by === "human").slice(-3).map((n) => ({ target: n.target, text: n.text })),
     recent: recent.slice(-5),
+    world: (({ subjects, ...v }) => ({ ...v, ...(subjects.length ? { looking: subjects } : {}) }))(viewingOf(ws)),
   };
 }
 export type CockpitContext = ReturnType<typeof contextOf>;

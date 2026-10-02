@@ -6,7 +6,7 @@ import crypto from "node:crypto";
 import { fixtureRun, cleanup } from "./helpers";
 import { serveCockpit } from "../../cockpit/server/serve";
 import { Cockpit } from "../../cockpit/server/core";
-import { TOOLS, TOOL_NAMES } from "../../cockpit/protocol/tools";
+import { TOOLS, TOOL_NAMES, BASE_TOOLS } from "../../cockpit/protocol/tools";
 import { inboxMain } from "../../cockpit/cli";
 import { readInbox } from "../../hooks/src/lib/inbox.mjs";
 import * as P from "../../hooks/src/process.mjs";
@@ -115,11 +115,12 @@ describe("human-only authority", () => {
   test("the tool surface has no verb that answers, rules, confirms, or edits the model", () => {
     expect(TOOL_NAMES).not.toEqual(expect.arrayContaining(["approve_proposal"]));
     for (const n of TOOL_NAMES) expect(n).not.toMatch(/approve|reject|resolve|answer|confirm|submit|accept|edit|write|set_model|reconcile/);
-    expect(TOOL_NAMES.length).toBeLessThanOrEqual(12);
+    expect(BASE_TOOLS.length).toBeLessThanOrEqual(12);   // the always-visible surface stays small; world tools appear by context
   });
-  test("loopback MCP lists exactly those tools and rejects an invented one", async () => {
+  test("loopback MCP lists the active tools (a subset of the one definition) and rejects an invented one", async () => {
     const list = await post("/mcp", srv.agentToken, { jsonrpc: "2.0", id: 1, method: "tools/list" });
-    expect(list.body.result.tools.map((t: any) => t.name).sort()).toEqual([...TOOL_NAMES].sort());
+    expect(list.body.result.tools.map((t: any) => t.name).sort()).toEqual([...srv.cockpit.tools()].sort());
+    for (const t of list.body.result.tools) expect(TOOL_NAMES).toContain(t.name);
     const bad = await post("/mcp", srv.agentToken, { jsonrpc: "2.0", id: 2, method: "tools/call", params: { name: "approve_proposal", arguments: { id: "P24" } } });
     expect(bad.body.result.isError).toBe(true);
     const ok = await post("/mcp", srv.agentToken, { jsonrpc: "2.0", id: 3, method: "tools/call", params: { name: "get_status", arguments: {} } });

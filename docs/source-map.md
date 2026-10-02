@@ -126,7 +126,8 @@ The entries above are the trail; these are the files that define the relationshi
 - `hooks/src/lib/md.mjs` — model and artifact validation, `touches`, `staleReasons`, `validTouched`
 - `hooks/src/lib/lenses.mjs` — `ROUTER`, `loadLenses`, `lensBody`, `waves`
 - `hooks/src/lib/inbox.mjs` — `readInbox`, `ackInbox`, `unhandled`
-- `cockpit/protocol/spec.ts`, `actions.ts`, `tools.ts` — the closed vocabulary and the 12 tools
+- `cockpit/protocol/spec.ts`, `actions.ts`, `tools.ts`, `world.ts` — the closed vocabulary, the tools (12 base, 7 world), and the world vocabulary shared with the page
+- `cockpit/server/world.ts`, `reach.ts`, `reach.providers.json`, `worldSurfaces.ts` — the world debugger kernel, the reach ladder, and its standard compositions
 - `cockpit/server/{project,sync,workspace,serve,db}.ts` — projection, event derivation, authority, transport
 - `cockpit/cli.ts`, `cockpit/build.ts` — the cockpit verbs and the compiled executable
 - `tests/check.py` — structural verification; `tests/hooks/*.test.mjs` and `tests/cockpit/*.test.ts` — behavioural

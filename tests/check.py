@@ -630,6 +630,52 @@ def check_cockpit_and_runtime():
                 err(f"{rel}: still invokes Node ({m.group(0).strip()!r}); the runtime is Bun")
 
 
+def check_world_debugger_and_dependencies():
+    """The world debugger's files exist and its catalogue is well formed; every declared dependency is imported and named in PROVENANCE."""
+    import json
+    for f in ("cockpit/server/world.ts", "cockpit/server/reach.ts", "cockpit/server/reach.providers.json", "cockpit/server/worldSurfaces.ts", "cockpit/protocol/world.ts", "docs/world-debugger.md"):
+        if not os.path.exists(f"{ROOT}/{f}"):
+            err(f"{f} missing")
+    try:
+        providers = json.load(open(f"{ROOT}/cockpit/server/reach.providers.json", encoding="utf-8"))
+        caps = set(re.findall(r'"([a-z]+\.[a-z]+)"', open(f"{ROOT}/cockpit/protocol/world.ts", encoding="utf-8").read().split("export const CAPABILITIES")[1].split("]")[0]))
+        ids = set()
+        for p in providers:
+            if p["id"] in ids:
+                err(f"reach provider {p['id']} is declared twice")
+            ids.add(p["id"])
+            for c in p["capabilities"]:
+                if c not in caps:
+                    err(f"reach provider {p['id']} offers unknown capability {c}")
+            if p.get("route") != "owner" and not (p.get("binaries") or p.get("config")):
+                err(f"reach provider {p['id']} has nothing that can be checked (no binaries, config, or owner route)")
+        for c in caps:
+            if not any(c in p["capabilities"] for p in providers):
+                err(f"capability {c} has no provider")
+    except Exception as e:  # noqa: BLE001
+        err(f"reach provider catalogue unreadable: {e}")
+    prov = open(f"{ROOT}/PROVENANCE.md", encoding="utf-8").read()
+    if "## World-debugger donors" not in prov:
+        err("PROVENANCE.md has no World-debugger donors section")
+    skill = open(f"{ROOT}/skills/cockpit/SKILL.md", encoding="utf-8").read()
+    if "actualize world" not in skill:
+        err("cockpit skill does not mention the world debugger")
+    pkg = json.load(open(f"{ROOT}/package.json", encoding="utf-8"))
+    src = ""
+    for base in ("cockpit", "hooks", "tests/cockpit"):
+        for dp, dn, fn in os.walk(f"{ROOT}/{base}"):
+            for f in fn:
+                if f.endswith((".ts", ".tsx", ".mjs")):
+                    src += open(os.path.join(dp, f), encoding="utf-8", errors="replace").read()
+    for dep in list(pkg.get("dependencies", {})) + list(pkg.get("devDependencies", {})):
+        if dep.startswith("@types/") or dep == "typescript":
+            continue
+        if f'"{dep}"' not in src and f"'{dep}'" not in src and f'"{dep}/' not in src:
+            err(f"package.json declares {dep} but nothing imports it")
+        if dep not in prov:
+            err(f"PROVENANCE.md does not name dependency {dep}")
+
+
 def check_cleanup():
     if os.path.exists(f"{ROOT}/.tmp/ref"):
         err(".tmp/ref still exists")
@@ -652,6 +698,7 @@ if __name__ == "__main__":
             if stale.get(a) != w:
                 err(f"{name}/{a}: expected staleness {w}, got {stale.get(a)}")
     check_cockpit_and_runtime()
+    check_world_debugger_and_dependencies()
     check_cleanup()
     if errors:
         print("\nFAIL")

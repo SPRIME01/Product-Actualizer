@@ -173,6 +173,16 @@ function Rule({ d, ref_ }: { d: any; ref_: string }) {
   );
 }
 
+// Debugger affordances: open a read-only view of why this is so, what depends on it, or what changed since a settled world.
+// They open surfaces; none of them can change the run.
+function WorldActions({ ref_ }: { ref_: string }) {
+  const kind = ref_.split(":")[0];
+  const open = (as: string) => send({ op: "human.open", template: "ref", ref: ref_, as });
+  if (kind === "version") return <div className="actions" style={{ paddingTop: 0 }}><button className="btn" onClick={() => open("diff")}>What changed since</button></div>;
+  if (!["claim", "unknown", "decision", "proposal", "artifact", "evidence", "gate", "field", "lens"].includes(kind)) return null;
+  return <div className="actions" style={{ paddingTop: 0 }}><button className="btn" onClick={() => open("why")}>Why?</button><button className="btn" onClick={() => open("impact")}>What depends on it</button></div>;
+}
+
 export function EntityBlock({ block, panel }: BP) {
   const ref_ = block.ref ?? panel.selection[block.follow] ?? undefined;
   const d = useDetail(ref_);
@@ -188,6 +198,7 @@ export function EntityBlock({ block, panel }: BP) {
       {d.consequence && show.has("consequence") ? <div className="cons">{d.consequence}</div> : null}
       {d.related.length && show.has("touches") ? <div className="rel">{d.related.map((r: any) => <span key={r.ref}><RefChip ref_={r.ref} label={r.label} />{r.note ? <span className="muted" style={{ fontSize: 11 }}> {r.note}</span> : null}</span>)}</div> : null}
       {show.has("actions") ? <Rule d={d} ref_={ref_} /> : null}
+      {show.has("actions") ? <WorldActions ref_={ref_} /> : null}
       {show.has("actions") && d.next?.some((n: any) => n.action === "document" || n.action === "graph:claims") ? <div className="actions" style={{ paddingTop: 0 }}>
         {d.next.some((n: any) => n.action === "document") ? <button className="btn" onClick={() => send({ op: "human.open", template: "ref", ref: ref_, as: "document" })}>Open document</button> : null}
         {d.next.some((n: any) => n.action === "graph:claims") ? <button className="btn" onClick={() => send({ op: "human.open", template: "ref", ref: ref_, as: "lineage" })}>Show lineage</button> : null}</div> : null}

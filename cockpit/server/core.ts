@@ -4,12 +4,15 @@ import path from "node:path";
 import { openDb, getUi, setUi, pushEvent, entities, entity } from "./db";
 import { Syncer } from "./sync";
 import { railOf } from "./project";
-import { resolve, detail, search, safeRunFile, type Env } from "./sources";
-import { emptyWS, applyAgent, applyHuman, contextOf, isAuthorityOp, panelsIn, type WS, type Ctx, type Panel } from "./workspace";
+import { resolve, detail, search, safeRunFile, observe, observerOf, type Env } from "./sources";
+import * as K from "./world";
+import * as WS_ from "./worldSurfaces";
+import { emptyWS, applyAgent, applyHuman, contextOf, viewingOf, isAuthorityOp, panelsIn, type WS, type Ctx, type Panel } from "./workspace";
 import { parseRef } from "../protocol/refs";
 import { TEMPLATES, hints } from "./templates";
 import { fail, issuesOf, type ActionResult } from "../protocol/actions";
-import { TOOLS } from "../protocol/tools";
+import { TOOLS, activeTools } from "../protocol/tools";
+import { parseWorldId } from "../protocol/world";
 import { vocabulary } from "../protocol/catalog";
 import { SurfaceSchema } from "../protocol/spec";
 import { appendInbox, readInbox, ackInbox } from "../../hooks/src/lib/inbox.mjs";
@@ -30,7 +33,7 @@ export class Cockpit {
     this.env = { db: this.db, runDir: this.run.dir };
     this.last = this.syncer.refresh();
     this.run = this.last.run ?? this.run;
-    this.env.runDir = this.run.dir;
+    this.env.runDir = this.run.dir; this.env.proj = this.last.proj;
     this.reconcileWs();
     this.writeContext();
   }
@@ -70,7 +73,7 @@ export class Cockpit {
     const before = this.last.proj;
     this.last = this.syncer.refresh();
     this.run = this.last.run ?? this.run;
-    this.env.runDir = this.run.dir;
+    this.env.runDir = this.run.dir; this.env.proj = this.last.proj;
     const rail = this.rail();
     const kinds = new Set<string>();
     for (const e of this.last.events) kinds.add(e.type.split(".")[0]);
@@ -90,7 +93,7 @@ export class Cockpit {
     return { ...base, asking: asking.length, humanInput: base.humanInput ?? (asking.length ? `${asking.length} question(s) waiting for you` : null), hasRun: !!this.last.proj.run.goal };
   }
 
-  rebuild() { const r = this.syncer.rebuild(); this.last = r; this.writeContext(); this.emit({ t: "rail", rail: this.rail() }); this.emit({ t: "invalidate", kinds: ["all"] }); return r; }
+  rebuild() { const r = this.syncer.rebuild(); this.last = r; this.env.proj = r.proj; this.writeContext(); this.emit({ t: "rail", rail: this.rail() }); this.emit({ t: "invalidate", kinds: ["all"] }); return r; }
 
   // ---- workspace ---------------------------------------------------------------------------------------------------
   private commit(next: WS, events: { type: string; subject?: string; data?: any }[], prev: WS) {
@@ -99,8 +102,14 @@ export class Cockpit {
     for (const e of events) pushEvent(this.db, { channel: "cockpit", type: e.type, subject: e.subject, data: e.data });
     this.emit({ t: "ws", ...this.wsDelta(prev, next) });
     this.emit({ t: "rail", rail: this.rail() });
+    this.emitTools();
     this.writeContext();
   }
+
+  // Which tools are worth offering right now (WebMCP re-registers on this; MCP clients see it on the next tools/list).
+  private toolsKey = "";
+  tools(): string[] { const v = viewingOf(this.ws); return activeTools({ mode: v.mode, subjects: v.subjects.map((x) => x.split(":")[0]) }); }
+  private emitTools() { const t = this.tools(); const k = t.join(","); if (k !== this.toolsKey) { this.toolsKey = k; this.emit({ t: "tools", tools: t }); } }
 
   // Send only what changed: topology and small maps whole, panels by revision.
   wsDelta(prev: WS | null, next: WS) {
@@ -162,14 +171,14 @@ export class Cockpit {
   recent() {
     return (this.db.query("SELECT ts, op, data FROM interactions WHERE op NOT IN ('human.layout','human.select','human.control') ORDER BY seq DESC LIMIT 5").all() as any[]).reverse().map((r) => ({ ts: r.ts, op: r.op, summary: JSON.parse(r.data).summary }));
   }
-  context() { return contextOf(this.ws, this.recent()); }
+  context() { return { ...contextOf(this.ws, this.recent()), tools: this.tools() }; }
 
   // A compact file for the hook engine: one status line per prompt, so the router knows what the owner is looking at.
   writeContext() {
     try {
       const c = this.context(); const dir = path.join(this.run.dir, ".cockpit");
       fs.mkdirSync(dir, { recursive: true });
-      fs.writeFileSync(path.join(dir, "context.json"), JSON.stringify({ connected: this.clients > 0, pid: process.pid, ts: new Date().toISOString(), focus: c.focus, visible: c.visible.map((v) => v.id), asking: c.asking, layout: c.layout }));
+      fs.writeFileSync(path.join(dir, "context.json"), JSON.stringify({ connected: this.clients > 0, pid: process.pid, ts: new Date().toISOString(), focus: c.focus, visible: c.visible.map((v) => v.id), asking: c.asking, layout: c.layout, world: c.world }));
     } catch { /* the context file is advisory */ }
   }
 
@@ -178,7 +187,7 @@ export class Cockpit {
   detail(ref: string) { return detail(this.env, ref); }
   search(q: string) { return search(this.env, q); }
   file(rel: string) { const abs = safeRunFile(this.run.dir, rel); return abs && fs.statSync(abs).isFile() ? abs : null; }
-  snapshot() { return { ws: this.fullWs(), rail: this.rail(), hints: hints(this.last.proj), context: this.context(), events: (this.db.query("SELECT seq, ts, channel, type, subject, data FROM events ORDER BY seq DESC LIMIT 60").all() as any[]).reverse().map((e) => ({ ...e, data: JSON.parse(e.data) })) }; }
+  snapshot() { return { ws: this.fullWs(), tools: this.tools(), rail: this.rail(), hints: hints(this.last.proj), context: this.context(), events: (this.db.query("SELECT seq, ts, channel, type, subject, data FROM events ORDER BY seq DESC LIMIT 60").all() as any[]).reverse().map((e) => ({ ...e, data: JSON.parse(e.data) })) }; }
 
   // ---- tools: the same implementation behind CLI, loopback MCP, and WebMCP ------------------------------------------
   tool(name: string, input: unknown): { ok: true; result: any } | ActionResult {
@@ -205,9 +214,38 @@ export class Cockpit {
       case "ask_human": { const { place, ...ask } = a; return apply({ op: "surface.put", surface: { id: `ask-${slug(ask.id)}`, title: "Needs your input", summary: ask.why ?? "The agent asked for a judgement it cannot make.", intent: "decide", layout: "stack", blocks: [{ type: "ask", ...ask }] }, place }); }
       case "arrange": return apply(a.action);
       case "annotate": return apply({ op: "note.add", target: a.target, text: a.text, tone: a.tone });
+      case "world_why": case "world_impact": case "world_diff": case "world_timeline": case "world_counterfactual": case "world_reach": case "world_replay":
+        return this.worldTool(name, a);
       case "read_responses": {
         const rows = readInbox(this.run).filter((r: any) => !a.unhandled || !r.handled);
         return { ok: true, result: { count: rows.length, responses: rows.map((r: any) => ({ id: r.id, kind: r.kind, outcome: r.outcome, ref: r.ref ?? r.target ?? r.ask, value: r.value, note: r.note, via: r.via, handled: r.handled?.as ?? null })) } };
+      }
+    }
+    return fail("UNKNOWN_OP", name);
+  }
+
+  // ---- the world debugger: reads over the run files; `show` composes the answer as a surface through the ordinary agent path -------------
+  worldEnv(): K.WorldEnv { return { proj: this.last.proj, runDir: this.run.dir, reach: this.reachEnv }; }
+  reachEnv: import("./reach").ReachEnv | undefined;
+  private worldTool(name: string, a: any): { ok: true; result: any } | ActionResult {
+    const W = this.worldEnv(); const BAD = (m: string) => fail(/does not exist|not a ref|candidate is a proposal|give need/.test(m) ? "BAD_REF" : "BAD_SOURCE", m);
+    const showIt = (s: any) => (a.show && s ? this.agent({ op: "surface.put", surface: s }) : null);
+    const out = (result: any, surface?: any) => { const shown = showIt(surface); return { ok: true as const, result: { ...result, ...(shown ? { shown: shown.ok ? surface.id : { refused: (shown as any).code } } : {}) } }; };
+    switch (name) {
+      case "world_why": { const r = K.why(W, a.ref); if (!r.ok) return BAD(r.message); return out({ ref: r.ref, kind: r.kind, title: r.title, state: r.state, answers: r.answers, unavailable: r.unavailable, note: "basis: recorded = written in the run; derived = computed from what is written; unavailable = not recorded" }, WS_.whySurface(a.ref)); }
+      case "world_impact": { const r = K.impact(W, a.ref, { dir: a.dir, depth: a.depth, kinds: a.kinds, gate: a.gate }); if (!r.ok) return BAD(r.message); return out({ subject: r.subject, direction: r.direction, depth: r.depth, affected: r.affected, direct: r.direct, stale: r.stale, gateRelevant: r.gateRelevant, gatePath: r.gatePath, truncated: r.truncated, nodes: r.rows.map((x) => `${x.ref} [${x.status || x.kind}] ${x.distance} hop(s) via ${x.via}${x.gate ? " (gate)" : ""}`), basis: r.basis }, WS_.impactSurface(a.ref, a)); }
+      case "world_diff": {
+        const A = parseWorldId(a.a), B = parseWorldId(a.b); if (A === null || B === null) return BAD("a and b must be worlds");
+        const d = K.diff(W, A, B); if (!d.ok) return BAD(d.message);
+        return out({ a: d.a.id, b: d.b.id, same: d.same, digests: [d.a.digest.value.slice(0, 12), d.b.digest.value.slice(0, 12)], changes: d.rows.slice(0, 40).map((r) => `${r.change} ${r.ref}${r.field ? "." + r.field : ""}${r.before ? `: ${r.before} → ` : ": "}${r.after}${r.because ? `  (${r.because})` : ""}`), total: d.rows.length, coverage: d.coverage, note: d.note }, WS_.diffSurface(W, A, B));
+      }
+      case "world_timeline": { const t = K.timeline(W, a.ref); return out({ ref: a.ref ?? null, events: t.slice(-40).map((e) => `model@${e.version} ${e.ts || "(time not recorded)"} ${e.type} ${e.detail}`), total: t.length }, WS_.timelineSurface(a.ref)); }
+      case "world_counterfactual": { const r = K.counterfactual(W, a.candidate); if (!r.ok) return BAD(r.message); return out({ candidate: r.candidate, settled: r.settled, counts: r.counts, effects: r.effects.map((e) => `[${e.class}] ${e.subject}: ${e.effect}${e.via ? `  reach: ${e.via}` : ""}`), authority: r.authority, note: "possibility only: the router decides at reconciliation" }, WS_.counterfactualSurface(a.candidate)); }
+      case "world_reach": { const r: any = K.worldReach(W, { need: a.need, ref: a.ref }, this.reachEnv); if (!r.ok) return BAD(r.message); return out({ ref: r.ref, gap: r.gap, capability: r.capability, best: r.best, needs: r.needs?.map((n: any) => ({ capability: n.capability, basis: n.basis, best: n.best, providers: n.providers.map((p: any) => `${p.id} ${p.status}${p.blockedAt ? ` at ${p.blockedAt}` : ""}: ${p.next}`) })), providers: r.providers?.map((p: any) => `${p.id} ${p.status}${p.blockedAt ? ` at ${p.blockedAt}` : ""}: ${p.next}`), note: r.note ?? "nothing was run or contacted; probed, reachable and authorized stay unknown until a prober supplies them" }, WS_.reachSurface({ need: a.need, ref: a.ref })); }
+      case "world_replay": {
+        const def = observerOf({ selects: a.selects, where: K.fmtPreds(a.where), expect: K.fmtPreds(a.expect), discriminates: (a.discriminates ?? []).join(",") }); if (typeof def === "string") return BAD(def);
+        const r = observe(this.env, def);
+        return out({ observer: r.observer, result: r.result, message: r.message, selected: r.selected, failures: r.rows.filter((x: any) => x.verdict === "fail").slice(0, 10), settles: false, discriminates: def.discriminates, note: "evidence for the router and the owner; no grade, claim, or gate changed" }, WS_.replaySurface(def));
       }
     }
     return fail("UNKNOWN_OP", name);
@@ -234,7 +272,13 @@ function compactRow(what: string, r: any) {
 }
 
 function templateShow(a: any, c: Cockpit) {
-  const r = parseRef(a.ref)!; const d = c.detail(a.ref);
+  const r = parseRef(a.ref)!;
+  // debugger views are compositions of the same blocks; they carry the same placement rules as any other surface
+  const place = a.beside ? { rel: "right", to: a.beside, size: 0.5, focus: true } : undefined;
+  if (a.as === "why") return { op: "surface.put", surface: WS_.whySurface(a.ref), place };
+  if (a.as === "impact") return { op: "surface.put", surface: WS_.impactSurface(a.ref), place };
+  if (a.as === "diff" && r.kind === "version") { const s = WS_.diffSurface(c.worldEnv(), Number(r.id), "current"); if (s) return { op: "surface.put", surface: s, place }; }
+  const d = c.detail(a.ref);
   const id = `ref-${r.kind}-${r.id.replace(/[^a-z0-9]+/gi, "-").toLowerCase()}`.slice(0, 40) + (a.as && a.as !== "detail" ? `-${a.as.slice(0, 3)}` : "");
   const blocks: any[] = [];
   if (a.as === "document" && (r.kind === "artifact" || r.kind === "evidence")) blocks.push({ type: "document", id: "doc", source: `file:${r.kind === "artifact" ? "artifacts" : "evidence"}/${r.id}` });

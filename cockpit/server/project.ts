@@ -6,6 +6,7 @@ import { findRun, loadState, readText, listFiles } from "../../hooks/src/lib/sto
 import { parseProposals, parseModel } from "../../hooks/src/lib/md.mjs";
 import { readInbox } from "../../hooks/src/lib/inbox.mjs";
 import * as P from "../../hooks/src/process.mjs";
+import { digestModel } from "./world";
 
 export type Claim = { id: string; text: string; grade: string; source: string };
 export type Proj = {
@@ -51,7 +52,7 @@ export function project(cwd: string): { run: any | null; proj: Proj } {
   }));
   proj.versions = listFiles(run.historyDir).filter((f: string) => /^model-v\d+\.md$/.test(f)).map((f: string) => {
     const v = Number(/\d+/.exec(f)![0]); const m = parseModel(readText(path.join(run.historyDir, f), ""));
-    return { id: String(v), version: v, claims: m.claims.size, unknowns: m.unknowns.size, decisions: m.decisions.length, latest: m.decisions.filter((d: any) => d.version === v).map((d: any) => d.n).join(", ") };
+    return { id: String(v), version: v, world: `model@${v}`, digest: digestModel(m).value.slice(0, 12), settled: "", claims: m.claims.size, unknowns: m.unknowns.size, decisions: m.decisions.length, latest: m.decisions.filter((d: any) => d.version === v).map((d: any) => d.n).join(", ") };
   }).sort((a: any, b: any) => a.version - b.version);
   const staleLenses = new Set(proj.artifacts.filter((a) => a.status === "stale").map((a) => a.lens));
   const ready = new Set(P.readyLenses(state, lenses, g));
@@ -69,6 +70,7 @@ export function project(cwd: string): { run: any | null; proj: Proj } {
   proj.evidence = listFiles(run.evidenceDir).map((f: string) => ({ id: f, rel: f, lens: f.split(path.sep)[0], bytes: (() => { try { return fs.statSync(path.join(run.evidenceDir, f)).size; } catch { return 0; } })() }));
   proj.responses = readInbox(run).map((r: any) => ({ ...r, status: r.handled ? "handled" : "waiting" }));
   proj.log = readLog(run.logPath);
+  for (const e of proj.log) if (e.type === "reconcile_done" && e.version) { const row = proj.versions.find((x: any) => x.version === e.version); if (row) row.settled = e.ts; }
   return { run, proj };
 }
 

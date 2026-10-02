@@ -1,0 +1,18 @@
+[
+  { "id": "exa", "label": "Exa search API", "capabilities": ["web.search"], "tier": 1, "remote": true, "config": { "env": ["EXA_API_KEY"] }, "install": "an API key from exa.ai" },
+  { "id": "agent-reach", "label": "Agent-Reach channels", "capabilities": ["web.search", "github.search", "reddit.read", "youtube.transcript"], "tier": 1, "remote": true, "binaries": ["agent-reach"], "probe": ["agent-reach", "doctor"], "install": "pipx install agent-reach, then agent-reach doctor" },
+  { "id": "gh", "label": "GitHub CLI", "capabilities": ["github.search", "repo.inspect"], "tier": 1, "remote": true, "binaries": ["gh"], "config": { "env": ["GH_TOKEN", "GITHUB_TOKEN"], "files": ["~/.config/gh/hosts.yml"] }, "probe": ["gh", "auth", "status"], "install": "install gh, then gh auth login" },
+  { "id": "yt-dlp", "label": "yt-dlp", "capabilities": ["youtube.transcript"], "tier": 0, "remote": true, "binaries": ["yt-dlp"], "probe": ["yt-dlp", "--version"], "install": "install yt-dlp" },
+  { "id": "git", "label": "git", "capabilities": ["repo.inspect"], "tier": 0, "binaries": ["git"], "probe": ["git", "--version"], "install": "install git" },
+  { "id": "ripgrep", "label": "ripgrep", "capabilities": ["repo.inspect"], "tier": 0, "binaries": ["rg"], "probe": ["rg", "--version"], "install": "install ripgrep" },
+  { "id": "chrome", "label": "system Chrome or Chromium", "capabilities": ["browser.inspect"], "tier": 0, "binaries": ["google-chrome", "google-chrome-stable", "chromium", "chromium-browser", "chrome"], "install": "install Chrome or Chromium" },
+  { "id": "tracetest", "label": "Tracetest CLI", "capabilities": ["trace.query"], "tier": 2, "remote": true, "binaries": ["tracetest"], "probe": ["tracetest", "version"], "install": "install the tracetest CLI and configure a server" },
+  { "id": "openobserve", "label": "OpenObserve API", "capabilities": ["trace.query"], "tier": 2, "remote": true, "config": { "env": ["OPENOBSERVE_URL"] }, "install": "point OPENOBSERVE_URL at a deployment" },
+  { "id": "esptool", "label": "esptool", "capabilities": ["device.serial"], "tier": 2, "binaries": ["esptool", "esptool.py"], "probe": ["esptool", "version"], "install": "pip install esptool" },
+  { "id": "picocom", "label": "picocom serial terminal", "capabilities": ["device.serial"], "tier": 2, "binaries": ["picocom"], "install": "install picocom" },
+  { "id": "openocd", "label": "OpenOCD", "capabilities": ["device.serial", "hardware.measure"], "tier": 2, "binaries": ["openocd"], "probe": ["openocd", "--version"], "install": "install openocd" },
+  { "id": "sigrok", "label": "sigrok-cli (logic analyzer)", "capabilities": ["hardware.measure"], "tier": 2, "binaries": ["sigrok-cli"], "probe": ["sigrok-cli", "--version"], "install": "install sigrok-cli and attach a supported device" },
+  { "id": "freecad", "label": "FreeCAD (headless)", "capabilities": ["cad.inspect"], "tier": 2, "binaries": ["freecadcmd", "FreeCADCmd"], "install": "install FreeCAD" },
+  { "id": "openscad", "label": "OpenSCAD", "capabilities": ["cad.inspect"], "tier": 0, "binaries": ["openscad"], "probe": ["openscad", "--version"], "install": "install openscad" },
+  { "id": "owner", "label": "The owner at the bench", "capabilities": ["hardware.measure", "device.serial", "cad.inspect", "owner.attest"], "tier": 2, "route": "owner", "install": "ask with ask_human; the owner's answer is the observation" }
+]

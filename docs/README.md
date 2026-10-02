@@ -38,6 +38,7 @@ What actually happens, traced end to end against the tests that verify it.
 | [Run a governed run](how-to/run-a-governed-run.md) | execute the enforced sequence with the exact commands, validation, and recovery |
 | [Hooks](hooks.md) | install and operate the enforcement hooks across the five clients |
 | [Cockpit](cockpit.md) | use the cockpit: the rail, surfaces, authority, the inbox, WebMCP |
+| [World debugger](world-debugger.md) | ask why something is true, what changed, what depends on it, what a candidate would do, and who could gather missing evidence |
 | [Troubleshooting](troubleshooting.md) | diagnose a symptom; every row is keyed to a real refusal message |
 
 ## Understand why
@@ -59,7 +60,7 @@ Where the evidence supports a rationale, this layer states it — and marks infe
 | [CLI](reference/cli.md) | an exact command, flag, default, exit code, environment variable, `just` recipe, or the artifact header |
 | [Lenses](reference/lenses.md) | every lens, its `reads`/`needs`/`executes_with`, and the dependency graph |
 | [Product Model schema](reference/product-model-schema.md) | write or validate a `product-model.md`: sections, grades, sources, `proposals.md`, staleness |
-| [Cockpit protocol](reference/cockpit-protocol.md) | compose a surface: 15 blocks, source grammar, refs, actions, error codes, 12 tools, events |
+| [Cockpit protocol](reference/cockpit-protocol.md) | compose a surface: 15 blocks, source grammar (`pa:`, `graph:`, `world:`, `file:`), refs, actions, error codes, 19 tools, events |
 | [Files and layout](reference/files-and-layout.md) | find a file: the run directory, this repository, and the test fixtures |
 | [Reference index](reference.md) | the cross-cutting summaries: what `tests/check.py` enforces, and what it does not |
 

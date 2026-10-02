@@ -8,7 +8,7 @@ import index from "../../cockpit/web/index.html";
 import { serveCockpit } from "../../cockpit/server/serve";
 import { fixtureRun, cleanup } from "./helpers";
 import { readInbox } from "../../hooks/src/lib/inbox.mjs";
-import { TOOL_NAMES } from "../../cockpit/protocol/tools";
+import { TOOL_NAMES, toolSchemas } from "../../cockpit/protocol/tools";
 
 const CHROME = ["/usr/bin/google-chrome", "/usr/bin/chromium", "/usr/bin/chromium-browser", process.env.CHROME_BIN ?? ""].find((p) => p && fs.existsSync(p));
 const d = CHROME ? describe : describe.skip;
@@ -202,25 +202,100 @@ d("resilience and WebMCP", () => {
     expect(await page.locator(".dv-tab", { hasText: "claim C57" }).count()).toBe(1);
     await page.close();
   });
-  test("WebMCP registers the semantic tools and routes them through the same rules", async () => {
-    const { page } = await open(async (p) => { await p.addInitScript(() => { (navigator as any).modelContext = { provideContext(c: any) { (window as any).__mcp = c.tools; } }; }); });
-    await page.waitForFunction(() => (window as any).__mcp?.length > 0);
-    const names = await page.evaluate(() => (window as any).__mcp.map((t: any) => t.name));
-    expect(names.sort()).toEqual([...TOOL_NAMES].sort());
-    const status = await page.evaluate(() => (window as any).__mcp.find((t: any) => t.name === "get_status").execute({}));
-    expect(JSON.parse(status.content[0].text)).toHaveProperty("counts");
-    const shown = await page.evaluate(() => (window as any).__mcp.find((t: any) => t.name === "show_ref").execute({ ref: "decision:D7" }));
-    expect(shown.isError).toBe(false);
+  // A stand-in for the browser's implementation of the current WebMCP API: document.modelContext.registerTool(tool, { signal }), withdrawn by aborting.
+  const webmcpMock = (alias: "document" | "navigator" = "document") => async (p: Page) => { await p.addInitScript((where) => {
+    const tools = new Map<string, any>(); (window as any).__tools = tools; (window as any).__log = [];
+    const mc = { registerTool(tool: any, o: any = {}) { if (tools.has(tool.name)) return Promise.reject(new DOMException("duplicate", "InvalidStateError")); tools.set(tool.name, tool); (window as any).__log.push(["register", tool.name]); o.signal?.addEventListener("abort", () => { tools.delete(tool.name); (window as any).__log.push(["abort", tool.name]); }); return Promise.resolve(); }, provideContext() { throw new Error("provideContext is not part of WebMCP any more"); } };
+    if (where === "document") Object.defineProperty(document, "modelContext", { value: mc }); else (navigator as any).modelContext = mc;
+  }, alias); };
+  const names = (page: Page) => page.evaluate(() => [...(window as any).__tools.keys()].sort());
+  test("WebMCP registers the active tools on document.modelContext and routes them through the same rules", async () => {
+    const { page } = await open(webmcpMock());
+    await page.waitForFunction(() => (window as any).__tools.size > 0);
+    expect(await names(page)).toEqual([...srv.cockpit.tools()].sort());
+    const defs = await page.evaluate(() => [...(window as any).__tools.values()].map((t: any) => ({ name: t.name, description: t.description, inputSchema: t.inputSchema, annotations: t.annotations, hasTitle: !!t.title })));
+    for (const t of defs) { expect(t.hasTitle).toBe(true); expect({ name: t.name, description: t.description, inputSchema: t.inputSchema, annotations: t.annotations }).toEqual(toolSchemas([t.name])[0]); }
+    const status = await page.evaluate(() => (window as any).__tools.get("get_status").execute({}, { signal: new AbortController().signal }));
+    expect(status).toHaveProperty("counts");
+    await page.evaluate(() => (window as any).__tools.get("show_ref").execute({ ref: "decision:D7" }, {}));
     await page.locator('[data-surface="ref-decision-d7"]').waitFor();
-    const forged = await page.evaluate(() => (window as any).__mcp.find((t: any) => t.name === "arrange").execute({ action: { op: "human.rule", ref: "proposal:P24", ruling: "accept" } }));
-    expect(forged.isError).toBe(true);
+    const forged = await page.evaluate(() => (window as any).__tools.get("arrange").execute({ action: { op: "human.rule", ref: "proposal:P24", ruling: "accept" } }, {}).then(() => "ran", (e: Error) => e.message));
+    expect(forged).toContain("SCHEMA");
     expect(readInbox(fx.run).some((r: any) => r.ref === "proposal:P24")).toBe(false);
+    await page.close();
+  });
+  test("tools appear and disappear with what the owner is looking at, by registering and aborting", async () => {
+    const { page } = await open(webmcpMock());
+    await page.waitForFunction(() => (window as any).__tools.size > 0);
+    await tool("arrange", { action: { op: "layout.reset" } });
+    await page.waitForFunction(() => !(window as any).__tools.has("world_diff"));
+    expect(await names(page)).not.toContain("world_diff");
+    await tool("show_surface", { surface: { id: "then", title: "Then", blocks: [{ type: "table", id: "t", source: "pa:claims?at=2" }] } });
+    await page.waitForFunction(() => (window as any).__tools.has("world_diff") && (window as any).__tools.has("world_timeline"));
+    await page.locator(".world-banner", { hasText: "Historical view, read-only: model@2" }).waitFor();
+    const viaPage = await page.evaluate(() => (window as any).__tools.get("world_diff").execute({ a: "2", b: "current" }, {}));
+    expect(viaPage.a).toBe("model@2"); expect(viaPage.changes.length).toBeGreaterThan(0);
+    await tool("arrange", { action: { op: "surface.remove", id: "then" } });
+    await page.waitForFunction(() => !(window as any).__tools.has("world_diff"));
+    const log: string[][] = await page.evaluate(() => (window as any).__log);
+    expect(log.filter((e) => e[1] === "world_diff").map((e) => e[0])).toEqual(["register", "abort"]);   // withdrawn by abort, never re-registered under a changed schema
+    await page.close();
+  });
+  test("a browser that only ships the deprecated navigator.modelContext alias still works, and nothing breaks without WebMCP", async () => {
+    const { page, errors } = await open(webmcpMock("navigator"));
+    await page.waitForFunction(() => (window as any).__tools.size > 0);
+    expect(errors).toEqual([]);
     await page.close();
   });
   test("the page works with no WebMCP present and exposes no raw-DOM tools", async () => {
     const { page, errors } = await open();
-    expect(await page.evaluate(() => (navigator as any).modelContext)).toBeUndefined();
+    expect(await page.evaluate(() => (document as any).modelContext ?? (navigator as any).modelContext)).toBeUndefined();
     expect(errors).toEqual([]);
+    await page.close();
+  });
+});
+
+d("the world debugger in the browser", () => {
+  test("an entity offers Why and impact, they open read-only surfaces, and nothing reaches the inbox", async () => {
+    const { page, errors } = await open();
+    await tool("show_ref", { ref: "claim:C31" });
+    await page.locator('[data-surface="ref-claim-c31"]').waitFor();
+    await page.locator('[data-surface="ref-claim-c31"]').getByRole("button", { name: "Why?" }).click();
+    const why = page.locator('[data-surface="w-why-claim-c31"]'); await why.waitFor();
+    await why.getByText("How it came to be").waitFor();
+    await why.getByText("REPORTED → CONTRADICTED at model@2").waitFor();
+    expect(await why.locator(".status.recorded").count()).toBeGreaterThan(0);
+    expect(await why.locator(".world-banner").count()).toBe(0);   // current world: no banner
+    await page.locator('[data-surface="ref-claim-c31"]').getByRole("button", { name: "What depends on it" }).click();
+    await page.locator('[data-surface="w-impact-claim-c31"]').waitFor();
+    expect(readInbox(fx.run).filter((r: any) => r.ref === "claim:C31" || r.target === "claim:C31")).toEqual([]);
+    expect(errors).toEqual([]);
+    await page.close();
+  });
+  test("a historical world and a candidate each wear a banner the agent cannot remove, and the rail keeps showing the current world", async () => {
+    const { page, errors } = await open();
+    await tool("arrange", { action: { op: "layout.reset" } });
+    await tool("world_diff", { a: "2", b: "current", show: true });
+    const diff = page.locator('[data-surface="w-diff-2-current"]'); await diff.waitFor();
+    await diff.locator(".world-banner", { hasText: "Not the current world" }).waitFor();
+    await diff.getByText("claim:C64").first().waitFor();
+    await tool("world_counterfactual", { candidate: "proposal:P24", show: true });
+    const cf = page.locator('[data-surface="w-cf-proposal-p24"]'); await cf.waitFor();
+    await cf.locator(".world-banner.unknown", { hasText: "a possibility, not truth" }).waitFor();
+    await cf.getByText("known", { exact: true }).first().waitFor();
+    await cf.getByText("derived", { exact: true }).first().waitFor();
+    expect(await page.locator(".rail-id b").textContent()).toBe("Mote");
+    await page.locator(".rail").getByText(/v6|model 6|@6/).first().waitFor();
+    await page.screenshot({ path: path.join(process.env.WORLD_SHOTS ?? "/tmp", "world-debugger.png") });
+    expect(errors).toEqual([]);
+    await page.close();
+  });
+  test("the debugger works at a narrow width without horizontal overflow", async () => {
+    const page = await browser.newPage({ viewport: { width: 390, height: 800 } });
+    await page.goto(srv.humanUrl); await page.locator(".rail-id b").waitFor();
+    await tool("world_why", { ref: "gate", show: true });
+    await page.locator('[data-surface="w-why-gate"]').waitFor();
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1)).toBe(true);
     await page.close();
   });
 });

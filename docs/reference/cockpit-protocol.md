@@ -130,9 +130,9 @@ So the real behaviour is a **fluid auto-fit grid**: the column count follows the
 
 A block's data is bound by **source**, not typed in. Agent-supplied `data` is always rendered with an "agent-supplied" mark, because a surface cannot pass its own numbers off as process state (`spec.ts:15`, `sources.ts:1-3`).
 
-`SourceSchema` = `z.string().max(300)` refined (`spec.ts:18-22`). Exactly one of three forms:
+`SourceSchema` = `z.string().max(300)` refined (`spec.ts:18-22`). One of four forms (`pa:`, `graph:`, `world:`, `file:`):
 
-### `pa:` — 13 read-only projections of process state
+### `pa:` — 14 read-only projections of process state
 
 | source | resolves to | `sources.ts` columns |
 |---|---|---|
@@ -146,8 +146,9 @@ A block's data is bound by **source**, not typed in. Agent-supplied `data` is al
 | `pa:waves` | waves | `wave`(number), `lenses`, `status`(status), `done`(number), `total`(number) |
 | `pa:events` | the event stream, newest first | `seq`(number), `ts`, `type`, `subject`(ref), `detail` |
 | `pa:blockers` | current gate blockers | `id`, `text`, `fix` |
-| `pa:versions` | per-version counts | `version`(ref), `claims`(number), `unknowns`(number), `decisions`(number), `latest` |
+| `pa:versions` | settled worlds: per-version counts and identity | `version`(ref), `world` (`model@N`), `settled` (log time, or empty), `claims`(number), `unknowns`(number), `decisions`(number), `latest`, `digest` (12 hex of the model digest) |
 | `pa:responses` | the inbox | `id`, `kind`, `outcome`, `ref`, `value`, `status`(status) |
+| `pa:candidates` | open and settled proposals as candidates | `id`(ref), `parent` (world), `intention`, `producer`, `delta`, `status`(status), `requires` (what settles it) |
 | `pa:trace` | the run as nested activity, built from the event log (`sources.ts:168-189`) | tree, not rows |
 
 `PA_SOURCES` is the constant at `spec.ts:16`; the projection table is `PA` at `sources.ts:22-34`.
@@ -162,7 +163,7 @@ A block's data is bound by **source**, not typed in. Agent-supplied `data` is al
 | `type=<prefix>` | `pa:events?type=lens.finished` — SQL `LIKE '<prefix>%'` | `sources.ts:233` |
 | `subject=<ref>` | `pa:events?subject=surface:x` — exact match | `sources.ts:234` |
 
-### `graph:` — 4 computed graphs
+### `graph:` — 6 computed graphs
 
 | source | nodes and edges | source |
 |---|---|---|
@@ -170,8 +171,26 @@ A block's data is bound by **source**, not typed in. Agent-supplied `data` is al
 | `graph:staleness` | stale artifacts → the decisions that staled them → the fields those decisions touched | `sources.ts:134-146` |
 | `graph:claims` | claims (toned by grade) → their sources, citing artifacts, touching decisions | `sources.ts:147-160` |
 | `graph:model` | every artifact → the fields it reads | `sources.ts:161-163` |
+| `graph:impact?focus=<ref>&dir=&depth=&kinds=&gate=1` | the focused consequence graph of a ref over recorded relationships (see [the world debugger](../world-debugger.md)) | `sources.ts` (`worldGraph`) |
+| `graph:why?focus=<ref>` | what the ref rests on: its upstream, three hops by default | `sources.ts` (`worldGraph`) |
 
-`GRAPH_SOURCES` is at `spec.ts:17`. All four return `provenance: "process"`.
+`GRAPH_SOURCES` is in `spec.ts`. All return `provenance: "process"`.
+
+### `world:` — the debugger's questions, and `at=`
+
+Read-only, computed from the run's files by `cockpit/server/world.ts`; `WORLD_SOURCES` is `why`, `impact`, `diff`, `timeline`, `counterfactual`, `reach`, `replay`. Each returns `rows` and names the world it looked at (`world: { mode, worlds, subject, op }`) whenever that is not the current one.
+
+| source | rows |
+|---|---|
+| `world:why?ref=` | question, answer, basis (`recorded` / `derived` / `unavailable`), refs |
+| `world:diff?a=&b=` | ref, change (added / changed / removed), field, before, after, because (the decisions that explain it). `a`, `b`: a model version or `current` |
+| `world:timeline[?ref=]` | settled transitions as events: seq, ts, type, subject, detail |
+| `world:impact?ref=&dir=&depth=&kinds=&status=&gate=1&limit=` | ref, label, status, hops, through, gate-relevance |
+| `world:counterfactual?ref=proposal:P<n>` | class (`known`, `derived`, `expected`, `unknown`, `observation-required`), subject, effect, basis, reach |
+| `world:reach?need=<capability>` or `?ref=` | capability, provider, status, the six rungs, next step |
+| `world:replay?selects=file:evidence/…#tableN&expect=f~op~v[,…][&where=…]` | row, verdict, observed, expected, failed (or the single `not-selected` / `source-error` result) |
+
+`at=<model version>` on `pa:claims`, `pa:unknowns`, `pa:decisions` reads the settled model as it was; other `pa:` sources have no recorded history and answer with an error rather than an invention. `pa:candidates` lists open proposals as candidates with parent world, producer, intention, delta, and what settles them. `pa:versions` rows carry `world`, `settled`, and `digest`.
 
 ### `file:` — a run file
 
@@ -261,7 +280,7 @@ Four of them are **authority-bearing over the process**: `AUTHORITY_OPS = {human
 | `human.pin` | `id`, `pinned: boolean` — pinning also sets `placedBy: "human"` (`workspace.ts:416`) |
 | `human.close` | `id` |
 | `human.layout-restore` | `name`, default `"previous"` |
-| `human.open` | `template` ∈ `TEMPLATE_IDS` = trace, proposals, claims, contradictions, unknowns, staleness, lenses, gate, inbox, events, ref; `ref?`; `as?: detail\|document\|lineage` |
+| `human.open` | `template` ∈ `TEMPLATE_IDS` = trace, proposals, claims, contradictions, unknowns, staleness, lenses, gate, inbox, events, ref; `ref?`; `as?: detail\|document\|lineage\|why\|impact\|diff` (a view; opening one writes nothing to the inbox) |
 | `human.size` | `id`, `state: normal\|minimized\|maximized` |
 
 ## Error codes — the ten reachable ones
@@ -285,7 +304,7 @@ Four of them are **authority-bearing over the process**: `AUTHORITY_OPS = {human
 
 `"NO_RESPONDER"` is listed at `actions.ts:77` but has **zero uses anywhere in `cockpit/server/`** — a repository-wide search for the string returns that one declaration and nothing else. No code path returns it, so no client can receive it. It is reserved, not live. Do not treat it as part of the protocol's observable surface.
 
-## The twelve tools
+## The tools: twelve always, seven by context
 
 One definition, three transports: the local CLI (`actualize ui …`), the loopback MCP endpoint at `/mcp`, and WebMCP in the page (`tools.ts:1-3`; `webmcp.ts`; `serve.ts:83`). Every tool is either a read, or composes the cockpit through the same typed actions an agent sends directly. None of them can answer for the owner, edit the Product Model, or touch the rail — those capabilities do not exist here (`tools.ts:3`).
 
@@ -297,14 +316,26 @@ One definition, three transports: the local CLI (`actualize ui …`), the loopba
 | `list_items` | read | `{ what: claims\|unknowns\|decisions\|proposals\|artifacts\|blockers\|responses\|lenses, filter?: string ≤100, limit?: int 1–50 default 20 }` — compact id + one-line rows; filter like `status=open`, `grade=CONTRADICTED`, `status=stale` |
 | `get_entity` | read | `{ ref: RefSchema }` — one entity in full: fields, related entities, consequence, next affordances |
 | `show_surface` | compose | `{ surface: SurfaceSchema, place?: Placement }` — show or replace; existing surfaces keep the owner's position |
-| `show_ref` | compose | `{ ref, beside?: id 1–48, as?: detail\|document\|lineage default "detail" }` |
+| `show_ref` | compose | `{ ref, beside?: id 1–48, as?: detail\|document\|lineage\|why\|impact\|diff default "detail" }` (`diff` applies to a `version:` ref) |
 | `compare_refs` | compose | `{ a: RefSchema, b: RefSchema, beside?: id }` — text diff for two artifacts/evidence files, side-by-side for two entities |
 | `ask_human` | compose | `AskBase` + `place?` — `input`: confirm, select, multiselect, text, multiline, search, path. `resolves` names the unknown/proposal/decision it bears on. **You cannot answer it**; read the answer with `read_responses` |
 | `arrange` | compose | `{ action: AgentActionSchema }` — any of the eleven agent ops |
 | `annotate` | compose | `{ target: string ≤80, text: 1–400, tone?: note\|warning\|danger\|ok default "note" }` — pins an agent note, visibly marked as the agent's |
 | `read_responses` | read | `{ unhandled?: boolean default true }` — what the owner answered, ruled, confirmed, or annotated. Routing them is the router's job through the process CLI; this tool only reads |
 
-All twelve inputs are `.strict()`. `toolSchemas()` renders them as JSON Schema with `unrepresentable: "any"`, `io: "input"` (`tools.ts:39-41`).
+The seven world tools (`WORLD_TOOLS`) are all reads; `show: true` additionally composes the answer through `surface.put`.
+
+| tool | input |
+|---|---|
+| `world_why` | `{ ref, show? }`: how the ref came to be, each answer with its basis |
+| `world_impact` | `{ ref, dir?: down\|up\|both, depth?: 1–4 default 2, kinds?, gate?, show? }` |
+| `world_diff` | `{ a, b?: default "current", show? }`: worlds are `3`, `model@3`, or `current` |
+| `world_timeline` | `{ ref?, show? }` |
+| `world_counterfactual` | `{ candidate: proposal ref, show? }` |
+| `world_reach` | `{ need?: capability, ref?, show? }`: exactly one of `need`, `ref` |
+| `world_replay` | `{ selects: file:evidence/…#tableN, where?, expect, discriminates?, show? }` |
+
+All inputs are `.strict()`. `toolSchemas()` renders them as JSON Schema (`unrepresentable: "any"`, `io: "input"`) with WebMCP `annotations`: `readOnlyHint` for reads, `untrustedContentHint` for tools whose output carries text the run's files supplied. `activeTools(context)` selects which are offered: the twelve base tools always, and the world tools by what the focused surface is looking at (`world.mode`, the kinds of the refs it shows or has selected). MCP `tools/list` and the page's WebMCP registration follow it; the CLI's `ui tools --all` lists every definition. Every tool stays callable whether or not it is offered.
 
 ## Events
 

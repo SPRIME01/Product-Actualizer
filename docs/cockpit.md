@@ -12,7 +12,8 @@ actualize inbox                     # what the owner has answered
 The complete verb set is `up`, `serve` (internal, spawned by `up`), `open`, `down`, `status`, `rebuild`, `reset`;
 see [the CLI reference](reference/cli.md) for flags. For the subsystem as a component see
 [the cockpit subsystem guide](subsystems/cockpit.md); for the exact vocabulary — all 15 blocks, the source grammar,
-the error codes, the 12 tools — see [the cockpit protocol reference](reference/cockpit-protocol.md).
+the error codes, the tools — see [the cockpit protocol reference](reference/cockpit-protocol.md). For asking the product world
+*why*, *what changed*, *what depends on this*, and *what would follow*, see [the world debugger](world-debugger.md).
 
 ## The picture
 
@@ -67,7 +68,7 @@ Roles are enforced by transport. The owner's WebSocket carries a token that only
 
 ## WebMCP and MCP
 
-The page registers twelve semantic tools with `navigator.modelContext` when the browser provides it, and the same tools are served as loopback MCP at `/mcp` and as `actualize ui` commands. They are `get_status`, `get_workspace`, `get_vocabulary`, `list_items`, `get_entity`, `show_surface`, `show_ref`, `compare_refs`, `ask_human`, `arrange`, `annotate`, `read_responses`. There is no tool that answers, rules, confirms, approves, edits the model, or touches the rail, and no raw DOM tool.
+The page registers semantic tools on `document.modelContext` (the current WebMCP API: `registerTool(tool, { signal })`, withdrawn by aborting the signal) when the browser provides it, and the same definitions are served as loopback MCP at `/mcp` and as `actualize ui` and `actualize world` commands. Twelve are always offered: `get_status`, `get_workspace`, `get_vocabulary`, `list_items`, `get_entity`, `show_surface`, `show_ref`, `compare_refs`, `ask_human`, `arrange`, `annotate`, `read_responses`. Seven read-only `world_*` tools (`world_why`, `world_impact`, `world_diff`, `world_timeline`, `world_counterfactual`, `world_reach`, `world_replay`) are offered by context: only when the owner is looking at history, a candidate, an unknown, or a subject that makes them useful (see [the world debugger](world-debugger.md)). Offering is discovery, not authorization. There is no tool that answers, rules, confirms, approves, edits the model, or touches the rail, and no raw DOM tool.
 
 ## SQLite
 

@@ -21,6 +21,10 @@ Show a surface only when it increases the owner's ability to **understand, compa
 ## Which representation
 `compare` for alternatives (matrix, with `consequence` on each option), or reference vs output (overlay) or two texts (diff). `chart` + `threshold` for magnitudes against a limit. `graph` for dependency or causality only (`graph:staleness`, `graph:lenses`, `graph:claims?focus=claim:C9`, or inline nodes for a physical chain). `table` for many comparable rows, `group` for lanes. `tree` for the run trace (`pa:trace`). `entity` for one thing in full, with the actions it affords. `document` with `anchor`/`lines` to show the exact evidence. `callout` for the one sentence not to miss. `preflight` before any state-changing physical action. `ask` for one judgement, `form` for several together.
 
+## Interrogate the world (read-only)
+Ask the run before arguing from memory. `actualize world why <ref>`: how it came to be; every answer says *recorded*, *derived*, or *not recorded*, and a gap stays a gap. `world impact <ref>`: what depends on it, reduced to a small graph. `world diff <a> [b]`, `world timeline [ref]`: settled history. `world counterfactual <proposal>`: a preview of an open proposal (known, derived, expected, unknown effects, and the observations it needs). `world reach <ref>`: who could gather missing evidence (nothing is run). `world replay`: an observation criterion over recorded evidence. Add `--show` to put the answer in front of the owner.
+History and candidates are the past and the possible, never the current world: a banner says so and the rail stays on the settled model. A preview or a replay is evidence for the router; only the router settles. Over MCP and WebMCP these tools appear by context (history, a candidate, an unknown); the CLI has them all (`ui tools --all`).
+
 ## Rules that keep it honest
 - Bind **sources** (`pa:…`, `graph:…`, `file:…`), not numbers you typed. Inline `data` is shown to the owner as "agent-supplied".
 - Highlight uncertainty: cite `[[C42]]` (a chip showing its grade), use `tone: unknown`, put CONTRADICTED claims beside what contradicts them. Public copy still cites only OBSERVED or VERIFIED.

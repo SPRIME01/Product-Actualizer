@@ -73,7 +73,7 @@ export function serveCockpit(o: ServeOpts) {
             const ext = path.extname(abs).slice(1).toLowerCase();
             return new Response(Bun.file(abs), { headers: { "cache-control": "no-store", "content-type": IMAGES[ext] ?? "text/plain; charset=utf-8", "x-content-type-options": "nosniff", "content-security-policy": "sandbox; default-src 'none'; style-src 'unsafe-inline'; img-src 'self'" } });
           }
-          case "/api/boot": return json({ role, agentToken: role === "human" ? agentToken : undefined, tools: toolSchemas(), snapshot: cockpit.snapshot() });
+          case "/api/boot": return json({ role, agentToken: role === "human" ? agentToken : undefined, tools: toolSchemas(), active: cockpit.tools(), snapshot: cockpit.snapshot() });
           // Agent role: typed actions and tools. A human-only operation sent here is refused by the reducer with AUTHORITY_HUMAN.
           case "/api/agent/action": return role === "agent" || role === "human" ? json(cockpit.agent(body)) : json({}, 403);
           case "/api/agent/tool": return json(cockpit.tool(body.name, body.input));
@@ -133,9 +133,10 @@ export function openBrowser(link: string) {
 function mcp(c: Cockpit, b: any) {
   const reply = (result: unknown) => json({ jsonrpc: "2.0", id: b.id ?? null, result });
   switch (b.method) {
-    case "initialize": return reply({ protocolVersion: "2025-06-18", capabilities: { tools: {} }, serverInfo: { name: "product-actualizer-cockpit", version: "1" } });
+    case "initialize": return reply({ protocolVersion: "2025-06-18", capabilities: { tools: { listChanged: false } }, serverInfo: { name: "product-actualizer-cockpit", version: "1" } });
     case "ping": return reply({});
-    case "tools/list": return reply({ tools: toolSchemas() });
+    // the active set follows what the owner is looking at; every tool stays callable, this only keeps the catalogue small
+    case "tools/list": return reply({ tools: toolSchemas(c.tools()) });
     case "tools/call": {
       const r: any = c.tool(b.params?.name, b.params?.arguments ?? {});
       const ok = r.ok === true;
