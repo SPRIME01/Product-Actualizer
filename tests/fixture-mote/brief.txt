@@ -1,0 +1,7 @@
+Mote is a little desk companion robot. It sits next to your monitor, hears you, looks at what you hold
+up, talks back, and follows you around the desk with its head. It's about 85 mm across so it fits
+anywhere. Runs from the wall adapter in the box. Everything stays on the device, nothing in the cloud.
+
+I want to put a closed beta kit in front of 10 builders. Price maybe $149. The name is Mote, the
+voice is warm and short, never chirpy. I have a rev C board on my desk now and the firmware compiles.
+The old product page is still up from February; I think it is mostly right.

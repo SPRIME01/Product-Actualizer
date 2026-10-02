@@ -1,0 +1,5 @@
+Owner messages, 2026-09-29/30.
+- "Works great when I run python -m mote from my shell. Won't come up on boot."
+- "It resets if pan and tilt both move while it is speaking."
+- "The speaker is plenty loud."
+- "The rev C board is flashed with the same firmware as before? I do not think I have flashed it yet."

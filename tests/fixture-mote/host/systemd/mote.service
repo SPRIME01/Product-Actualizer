@@ -1,0 +1,13 @@
+[Unit]
+Description=Mote companion
+After=network.target
+
+[Service]
+User=pi
+WorkingDirectory=/home/pi/mote/host
+ExecStart=/home/pi/.venv/bin/python -m mote
+Restart=on-failure
+RestartSec=2
+
+[Install]
+WantedBy=multi-user.target

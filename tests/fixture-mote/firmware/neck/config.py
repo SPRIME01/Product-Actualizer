@@ -1,0 +1,9 @@
+# Pin map for MOTE-NECK REV B
+PAN_PIN = 10
+TILT_PIN = 11
+I2C_ID = 0
+I2C_SDA = 4
+I2C_SCL = 5
+UART_ID = 0
+UART_TX = 0
+UART_RX = 1

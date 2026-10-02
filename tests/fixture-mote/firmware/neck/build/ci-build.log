@@ -1,0 +1,4 @@
+2026-09-27 16:40:11  mpy-cross firmware/neck/*.py
+compiled: config.py servo.py tof.py thp.py main.py
+5 files OK, 0 warnings
+tests: none defined for target hardware

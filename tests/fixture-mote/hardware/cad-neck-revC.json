@@ -1,0 +1,11 @@
+{
+  "file": "mote-neck-assembly.step",
+  "revision": "C",
+  "configuration": "default",
+  "units": "mm",
+  "bbox_head_mm": [92.4, 71.0, 80.5],
+  "mass_kg": 0.31,
+  "joint_limits_deg": {"pan": [-70, 70], "tilt": [-25, 35]},
+  "suppressed_bodies": [],
+  "notes": "limits are the bracket hard stops; horn indexed at 0 deg centre"
+}

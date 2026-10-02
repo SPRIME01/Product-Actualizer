@@ -1,0 +1,53 @@
+component: neck-mcu
+identity:
+  manufacturer: Raspberry Pi
+  model: RP2040
+  revision: unknown
+  package: QFN-56
+  level: board
+  ref_des: [U1]
+role: Neck controller on the MOTE-NECK board (REV C): servo PWM, servo supply enable, I2C1 sensors, UART to the host.
+sources: [S1, S2, S3, S4, S5]
+limits:
+  - param: IOVDD
+    typ: 3.3
+    unit: V
+    class: recommended
+    src: S1 L4; S2 L5
+  - param: GPIO input voltage
+    max: 3.8
+    unit: V
+    class: absolute_max
+    conditions: IOVDD + 0.5 V; pins are not 5 V tolerant
+    src: S1 L4
+interfaces:
+  - type: PWM
+    detail: PAN_PWM on GP12, TILT_PWM on GP13 (REV C)
+    src: S2 L28-29
+  - type: I2C
+    detail: I2C1 SDA GP10, SCL GP11 (REV C)
+    voltage: module pulls up to +5V (see tof)
+    src: S2 L30-31
+  - type: GPIO
+    detail: SERVO_EN on GP14, low powers the servos
+    src: S2 L27
+  - type: UART
+    detail: TX GP0, RX GP1 to J2, 115200 8N1
+    voltage: 3.3 V
+    src: S2 L32-33
+physical:
+  dimensions_mm: unknown
+  connectors: J2 host link, J3/J4 servos, J5 SWD, J6 VT-53
+  mounting: neck board in the head base
+operational:
+  boot: REV C export shows no BOOTSEL access; SWD on J5 and SWD_RESET on J2.6
+  reset: SWD_RESET on J2.6
+  flash: firmware compiled to .mpy; flashing method for REV C not documented
+  calibration: constants are literals in firmware
+  recovery: unknown (see unknowns)
+quirks:
+  - text: Firmware pin map is labelled REV B (PAN GP10, TILT GP11, I2C0 GP4/GP5); REV C uses GP10/GP11 for I2C1.
+    src: S3 L1-6; S2 L28-31,37
+unknowns:
+  - what: recovery entry (BOOTSEL or SWD) and a known-good image for the REV C board
+    how_to_close: owner confirms how the board was flashed; schematic sheet for the boot pin

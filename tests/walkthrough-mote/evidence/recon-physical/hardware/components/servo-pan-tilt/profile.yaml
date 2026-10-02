@@ -1,0 +1,70 @@
+component: servo-pan-tilt
+identity:
+  manufacturer: Tanzo
+  model: TS-9
+  revision: unknown
+  package: micro servo, 3-wire
+  level: module
+  ref_des: [J3, J4]
+role: Pan and tilt the head. Pan on J3 (PAN_PWM), tilt on J4 (TILT_PWM), supplied from SERVO_V through Q1.
+sources: [S1, S2, S3, S4]
+limits:
+  - param: supply voltage
+    min: 4.8
+    typ: 5.0
+    max: 5.5
+    unit: V
+    class: recommended
+    src: S1 L6
+  - param: supply voltage
+    max: 6.0
+    unit: V
+    class: absolute_max
+    src: S1 L7
+  - param: idle current
+    typ: 8
+    max: 12
+    unit: mA
+    class: typical
+    src: S1 L8
+  - param: moving current, loaded
+    typ: 250
+    max: 400
+    unit: mA
+    class: typical
+    conditions: 5.0 V, rated load 1.0 kg.cm
+    src: S1 L10
+  - param: stall current
+    typ: 650
+    max: 800
+    unit: mA
+    class: guaranteed
+    conditions: 5.0 V
+    src: S1 L11
+  - param: start-up current peak
+    typ: 500
+    unit: mA
+    class: typical
+    conditions: first 20 ms of a move
+    src: S1 L12
+interfaces:
+  - type: PWM
+    detail: 50 Hz, 500-2500 us for -90 to +90 degrees, 1500 us centre
+    voltage: signal high 2.5-5.0 V
+    src: S1 L13,L15
+physical:
+  dimensions_mm: unknown
+  connectors: 3-pin (V, GND, signal)
+  mounting: bracket hard stops pan +/-70 deg, tilt -25 to +35 deg (CAD rev C)
+operational:
+  boot: powered only when Q1 is on (SERVO_EN low on GP14)
+  reset: no feedback; position is the last commanded pulse
+  flash: not applicable
+  calibration: horn indexed at 0 deg centre (CAD note); zero and travel not measured on the unit
+  recovery: remove servo power at Q1
+quirks:
+  - text: Datasheet advises against 6 V operation; torque gain is small, heating and wear increase.
+    src: S1 L16
+unknowns:
+  - what: stall and start-up current in this mechanism at the real supply voltage
+    how_to_close: measure rail current with the head driven into a bracket stop (current-limited supply first)

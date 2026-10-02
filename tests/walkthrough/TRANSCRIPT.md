@@ -5,7 +5,7 @@ Hand-run of `actualize-product`. Inputs are in `tests/fixture/`: a tiny firmware
 validates against `product-model/SCHEMA.md` (`python3 tests/check.py`). Commands below were really run;
 actions that need a network or a person (name screening, listening, signup) were not, and are recorded as unknowns.
 
-Always-loaded context: `actualize-product` (20 lines) + `SCHEMA.md` (86 lines). Nothing else is loaded until a lens runs.
+Always-loaded context: `actualize-product` (21 lines) + `SCHEMA.md` (88 lines). Nothing else is loaded until a lens runs.
 
 ## Step 1: classify evidence
 
@@ -30,7 +30,7 @@ yields no `OBSERVED` claim; no license file (C12); the clean-checkout test comma
 
 ## Step 3: select lenses
 
-Read only the frontmatter of all 14 `skills/*/SKILL.md`. Selected, in order by `needs`:
+Read only the frontmatter of all 17 `skills/*/SKILL.md`. Selected, in order by `needs`:
 
 | wave | lenses | why |
 |---|---|---|
@@ -42,7 +42,8 @@ Read only the frontmatter of all 14 `skills/*/SKILL.md`. Selected, in order by `
 Excluded, with the reason logged in D3: **direction** (text-only page, no visual artifact; render excluded by D8),
 **experience** (no flows in scope), **product-visualization** (no geometry; only a render), **motion-editorial**,
 **audio-sound**, **illustration** (no such deliverable), **fidelity-qa** (no built visual output), **legacy-modernization**
-(page does not require changing the code; revisited at D10). Six of 14 lens bodies were loaded.
+(page does not require changing the code; revisited at D10), and the three physical lenses **electronics**, **embedded-systems**, **robotics** (the goal is a text page and
+no schematic, BOM, or board was supplied, so there is no hardware evidence to judge). Six of 17 lens bodies were loaded; none of the physical ones.
 
 ## Wave 2, then reconciliation to v2
 

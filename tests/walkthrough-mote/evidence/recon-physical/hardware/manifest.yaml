@@ -1,0 +1,131 @@
+unit:
+  name: Mote desk companion, desk unit
+  level: assembly
+  hardware_revision: C
+  revision_source: owner:dana@2026-10-01
+  identified_by:
+    - owner transcription of the silkscreen, last character hidden at first reading
+    - owner written confirmation 2026-10-01 that the neck board is REV C and the microphone marking is HM1100
+unreconciled: false
+revisions:
+  - kind: unit_marking
+    file: tests/fixture-mote/unit/inspection.txt
+    revision: letter unreadable at first reading, REV C by owner confirmation
+    matches_unit: yes
+  - kind: schematic
+    file: tests/fixture-mote/hardware/schematic-revC.txt
+    revision: C
+    matches_unit: yes
+  - kind: cad
+    file: tests/fixture-mote/hardware/cad-neck-revC.json
+    revision: C
+    matches_unit: yes
+  - kind: hardware_guide
+    file: tests/fixture-mote/hardware/hardware-guide-revC.md
+    revision: C
+    matches_unit: yes
+  - kind: bom
+    file: tests/fixture-mote/hardware/bom-revB.csv
+    revision: B
+    matches_unit: no
+  - kind: assembly_guide
+    file: tests/fixture-mote/hardware/assembly-guide-revB.md
+    revision: B
+    matches_unit: no
+  - kind: firmware_pinmap
+    file: tests/fixture-mote/firmware/neck/config.py
+    revision: B
+    matches_unit: no
+  - kind: unit_log
+    file: tests/fixture-mote/unit/neck-boot.log
+    revision: B
+    matches_unit: no
+  - kind: readme
+    file: tests/fixture-mote/README.md
+    revision: unknown
+    matches_unit: unknown
+contradictions:
+  - id: H1
+    summary: assembly guide rev B and BOM rev B describe the superseded REV B board (servo supply path, GPIO map)
+    artifacts: [assembly-guide-revB.md, bom-revB.csv, neck-boot.log, schematic-revC.txt]
+    claims: [C42]
+    state: resolved
+    resolution: owner confirmed REV C on 2026-10-01; rev B documents are superseded
+  - id: H2
+    summary: camera named O-1 in BOM rev B and assembly guide rev B, O-2 in the hardware guide and on the unit
+    artifacts: [bom-revB.csv, assembly-guide-revB.md, hardware-guide-revC.md, inspection.txt]
+    claims: [C53]
+    state: resolved
+    resolution: unit label and REV C hardware guide agree on the O-2
+  - id: H3
+    summary: microphone named HM1000 PDM in BOM rev B, assembly guide rev B, README, notes; HM1100 I2S in the hardware guide
+    artifacts: [bom-revB.csv, README.md, notes.md, hardware-guide-revC.md]
+    claims: [C54]
+    state: resolved
+    resolution: owner confirmed the marking reads HM1100
+  - id: H4
+    summary: host capture device and README describe the PDM part, the unit has the I2S HM1100
+    artifacts: [asound.conf, README.md, mic-hm1100.md]
+    claims: [C78]
+    state: open
+  - id: H5
+    summary: firmware pin map is REV B, the schematic and the unit are REV C
+    artifacts: [config.py, schematic-revC.txt]
+    claims: [C52]
+    state: open
+  - id: H6
+    summary: README gives the VT-53 bus and address wrongly (bus 0, 0x52; schematic has I2C1, 0x29)
+    artifacts: [README.md, schematic-revC.txt, tof-vt53.md]
+    claims: [C43]
+    state: open
+  - id: H7
+    summary: product width 85 mm in the brief and old page, 92.4 mm in CAD
+    artifacts: [brief.txt, old-product-page.md, cad-neck-revC.json]
+    claims: [C44]
+    state: open
+  - id: H8
+    summary: touch pad in the guide and old page, U5 do-not-populate in the schematic, no BOM line
+    artifacts: [hardware-guide-revC.md, old-product-page.md, schematic-revC.txt]
+    claims: [C47]
+    state: open
+  - id: H9
+    summary: IMU read in host code, absent from schematic and BOM
+    artifacts: [imu.py, schematic-revC.txt, bom-revB.csv]
+    claims: [C55]
+    state: open
+  - id: H10
+    summary: eight-hour battery on the old page, no battery on the schematic or the unit
+    artifacts: [old-product-page.md, schematic-revC.txt, inspection.txt]
+    claims: [C46]
+    state: open
+  - id: H11
+    summary: README legacy camera steps on a libcamera-only module and OS
+    artifacts: [README.md, camera-o2.md, inspection.txt]
+    claims: [C56]
+    state: open
+  - id: H12
+    summary: 3 W amplifier output in README and notes, 2.5 W maximum in the datasheet
+    artifacts: [README.md, notes.md, amp-ca3105.md]
+    claims: [C49]
+    state: open
+  - id: H13
+    summary: servos fine at 6 V in notes, 5.5 V recommended and 6.0 V absolute maximum in the datasheet
+    artifacts: [notes.md, servo-ts9.md]
+    claims: [C50]
+    state: open
+  - id: H14
+    summary: VT-53 module called 5 V safe in README and notes, pulls I2C up to VIN, RP2040 pins not 5 V tolerant
+    artifacts: [README.md, notes.md, tof-vt53.md, rp2040-excerpt.md]
+    claims: [C51]
+    state: open
+  - id: H15
+    summary: hardware guide rev C budgets 1.22 A and calls the supply ample; the budget from datasheet figures exceeds 2.5 A at servo start-up and stall
+    artifacts: [hardware-guide-revC.md, servo-ts9.md, amp-ca3105.md, budget.py]
+    claims: [C31]
+    state: open
+components: [host-sbc, neck-mcu, servo-pan-tilt, tof, thp, mic, amp, camera, power-input]
+history:
+  - step: 2
+    change: manifest created from the supplied files; unit revision unread, so unreconciled true; H1-H14 recorded
+  - step: 5
+    change: owner confirmed REV C and HM1100; H1-H3 resolved; H4 added; unreconciled false

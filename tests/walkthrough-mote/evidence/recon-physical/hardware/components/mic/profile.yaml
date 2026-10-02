@@ -1,0 +1,51 @@
+component: mic
+identity:
+  manufacturer: Halden
+  model: HM1100
+  revision: unknown
+  package: MEMS microphone
+  level: component
+  ref_des: unknown
+role: Voice capture on the Pi I2S bus.
+sources: [S1, S2, S3, S4, S5]
+limits:
+  - param: supply voltage
+    min: 1.8
+    typ: 3.3
+    max: 3.3
+    unit: V
+    class: recommended
+    src: S1 L6
+  - param: supply voltage
+    max: 3.6
+    unit: V
+    class: absolute_max
+    src: S1 L7
+  - param: SNR
+    typ: 65
+    unit: dB(A)
+    class: typical
+    src: S1 L9
+interfaces:
+  - type: I2S
+    detail: slave, 24-bit, BCLK 1.0-3.2 MHz, WS 16-48 kHz, SEL low = left slot
+    voltage: 3.3 V logic
+    src: S1 L13
+physical:
+  dimensions_mm: unknown
+  connectors: unknown (not in the REV C neck-board schematic; wired to the Pi)
+  mounting: unknown
+operational:
+  boot: valid data after 50 ms typical
+  reset: none
+  flash: not applicable
+  calibration: sensitivity -26 dBFS typical; pickup range not measured
+  recovery: not applicable
+quirks:
+  - text: HM1000 (PDM) shares the footprint but is a different part; BOM rev B and the README describe the PDM part.
+    src: S1 L14
+  - text: Host capture device is named mote_pdm and the README gives a PDM capture command.
+    src: tests/fixture-mote/README.md L12; tests/fixture-mote/host/config/asound.conf L1
+unknowns:
+  - what: which slot (SEL) and which Pi pins the microphone uses on the unit
+    how_to_close: owner trace or photo of the wiring; REV C schematic does not include the Pi-side audio wiring

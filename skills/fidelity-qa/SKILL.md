@@ -49,7 +49,7 @@ executes_with: [playwright-cli, agent-browser]
 3. Font check: each specified family reports loaded; none falls back.
 4. Layout across the targets matrix: no horizontal overflow at any width; no clipped or overlapping text with long-content fixtures.
 5. Image density: every raster satisfies natural width ≥ displayed width × DPR; vector assets render crisp at 200% zoom.
-6. Source re-measurement: for renders and product imagery, an independent measurement against CAD or spec within the tolerance stated in the product-visualization lens; mismatches are listed as defects.
+6. Source re-measurement: for renders and product imagery, an independent measurement against CAD or spec within the tolerance stated in the product-visualization lens; mismatches are listed as defects. The oracle's hardware revision (CAD, board photo, spec) is checked against the revision recorded for the shipping unit in the hardware package; a render faithful to another revision passes this check and still depicts the wrong product, so it is reported as an oracle mismatch.
 7. Glyphs and contrast: sample text in every shipped script and emoji renders without boxes; for video or animated UI, contrast is sampled on rendered pixels at five or more timestamps.
 8. Delivered media: probe the final file; sampled frames compared to source frames for color and detail shift, with a stated tolerance.
 

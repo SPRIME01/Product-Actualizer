@@ -50,32 +50,45 @@ export function ctx(project) {
   };
 }
 
-export const walk = (name) => fs.readFileSync(path.join(WALK, name), "utf8");
+// A walkthrough's files and its proposal rows, so every replay test can drive the same state machine from its own fixture.
+export function walkthrough(dirName) {
+  const dir = path.join(REPO, "tests", dirName);
+  const read = (name) => fs.readFileSync(path.join(dir, name), "utf8");
+  const rows = parseProposals(read("proposals.md"));
+  return {
+    dir,
+    rows,
+    walk: read,
+    // Proposal rows from the walkthrough, written as open rows for the given ids, then resolved later.
+    addProposals(c, ids) {
+      const file = path.join(c.project, "actualize", "proposals.md");
+      let t = fs.readFileSync(file, "utf8");
+      for (const id of ids) {
+        const r = rows.find((x) => x.id === id);
+        t += `| ${r.id} | ${r.lens} | ${r.field} | ${r.kind} | ${r.proposal} | ${r.evidence} | open |  |\n`;
+      }
+      fs.writeFileSync(file, t);
+    },
+    resolveProposals(c, overrides = {}) {
+      const file = path.join(c.project, "actualize", "proposals.md");
+      const open = parseProposals(fs.readFileSync(file, "utf8"));
+      let t = "# proposals.md\n\n| id | lens | field | kind | proposal | evidence | status | reason |\n|---|---|---|---|---|---|---|---|\n";
+      for (const r of open) {
+        const final = rows.find((x) => x.id === r.id);
+        const o = overrides[r.id];
+        const status = o?.status ?? (r.status === "open" ? final.status : r.status);
+        const reason = o?.reason ?? (r.status === "open" ? final.reason : r.reason);
+        t += `| ${r.id} | ${r.lens} | ${r.field} | ${r.kind} | ${r.proposal} | ${r.evidence} | ${status} | ${reason} |\n`;
+      }
+      fs.writeFileSync(file, t);
+    },
+  };
+}
 
-// Proposal rows from the walkthrough, written as open rows for the given ids, then resolved later.
-const ALL_ROWS = parseProposals(walk("proposals.md"));
-export function addProposals(c, ids) {
-  const file = path.join(c.project, "actualize", "proposals.md");
-  let t = fs.readFileSync(file, "utf8");
-  for (const id of ids) {
-    const r = ALL_ROWS.find((x) => x.id === id);
-    t += `| ${r.id} | ${r.lens} | ${r.field} | ${r.kind} | ${r.proposal} | ${r.evidence} | open |  |\n`;
-  }
-  fs.writeFileSync(file, t);
-}
-export function resolveProposals(c, overrides = {}) {
-  const file = path.join(c.project, "actualize", "proposals.md");
-  const rows = parseProposals(fs.readFileSync(file, "utf8"));
-  let t = "# proposals.md\n\n| id | lens | field | kind | proposal | evidence | status | reason |\n|---|---|---|---|---|---|---|---|\n";
-  for (const r of rows) {
-    const final = ALL_ROWS.find((x) => x.id === r.id);
-    const o = overrides[r.id];
-    const status = o?.status ?? (r.status === "open" ? final.status : r.status);
-    const reason = o?.reason ?? (r.status === "open" ? final.reason : r.reason);
-    t += `| ${r.id} | ${r.lens} | ${r.field} | ${r.kind} | ${r.proposal} | ${r.evidence} | ${status} | ${reason} |\n`;
-  }
-  fs.writeFileSync(file, t);
-}
+const loam = walkthrough("walkthrough");
+export const walk = loam.walk;
+export const addProposals = loam.addProposals;
+export const resolveProposals = loam.resolveProposals;
 
 export const EXCLUDE = {
   direction: "text-only page, no visual artifact in this goal",
@@ -86,6 +99,9 @@ export const EXCLUDE = {
   illustration: "no illustration or diagram deliverable in this goal",
   "fidelity-qa": "no built visual output to measure yet",
   "legacy-modernization": "the code is not changed for a text-only page",
+  electronics: "a text-only page; no schematic, BOM, or board was supplied, so no hardware evidence to judge",
+  "embedded-systems": "a text-only page; no firmware target or board identity is in scope for this goal",
+  robotics: "no closed-loop machine exists in the evidence or the goal",
 };
 export const CHOSEN = ["recon-software", "recon-physical", "brand", "provenance-licensing", "marketing", "release-readiness"];
 

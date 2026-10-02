@@ -1,0 +1,7 @@
+# serial console of the neck MCU, supplied by owner. Captured 2026-02-14 on unit #1 (REV B board).
+mote-neck fw 0.3.1 pinmap=B
+pwm pan GP10 ok, tilt GP11 ok
+i2c0 scan: 0x29 0x44
+tof: ack at 0x29
+thp: ack at 0x44
+ready

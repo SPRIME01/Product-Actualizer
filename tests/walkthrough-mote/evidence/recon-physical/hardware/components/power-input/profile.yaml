@@ -1,0 +1,50 @@
+component: power-input
+identity:
+  manufacturer: unknown
+  model: USB-C wall adapter 5 V 2.5 A, J1 receptacle, F1 resettable fuse
+  revision: unknown
+  package: adapter plus board input
+  level: assembly
+  ref_des: [J1, F1, Q1]
+role: Source of the +5V rail for the host, neck board, amplifier, sensors, and (through Q1) the servos.
+sources: [S1, S2, S3, S4]
+limits:
+  - param: adapter rating
+    typ: 2.5
+    unit: A
+    class: typical
+    conditions: label 5V 2.5A; behavior above rating not documented
+    src: S4 L6
+  - param: F1 hold current
+    typ: 2.5
+    unit: A
+    class: typical
+    src: S1 L11
+  - param: F1 trip current
+    typ: 5
+    unit: A
+    class: typical
+    src: S1 L11
+interfaces:
+  - type: USB-C power
+    detail: power only; CC1 and CC2 each 5.1 k to GND (sink)
+    voltage: 5 V
+    src: S1 L12
+physical:
+  dimensions_mm: unknown
+  connectors: J1 USB-C
+  mounting: unknown
+operational:
+  boot: servo supply off at reset (R3 pulls the Q1 gate to +5V)
+  reset: not applicable
+  flash: not applicable
+  calibration: not applicable
+  recovery: remove the adapter
+quirks:
+  - text: The export lists no capacitors, so decoupling and bulk storage on +5V and SERVO_V are unknown.
+    src: S1 L4-19
+  - text: Hardware guide budget lists servos at idle only.
+    src: S3 L14-21
+unknowns:
+  - what: adapter and cable behavior at and above 2.5 A, and the rail voltage at the worst event
+    how_to_close: current-limited supply first, then scope the +5V rail at the board during servo start with speech playing

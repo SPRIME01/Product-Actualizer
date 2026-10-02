@@ -55,6 +55,7 @@ Put `hooks/bin` on your PATH or call it by path. `begin` writes `actualize/state
   - Product files change only inside a lens run (strict mode).
   - Lens bodies load only through `lens start` (progressive disclosure).
   - `state.json` and history are CLI-managed.
+  - Flashing and erasing commands (esptool, idf.py flash, picotool, dfu-util, avrdude, west flash, nrfjprog, openocd program, upload targets, and similar) need a running physical lens and a preflight record in `evidence/<lens>/actions.md` (target, expected result, recovery). Irreversible steps (fuses, secure boot, OTP, locked erase) are denied for the owner to run after `pause`. Read-only commands are never blocked.
 - **After a tool call:** feedback on what just changed.
 - **Stop (block):** the agent cannot finish while lenses, reconciliation, stale artifacts, or the release gate are outstanding.
 
@@ -72,8 +73,8 @@ Put `hooks/bin` on your PATH or call it by path. `begin` writes `actualize/state
 node --test tests/hooks/
 ```
 
-The suite replays the Loam walkthrough through the engine, including denied writes, a rejected proposal, a stale rebuild,
-the stop-gate loop guard, and the pause escape. It exercises the engine directly, not a live client session.
+The suite replays the Loam walkthrough and the physical-AI Mote walkthrough through the engine, including denied writes, a rejected proposal, stale rebuilds, nested hardware evidence,
+the physical lens chain, the flashing preflight rule, the stop-gate loop guard, and the pause escape. It exercises the engine directly, not a live client session.
 
 ## Troubleshooting
 

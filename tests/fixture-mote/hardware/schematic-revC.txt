@@ -1,0 +1,39 @@
+MOTE-NECK  schematic text export   REV C   2026-03-02   (2 sheets: 1 power/MCU/servos, 2 sensors/host link)
+Reference designators are those printed on the REV C silkscreen.
+
+PARTS
+U1   RP2040                       MCU, QFN-56, IOVDD 3.3 V
+U2   ALD-3V3                      LDO 5 V -> 3.3 V, 500 mA
+U3   VT-53 module (breakout rev 2) on header J6
+U4   ST20                         temperature/humidity, ADDR pin tied to GND
+U5   TCH-1                        capacitive touch controller  ** DNP **
+Q1   P-MOSFET load switch         servo supply switch, gate pulled up to +5V by R3 (switch OFF at reset)
+F1   resettable fuse              2.5 A hold / 5 A trip, in series with +5V_IN
+J1   USB-C receptacle             power only, CC1/CC2 each 5.1 k to GND
+J2   host link, 6-pin             +5V, GND, UART_TX, UART_RX, GND, SWD_RESET
+J3   pan servo, 3-pin             SERVO_V, GND, PAN_PWM
+J4   tilt servo, 3-pin            SERVO_V, GND, TILT_PWM
+J5   SWD debug, 3-pin
+J6   VT-53 module header, 4-pin   1 VIN, 2 GND, 3 SCL, 4 SDA
+R1,R2  10 k                       I2C pull-ups to +3V3 on the NECK board  ** DNP ** (module has its own)
+R3   100 k                        Q1 gate to +5V
+
+NETS (pin lists)
++5V_IN : J1.VBUS F1.1
++5V    : F1.2 J2.1 U2.IN Q1.S J6.1 R3.1
+SERVO_V: Q1.D J3.1 J4.1
++3V3   : U2.OUT U1.IOVDD U1.DVDD U4.VDD
+GND    : J1.GND J2.2 J2.5 U1.GND U2.GND J3.2 J4.2 J5.1 J6.2 U4.GND
+SERVO_EN : U1.GP14 Q1.G R3.2       (GP14 low = servos powered)
+PAN_PWM  : U1.GP12 J3.3
+TILT_PWM : U1.GP13 J4.3
+I2C1_SDA : U1.GP10 J6.4 U4.SDA
+I2C1_SCL : U1.GP11 J6.3 U4.SCL
+UART_TX  : U1.GP0 J2.3          (MCU TX -> host RX)
+UART_RX  : U1.GP1 J2.4          (host TX -> MCU RX)
+TOUCH    : U5.OUT                (unconnected, U5 not fitted)
+
+NOTES
+- Sensors moved to I2C1 (GP10/GP11) in REV C; PAN/TILT moved from GP10/GP11 to GP12/GP13.
+- ST20 address with ADDR=GND is 0x44. VT-53 default address 0x29.
+- No battery, charger, or IMU on this board.

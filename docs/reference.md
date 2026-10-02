@@ -34,7 +34,7 @@
 | `product-model.md` | router | edited only during reconciliation |
 | `proposals.md` | lenses append, router resolves | status: open, `accepted:D<n>`, or `rejected` with reason |
 | `artifacts/<lens>/` | that lens | first lines: `built_from`, `reads`, `cites`, `public` |
-| `evidence/<lens>/` | that lens | observations and command results |
+| `evidence/<lens>/` | that lens | observations and command results; nested folders allowed (for example `recon-physical/hardware/`) |
 | `state.json`, history | CLI | do not edit |
 
 ## Artifact header
@@ -53,7 +53,10 @@ public: true
 | lens | owns |
 |---|---|
 | `recon-software` | what a codebase actually does versus what its docs say |
-| `recon-physical` | what objects, CAD, images, documents, transcripts, and media show and measure |
+| `recon-physical` | what objects, hardware (exact boards, parts, revisions, schematics, BOMs, datasheets), CAD, images, documents, transcripts, and media show and measure |
+| `electronics` | the electrical implementation: domains, power paths and budgets, protection, buses, sensing, bench verification |
+| `embedded-systems` | the hardware/software boundary on MCU and Linux SBC targets: identity, boot, flash, recovery, pins, drivers, services, updates |
+| `robotics` | embodied closed-loop behavior: sensors to state to decisions to control to actuators, timing, safe states, physical testing |
 | `direction` | project-wide aesthetic system and its per-deliverable interpretation |
 | `brand` | positioning, name, identity, voice |
 | `experience` | users, flows, states, interaction behavior |
@@ -71,5 +74,7 @@ Each lens file has the sections Reads from the model, Distinctions, Failure mode
 
 ## Repository checks
 
-`python3 tests/check.py` enforces: router at most 40 lines, schema at most 120, lenses 60 to 100, required sections, the fixture
-model validating against the schema, and artifact staleness.
+`python3 tests/check.py` enforces: router at most 40 lines, schema at most 120, lenses 60 to 100, references linked from their lens and at most 150 lines, required sections, the physical lens chain and
+routing scenarios (digital-only and passive products load no physical lens), both walkthroughs' models against the schema, artifact staleness (with expected results), grade discipline, the hardware evidence
+package (manifest, revision contradictions, component profiles and sources), re-execution of the executed evidence (power budget, pin check, host tests, with a negative control), and the release gate's physical evidence walk
+(with mutations that must fail). `node --test tests/hooks/` replays both walkthroughs through the hook engine.

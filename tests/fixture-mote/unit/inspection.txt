@@ -1,0 +1,7 @@
+Owner transcription of what is on the desk unit, 2026-09-28 (not photographs).
+Pi: /proc/device-tree/model = Raspberry Pi Zero 2 W Rev 1.0. OS: Debian GNU/Linux 12 (bookworm), kernel 6.6.
+Neck board silkscreen: "MOTE-NECK REV _" - the last character is under the pan servo bracket and I have not taken it off.
+Camera module label: "OPTEL O-2 V1.1".
+Microphone marking: "HM11" then illegible at macro distance.
+Amplifier: "CA3105". Servos: "TS-9" (two). Speaker label: "4R 3W". Wall adapter label: "5V 2.5A".
+No battery on the unit. Nothing on top of the head except the shell.

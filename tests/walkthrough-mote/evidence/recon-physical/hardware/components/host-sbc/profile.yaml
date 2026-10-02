@@ -1,0 +1,44 @@
+component: host-sbc
+identity:
+  manufacturer: Raspberry Pi
+  model: Raspberry Pi Zero 2 W
+  revision: Rev 1.0
+  package: SBC
+  level: board
+  ref_des: unknown
+role: Voice, camera, network, and the serial link to the neck board.
+sources: [S1, S2]
+limits:
+  - param: GPIO logic level
+    typ: 3.3
+    unit: V
+    class: typical
+    src: S2 L7
+interfaces:
+  - type: UART
+    detail: 115200 8N1 to the neck board
+    voltage: 3.3 V
+    src: S2 L7
+  - type: I2S
+    detail: microphone and amplifier share the bus
+    voltage: 3.3 V
+    src: S2 L8-9
+  - type: CSI
+    detail: 22-pin camera connector
+    src: S2 L8
+physical:
+  dimensions_mm: unknown
+  connectors: 40-pin header, CSI, micro-USB
+  mounting: unknown
+operational:
+  boot: Debian 12 (bookworm), kernel 6.6 (owner transcription)
+  reset: unknown
+  flash: SD card image; contents not supplied
+  calibration: not applicable
+  recovery: unknown
+quirks:
+  - text: Pi-side wiring of the microphone, amplifier, and GPIO17 is not in the neck-board schematic.
+    src: S2 L8-9
+unknowns:
+  - what: Pi-side wiring and boot configuration (audio overlays, serial console)
+    how_to_close: owner supplies boot configuration and a wiring photo or schematic for the Pi side

@@ -25,7 +25,7 @@ and `touched`) are in backticks.
 | Actors | `actors` | Table: id (A1…), actor, job they are hiring the product to do. Include non-users: buyer, installer, regulator, maintainer. |
 | Capabilities | `capabilities` | Table: id (K1…), what the product does, claim ids that support it. |
 | Constraints | `constraints` | Three labeled lists: Technical, Physical, Legal. Each item cites a source. |
-| Form and interaction | `form` | What it is and how it is operated: dimensions, materials, surfaces, flows, states, inputs. |
+| Form and interaction | `form` | What it is and how it is operated: dimensions, materials, surfaces, flows, states, inputs. For hardware also the major physical and electrical subsystems, sensors, actuators, ports, and the product-relevant connections between them, one line each citing the evidence package that holds the detail. |
 | Voice | `voice` | How it speaks: register, vocabulary it uses and refuses, with examples that are not product claims. |
 | Positioning | `positioning` | Category, alternative the actor would otherwise use, the one difference, who it is not for. |
 | Claims ledger | `claims` | Table: id (C1…), claim, grade, source. Every claim any artifact may make. |
@@ -43,6 +43,8 @@ and `touched`) are in backticks.
 | `PROPOSED` | A decision or aspiration, not yet true. |
 | `UNKNOWN` | No evidence. Lives in Unknowns; appears in the ledger only to record that someone wants to claim it. |
 | `CONTRADICTED` | Two sources disagree. The source column names both. Resolved only by new evidence. |
+
+For hardware, prose documents (datasheet, manual, guide, wiki) are `REPORTED` even when authoritative; a design source file (schematic, BOM, CAD) read directly is `OBSERVED` as that file at its revision, and a claim about the unit built from it is `INFERRED` and cites the unit's revision; a calculated or simulated value is `INFERRED`; a marking, enumeration, or capture made on the unit is `OBSERVED`; `VERIFIED` is a check that could have failed, run on the unit against a predicted value. Detailed hardware data (pin maps, limits per part) stays in `evidence/<lens>/` and is cited by path.
 
 **Public-facing copy may use only `OBSERVED` or `VERIFIED` claims**, cited by id (`[C4]`).
 Everything else is internal. "Public-facing" includes the site, store listing, packaging, README

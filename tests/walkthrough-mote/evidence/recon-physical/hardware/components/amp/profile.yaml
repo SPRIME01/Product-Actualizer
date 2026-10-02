@@ -1,0 +1,66 @@
+component: amp
+identity:
+  manufacturer: Corvane
+  model: CA3105
+  revision: unknown
+  package: I2S class-D module
+  level: module
+  ref_des: unknown
+role: Drive the 4 ohm speaker from the Pi I2S output; shutdown pin on Pi GPIO17.
+sources: [S1, S2, S3]
+limits:
+  - param: supply voltage
+    min: 2.5
+    typ: 5.0
+    max: 5.5
+    unit: V
+    class: recommended
+    src: S1 L6
+  - param: supply voltage
+    max: 6.5
+    unit: V
+    class: absolute_max
+    src: S1 L7
+  - param: output power into 4 ohm, THD+N 10 percent
+    typ: 2.5
+    unit: W
+    class: typical
+    conditions: VDD 5 V
+    src: S1 L8
+  - param: output power into 4 ohm, THD+N 1 percent
+    typ: 2.0
+    unit: W
+    class: typical
+    conditions: VDD 5 V
+    src: S1 L9
+  - param: supply current at full output, 4 ohm
+    typ: 0.56
+    unit: A
+    class: typical
+    conditions: VDD 5 V
+    src: S1 L12
+interfaces:
+  - type: I2S
+    detail: input from the Pi, shares the bus with the microphone
+    voltage: 3.3 V logic
+    src: S2 L8-9
+  - type: GPIO
+    detail: SD pin, low = shutdown, high = enabled; Pi GPIO17 per the hardware guide
+    voltage: 3.3 V logic
+    src: S1 L14; S2 L9
+physical:
+  dimensions_mm: unknown
+  connectors: unknown
+  mounting: unknown
+operational:
+  boot: BCLK must be present before SD goes high
+  reset: undriven SD leaves the amplifier off (internal 1 Mohm pull-down)
+  flash: not applicable
+  calibration: not applicable
+  recovery: drive SD low to silence
+quirks:
+  - text: Playback tools can return success while SD is low and nothing is audible.
+    src: S1 L14
+unknowns:
+  - what: who drives GPIO17 after boot
+    how_to_close: search host and firmware code; read the unit's boot configuration

@@ -1,0 +1,37 @@
+component: camera
+identity:
+  manufacturer: Optel
+  model: O-2
+  revision: V1.1
+  package: camera module, 22-pin FFC
+  level: module
+  ref_des: unknown
+role: Image capture for "look at this" on the Pi CSI connector.
+sources: [S1, S2, S3, S4]
+limits:
+  - param: host supply on connector
+    typ: 3.3
+    unit: V
+    class: typical
+    src: S1 L6
+interfaces:
+  - type: CSI
+    detail: 2-lane MIPI CSI-2, 22-pin FFC; libcamera stack only (legacy camera stack not supported)
+    voltage: 3.3 V from the host connector
+    src: S1 L4-6
+physical:
+  dimensions_mm: unknown
+  connectors: 22-pin FFC to the Pi Zero 2 W
+  mounting: in the head shell; not documented
+operational:
+  boot: unknown
+  reset: none
+  flash: not applicable
+  calibration: no intrinsics recorded
+  recovery: not applicable
+quirks:
+  - text: The predecessor O-1 is 5 MP, 1-lane, 15-pin and needs a different driver configuration; BOM rev B and assembly guide rev B name the O-1.
+    src: S1 L5-6; S3 L11
+unknowns:
+  - what: a captured frame from the unit through the current camera stack
+    how_to_close: capture on the unit with the libcamera tools, inspect content and dimensions

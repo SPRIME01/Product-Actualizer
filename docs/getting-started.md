@@ -32,6 +32,8 @@ Bars are `demo`, `beta`, or `release`. They decide how strict the final gate is.
 5. **Rebuild stale work.** Artifacts built from an older model, or that cite a changed claim, are re-run.
 6. **Verify.** `release-readiness` runs the product's claims and flows and returns a verdict: go, no-go, defer, or go-with-exception, with named blockers.
 
+For a product with hardware, see [Products with hardware](physical-products.md): the hardware lenses load only on evidence of powered circuitry and add a revision-first evidence package.
+
 The agent asks you something only when no evidence can answer it; otherwise it records an assumption as `PROPOSED` and continues.
 
 ## 4. Where the work lands

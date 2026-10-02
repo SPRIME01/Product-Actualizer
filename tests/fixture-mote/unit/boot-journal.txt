@@ -1,0 +1,10 @@
+# journalctl -u mote.service -b, excerpt supplied by owner, 2026-09-29
+Sep 29 12:01:07 mote systemd[1]: Started mote.service - Mote companion.
+Sep 29 12:01:08 mote python[412]: Traceback (most recent call last):
+Sep 29 12:01:08 mote python[412]:   File "/home/pi/mote/host/mote/config.py", line 6, in <module>
+Sep 29 12:01:08 mote python[412]:     STT_KEY = os.environ["MOTE_STT_KEY"]
+Sep 29 12:01:08 mote python[412]: KeyError: 'MOTE_STT_KEY'
+Sep 29 12:01:08 mote systemd[1]: mote.service: Main process exited, code=exited, status=1/FAILURE
+Sep 29 12:01:18 mote systemd[1]: mote.service: Scheduled restart job, restart counter is at 5.
+Sep 29 12:01:19 mote systemd[1]: mote.service: Start request repeated too quickly.
+Sep 29 12:01:19 mote systemd[1]: mote.service: Failed with result 'start-limit-hit'.

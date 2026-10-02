@@ -1,0 +1,66 @@
+component: tof
+identity:
+  manufacturer: Veyra
+  model: VT-53 on breakout module rev 2
+  revision: chip rev 3.0
+  package: 4-pin breakout header
+  level: module
+  ref_des: [U3, J6]
+role: Time-of-flight distance sensor on the neck board, I2C1.
+sources: [S1, S2, S3, S4]
+limits:
+  - param: chip VDD
+    min: 2.6
+    typ: 2.8
+    max: 3.5
+    unit: V
+    class: recommended
+    src: S1 L8
+  - param: chip VDD
+    max: 3.9
+    unit: V
+    class: absolute_max
+    src: S1 L9
+  - param: module VIN
+    min: 3.0
+    max: 5.5
+    unit: V
+    class: recommended
+    src: S1 L18
+  - param: range
+    min: 30
+    max: 1200
+    unit: mm
+    class: guaranteed
+    conditions: 17 percent grey target
+    src: S1 L10
+  - param: accuracy
+    typ: 3
+    unit: percent
+    class: typical
+    conditions: after offset calibration at 100 mm
+    src: S1 L11
+interfaces:
+  - type: I2C
+    address: 0x29 (7-bit; 0x52 is the 8-bit write form)
+    detail: I2C1 on GP10 (SDA) and GP11 (SCL) in REV C; up to 400 kHz; identity register 0xC0 reads 0xEE
+    voltage: module pulls SDA and SCL up to VIN, which is +5V in REV C
+    src: S1 L13,L18-19; S2 L30-31
+physical:
+  dimensions_mm: unknown
+  connectors: J6, 4-pin (1 VIN, 2 GND, 3 SCL, 4 SDA)
+  mounting: unknown
+operational:
+  boot: unknown
+  reset: XSHUT (not routed in the REV C export)
+  flash: not applicable
+  calibration: offset calibration at 100 mm required; not done
+  recovery: not applicable
+quirks:
+  - text: Module pull-ups go to VIN, not to the 2.8 V regulator; no level shifting. At 5 V the I2C lines idle at 5 V.
+    src: S1 L18-19
+  - text: README says bus 0 and 0x52; the schematic says I2C1 and 0x29.
+    src: S3 L16; S2 L30
+unknowns:
+  - what: sensor field of view and behavior on dark, glossy, and angled desk surfaces, and with servos and amplifier running
+    how_to_close: measured envelope on the unit (robotics lens)

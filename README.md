@@ -26,7 +26,9 @@ Public-facing copy may only use `OBSERVED` or `VERIFIED` claims. Gaps are writte
 | `skills/<lens>/SKILL.md` | one lens each, 60-100 lines, with `references/` for detail loaded only on demand |
 | `PROVENANCE.md` | which donor repositories informed which lens, and under what license |
 | `tests/check.py` | checks size limits, lens structure, the fixture model against the schema, and artifact staleness |
-| `tests/fixture/`, `tests/walkthrough/` | a fake incomplete product and a hand-run transcript through the whole system |
+| `tests/fixture/`, `tests/walkthrough/` | a fake incomplete software-and-sensor product and a hand-run transcript through the whole system |
+| `tests/fixture-mote/`, `tests/walkthrough-mote/` | a fictional desk robot (schematics, BOM, datasheets, firmware, host app, unit captures) and its walkthrough to a no-go gate |
+| `product-model/PHYSICAL-PREFLIGHT.md` | the discipline for state-changing actions on a real unit |
 | `AGENTS.md` | conventions for working in this repository |
 
 ## The lenses
@@ -34,7 +36,10 @@ Public-facing copy may only use `OBSERVED` or `VERIFIED` claims. Gaps are writte
 | lens | owns |
 |---|---|
 | `recon-software` | what a codebase actually does, as opposed to what its docs say |
-| `recon-physical` | what physical objects, CAD, images, documents, transcripts, and media show and measure |
+| `recon-physical` | what physical objects, hardware (exact boards, revisions, schematics, BOMs, datasheets), CAD, images, documents, transcripts, and media show and measure |
+| `electronics` | the electrical implementation: domains, power, protection, buses, sensing, bench verification |
+| `embedded-systems` | the hardware/software boundary on MCU and Linux SBC targets: identity, boot, flash, recovery, drivers, services, updates |
+| `robotics` | embodied closed-loop behavior and physical AI: sensing to control to actuation, timing, safe states, physical testing |
 | `direction` | the project-wide aesthetic system (creative direction) and its per-deliverable interpretation (art direction) |
 | `brand` | who the product is: positioning, name, identity, voice |
 | `experience` | how actors accomplish their jobs: flows, states, interaction behavior |
@@ -81,6 +86,7 @@ python3 tests/check.py
 
 `tests/walkthrough/TRANSCRIPT.md` shows one full pass on a small fixture: which lenses loaded and which were excluded, the
 model at each version, a rejected proposal, a defect found only by executing a claim, and a stale artifact detected and rebuilt.
+`tests/walkthrough-mote/TRANSCRIPT.md` does the same for a hardware and physical-AI product: revision contradictions, a calculated power budget, a static pin check, an unbounded actuator, and a gate that refuses unexercised physical claims. See `docs/physical-products.md`.
 
 ## Enforcement hooks
 
@@ -93,7 +99,7 @@ let the agent stop while lenses, reconciliation, stale artifacts, or the release
 node hooks/install.mjs --scope project --project <dir>   # Claude Code, Codex, Cline, OpenCode, Pi / Prime Agent
 node hooks/install.mjs --status | --dry-run | --uninstall
 hooks/bin/actualize status                                # current run, next step, stop gate
-node --test tests/hooks/                                  # replays the Loam walkthrough through the engine
+node --test tests/hooks/                                  # replays both walkthroughs through the engine
 ```
 
 Installs are idempotent and touch only entries marked as managed. `--scope user` is safe globally: hooks stay silent unless

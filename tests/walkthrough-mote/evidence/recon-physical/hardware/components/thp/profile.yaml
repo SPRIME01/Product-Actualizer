@@ -1,0 +1,56 @@
+component: thp
+identity:
+  manufacturer: Sentio
+  model: ST20
+  revision: unknown
+  package: DFN-4
+  level: component
+  ref_des: [U4]
+role: Temperature and humidity sensing on the neck board, I2C1.
+sources: [S1, S2, S3]
+limits:
+  - param: VDD
+    min: 1.7
+    typ: 3.3
+    max: 3.6
+    unit: V
+    class: recommended
+    src: S1 L6
+  - param: temperature accuracy
+    typ: 0.3
+    max: 0.5
+    unit: C
+    class: typical
+    conditions: 5-60 C
+    src: S1 L7
+  - param: humidity accuracy
+    typ: 2
+    max: 4
+    unit: percent RH
+    class: typical
+    conditions: 20-80 percent RH
+    src: S1 L8
+interfaces:
+  - type: I2C
+    address: 0x44 (ADDR tied to GND in REV C)
+    detail: shares I2C1 with the VT-53 module; powered from +3V3
+    voltage: 3.3 V
+    src: S1 L10; S2 L8,L25,L30-31,L38
+physical:
+  dimensions_mm: unknown
+  connectors: none (soldered)
+  mounting: on the neck board; position relative to the amplifier and Pi not documented
+operational:
+  boot: unknown
+  reset: none
+  flash: not applicable
+  calibration: no offset compensation in firmware; no reference measurement taken
+  recovery: not applicable
+quirks:
+  - text: Self-heating of nearby parts shifts readings; datasheet says to compensate and verify against a reference.
+    src: S1 L10-11
+  - text: Owner notes the sensor reads warm near the amplifier.
+    src: S3 L7
+unknowns:
+  - what: warm bias under speech and servo load
+    how_to_close: log against a reference thermometer through a speech and motion cycle

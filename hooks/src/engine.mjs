@@ -52,6 +52,43 @@ export function statusBlock(run, state, lenses, full) {
 }
 
 // ---------- pre-tool gates ----------
+// State-changing hardware commands (see product-model/PHYSICAL-PREFLIGHT.md). Deliberately conservative: flashing and erasing tools only.
+const PHYSICAL_LENSES = ["electronics", "embedded-systems", "robotics"];
+const FLASH = new RegExp([
+  String.raw`\besptool(\.py)?\b.*\b(write[_-]flash|erase[_-]flash|erase[_-]region)\b`,
+  String.raw`\bidf\.py\b.*\b(flash|app-flash|erase[_-]flash)\b`,
+  String.raw`\bpicotool\b\s+(load|erase)\b`,
+  String.raw`\bdfu-util\b.*\s-D\b`,
+  String.raw`\bavrdude\b.*-U\s*\S+:w`,
+  String.raw`\bwest\s+flash\b`,
+  String.raw`\bnrfjprog\b.*--(program|erase|recover)`,
+  String.raw`\bSTM32_Programmer_CLI\b.*\s-(w|e)\b`,
+  String.raw`\bopenocd\b.*\b(program|write_image|flash\s+write)`,
+  String.raw`\b(pio|platformio)\s+run\b.*(-t|--target)\s+upload`,
+  String.raw`\barduino-cli\s+upload\b`,
+  String.raw`\bmpremote\b.*\bcp\b`,
+].join("|"), "i");
+const IRREVERSIBLE = new RegExp([
+  String.raw`\bespefuse(\.py)?\b`,
+  String.raw`\besptool(\.py)?\b.*\bburn[_-](efuse|key|block)`,
+  String.raw`\bnrfjprog\b.*--eraseall`,
+  String.raw`\bpicotool\b.*\botp\b`,
+  String.raw`\b(secure[_-]boot|flash[_-]encrypt\w*)\b.*\b(enable|burn|set)\b`,
+].join("|"), "i");
+
+function hardwareAction(command, run, state) {
+  if (IRREVERSIBLE.test(command)) return "irreversible hardware change (fuses, secure boot, flash encryption, OTP, full-chip erase of a locked part): it needs the owner's explicit confirmation for this action. Record the preflight, then `" + cliCmd() + " pause --reason \"<the confirmation needed>\"` and ask; the owner runs it.";
+  if (!FLASH.test(command)) return null;
+  const running = Object.keys(state.activeLenses).filter((n) => PHYSICAL_LENSES.includes(n));
+  if (!running.length) return "flashing or erasing a device is a state-changing physical action and happens inside a physical lens run (embedded-systems, electronics, robotics). Start one: " + cliCmd() + " lens start embedded-systems";
+  const ok = running.some((n) => {
+    const text = readText(path.join(run.evidenceDir, n, "actions.md"), "");
+    return /^\s*target\b/im.test(text) && /^\s*expected result\b/im.test(text) && /^\s*recovery\b/im.test(text);
+  });
+  if (!ok) return `state-changing hardware action: first record the preflight (target, current state, expected result, known bounds, action, bounded completion, observation, recovery) in evidence/${running[0]}/actions.md. See product-model/PHYSICAL-PREFLIGHT.md.`;
+  return null;
+}
+
 function preTool(ev, run, state, lenses, env) {
   const t = ev.tool;
   if (!t) return null;
@@ -60,6 +97,11 @@ function preTool(ev, run, state, lenses, env) {
   const strict = state.strict !== false;
   const activeNames = Object.keys(state.activeLenses);
   const denials = [];
+
+  if (strict && t.kind === "bash" && t.command) {
+    const hw = hardwareAction(t.command, run, state);
+    if (hw) denials.push(hw);
+  }
 
   const writeTargets = [];
   const readTargets = [];
