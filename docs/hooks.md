@@ -1,7 +1,11 @@
 # Hooks: enforcing the process
 
 Hooks make the process mandatory. They track a run's state and deny or block actions that skip steps. They have no
-dependencies beyond Node and stay silent in any project that has no `actualize/` run.
+dependencies at all and run on [Bun](https://bun.sh) 1.4 or later (there is no Node implementation), and they stay
+silent in any project that has no `actualize/` run.
+
+For how the engine decides, and for the subsystem as a component, see [the hooks subsystem guide](subsystems/hooks.md).
+For the exact commands and flags, see [the CLI reference](reference/cli.md).
 
 ## Supported clients
 

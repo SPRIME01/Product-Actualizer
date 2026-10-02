@@ -26,7 +26,7 @@ Public-facing copy may only use `OBSERVED` or `VERIFIED` claims. Gaps are writte
 | `skills/actualize-product/` | the router (always loaded): classifies evidence, builds the model, picks lenses, reconciles, rebuilds stale work, verifies |
 | `skills/<lens>/SKILL.md` | one lens each, 60-100 lines, with `references/` for detail loaded only on demand |
 | `PROVENANCE.md` | which donor repositories informed which lens, and under what license |
-| `tests/check.py` | checks size limits, lens structure, the fixture model against the schema, and artifact staleness |
+| `tests/check.py` | verifies the system's own structure: size limits, lens structure, routing scenarios, both walkthrough models against the schema, artifact staleness, grade discipline, the hardware evidence package, and re-execution of the walkthroughs' evidence with negative controls |
 | `tests/fixture/`, `tests/walkthrough/` | a fake incomplete software-and-sensor product and a hand-run transcript through the whole system |
 | `tests/fixture-mote/`, `tests/walkthrough-mote/` | a fictional desk robot (schematics, BOM, datasheets, firmware, host app, unit captures) and its walkthrough to a no-go gate |
 | `product-model/PHYSICAL-PREFLIGHT.md` | the discipline for state-changing actions on a real unit |

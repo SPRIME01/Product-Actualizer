@@ -4,10 +4,15 @@ An interactive workbench the owner and the agent share while a run is going. It 
 
 ```
 just cockpit-up                     # from the project, or PROJECT=<dir>; opens your browser
-actualize cockpit up|down|open|status
+actualize cockpit up|down|open|status|rebuild|reset
 actualize ui context                # what the agent sees of it
 actualize inbox                     # what the owner has answered
 ```
+
+The complete verb set is `up`, `serve` (internal, spawned by `up`), `open`, `down`, `status`, `rebuild`, `reset`;
+see [the CLI reference](reference/cli.md) for flags. For the subsystem as a component see
+[the cockpit subsystem guide](subsystems/cockpit.md); for the exact vocabulary — all 15 blocks, the source grammar,
+the error codes, the 12 tools — see [the cockpit protocol reference](reference/cockpit-protocol.md).
 
 ## The picture
 
@@ -70,7 +75,14 @@ The page registers twelve semantic tools with `navigator.modelContext` when the 
 
 ## Events
 
-`run.started` · `lenses.selected` · `wave.started` · `lens.started` · `lens.finished` · `reconcile.started` · `model.updated` · `reconcile.finished` · `proposal.added` · `proposal.resolved` · `claim.regraded` · `contradiction.found` · `unknown.opened` · `unknown.closed` · `artifact.created` · `artifact.stale` · `artifact.rebuilt` · `preflight.required` · `human.requested` · `human.responded` · `human.handled` · `gate.updated` · `run.finished`, plus `surface.*`, `view.*`, `layout.*`, `human.*` for the cockpit's own channel. They come from the engine's append-only log and from diffs between projections; they are a view, never a source of truth.
+`run.started` · `lenses.selected` · `wave.started` · `lens.started` · `lens.finished` · `reconcile.started` · `model.updated` · `reconcile.finished` · `proposal.added` · `proposal.resolved` · `claim.regraded` · `contradiction.found` · `unknown.opened` · `unknown.closed` · `artifact.created` · `artifact.stale` · `artifact.rebuilt` · `preflight.required` · `human.requested` · `human.responded` · `human.handled` · `gate.updated` · `run.finished`.
+
+The cockpit's own channel adds `surface.put`, `surface.patch`, `surface.removed`, `view.focused`, `view.moved`,
+`view.sized`, `layout.saved`, `layout.restored`, `layout.reset`, `note.added`, `ask.withdrawn`, `action.rejected`,
+`human.answered`, `human.ruled`, `human.annotated`, and `preflight.answered`. Of these, `action.rejected` is the
+only record that a mutation was refused. They come from the engine's append-only log and from diffs between
+projections; they are a view, never a source of truth. The full list is in
+[the cockpit protocol reference](reference/cockpit-protocol.md).
 
 ## Distribution and development
 

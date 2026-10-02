@@ -4,7 +4,7 @@
 
 - A coding agent that can read files and follow instructions.
 - Your product's files (a repo, CAD or 3D assets, images, documents, transcripts, media, or any mix) and a goal.
-- Optional: Node 20+ to enforce the process with hooks, and Python 3 to run `tests/check.py`. The skills themselves are plain Markdown.
+- Optional: **Bun 1.4 or later** to enforce the process with hooks, and Python 3 to run `tests/check.py`. The skills themselves are plain Markdown.
 
 ## 1. Make the skills available
 
