@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 400" width="200" height="400">
+  <title>Loam probe, concept render</title>
+  <rect width="200" height="400" fill="#f4f1ea"/>
+  <rect x="88" y="150" width="24" height="210" rx="4" fill="#c9c3b6"/>
+  <polygon points="88,360 112,360 100,392" fill="#c9c3b6"/>
+  <rect x="62" y="60" width="76" height="100" rx="38" fill="#2f7d6d"/>
+  <circle cx="100" cy="92" r="6" fill="#d8f3e6"/>
+</svg>
