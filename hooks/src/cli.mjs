@@ -1,4 +1,4 @@
-#!/usr/bin/env node
+#!/usr/bin/env bun
 // actualize: process CLI and hook entry point.
 //   actualize hook <client> <event>        (reads the client's JSON payload on stdin)
 //   actualize begin|lenses|select|lens|reconcile|status|gate|done|pause|model|validate|install
@@ -22,6 +22,9 @@ const USAGE = `actualize <command>
   pause --reason "<question for the user>"
   model restore                           revert product-model.md to the last reconciled version
   validate [file]                         check a Product Model against SCHEMA.md
+  inbox [ack <id> --as "..."]             owner responses from the cockpit; route each, then acknowledge it
+  cockpit up|down|open|status|rebuild     the interactive cockpit (optional; the process works without it)
+  ui <status|context|catalog|put|show|compare|ask|arrange|responses>   compose the cockpit through typed actions
   hook <client> <event>                   native hook entry (claude|codex|cline) -- see docs/hooks.md
   install ...                             see hooks/install.mjs`;
 
@@ -39,18 +42,11 @@ function parseArgs(argv) {
   return { pos, opt, multi };
 }
 
+// Some clients never close stdin, so read with an idle bound instead of waiting for EOF.
 async function readStdin() {
-  return new Promise((resolve) => {
-    let data = "";
-    const done = () => { clearTimeout(t); resolve(data.replace(/^﻿/, "")); };
-    const t = setTimeout(done, Number(process.env.ACTUALIZE_STDIN_IDLE_MS || 1500));
-    t.unref?.();
-    process.stdin.setEncoding("utf8");
-    process.stdin.on("data", (c) => { data += c; });
-    process.stdin.on("end", done);
-    process.stdin.on("error", done);
-    process.stdin.resume();
-  });
+  const idle = Number(process.env.ACTUALIZE_STDIN_IDLE_MS || 1500);
+  const text = await Promise.race([Bun.stdin.text(), Bun.sleep(idle).then(() => "")]);
+  return text.replace(/^\uFEFF/, "");
 }
 
 async function hookMain(client, eventName) {
@@ -92,6 +88,12 @@ async function main(argv) {
   if (cmd === "install") {
     const m = await import("../install.mjs");
     return m.main(argv.slice(1));
+  }
+  if (cmd === "cockpit" || cmd === "ui" || cmd === "inbox") {
+    const m = await import("../../cockpit/cli.ts");
+    const rest = pos.slice(1);
+    if (cmd === "inbox") return m.inboxMain(rest, opt, process.cwd());
+    return cmd === "ui" ? m.uiMain(rest, opt, process.cwd()) : m.cockpitMain(rest, opt, process.cwd());
   }
   const lenses = P.loadLenses();
   if (cmd === "begin") {

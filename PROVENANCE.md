@@ -52,6 +52,23 @@ dependency. Licenses were read from each donor's own license file (or manifest, 
 | robotics | adityakamath/ros2-skill | profile first, live preflight, exact interface, bounded action, observe, verify; runtime state does not persist; an inactive lifecycle node drops messages silently; verify the effect, not the exit code; read pose only when stationary; after a timeout read the pose before re-issuing; stop first when a new command arrives; reject absurd magnitudes. Its command catalog is not reproduced: it is the execution layer (`executes_with`) | Apache-2.0 |
 | robotics, embedded-systems, release-readiness | talsraviv/bubbles-the-ai-robot | locally bounded actuation; observe, small action, observe; commanded versus actual measured; sensor operating envelopes recorded when found; restore a known state; exit 0 can be silence (amplifier gate, audio route), a human confirms audibility; device ownership and stale holders; termination skips cleanup; transcripts are not gospel. Persona, conversation, and robot-specific behavior dropped | MIT |
 
+## Cockpit donors
+
+Read as architecture and interaction research, then deleted; nothing is copied. Only the packages named under "Dependencies" are installed.
+
+| area | donor | what was kept | license |
+|---|---|---|---|
+| interaction grammar | bombshell-dev/clack | a very small set of prompt primitives (text, multiline, confirm, select, multiselect, autocomplete, path, group, spinner/progress, note, intro, cancel) composes into every workflow; cancel is a first-class outcome, not an exception. Became the `ask`/`form`/`progress`/`callout` blocks, with defer and skip on every ask | MIT |
+| composition | vercel-labs/json-render | typed component catalog + declarative spec + validated rendering + actions; the catalog is the guardrail; structural spec validation with machine-readable issue codes (missing child, orphan, props that belong elsewhere). Built as a smaller equivalent (`protocol/spec.ts`, Zod, closed registry in `web/Surface.tsx`); the package was not adopted because its catalog, state store, and shadcn components are generic where this vocabulary must carry process meaning | Apache-2.0 |
+| agent-visible UI state and typed actions | tldraw/tldraw (agent template) | prompt "parts" for what the user sees (selected shapes, viewport, user action history, peripheral content summarized not enumerated) became the compact `get_workspace` context; one schema per action validated before the transition; "canvas lints" became advisory composition lints. tldraw's own license is not permissive for production use, so only these ideas were taken | tldraw license (ideas only) |
+| shared state and interrupts | ag-ui-protocol/ag-ui | lifecycle event naming (RUN_STARTED, STEP_*, STATE_SNAPSHOT/DELTA, ACTIVITY_*, CUSTOM); an interrupt ends a run with a structured outcome and resumes with one response per interrupt id and a status. Became the noun.verb event taxonomy, snapshot-then-delta on connect, and answers keyed by ask id with `answered`/`deferred`/`cancelled` | MIT |
+| frontend actions, human in the loop | CopilotKit/CopilotKit, assistant-ui/assistant-ui, ag-ui-protocol/open-ag-ui-canvas | the agent renders a request and waits on a human response that comes back as structured data; the tool result is a UI; shared canvas state both sides read. Kept the first two; rejected the chat-thread machinery, runtimes, and cloud services | MIT |
+| spatial workspace | dockview/dockview | tabs, nested splits, drag, resize, maximize, JSON serialization of the whole layout; a layout is separable from panel content. Used as a dependency (`dockview-react`); the server keeps its own small topology tree so agent placement is testable without a browser | MIT |
+| graph | xyflow/xyflow | nodes, edges, pan, zoom, selection as a reusable view; layout is not included, so a layered DAG layout is ours. Used as a dependency (`@xyflow/react`), loaded only when a graph is drawn | MIT |
+| trace presentation | langfuse/langfuse | nested observations as a tree with per-node duration bars relative to siblings, status marks, expand/collapse, and subtree wall-clock rather than the parent's own span. Mapped to the run trace (run, wave, lens, reconciliation, preflight stops). No part of its observability architecture | MIT (outside `ee/`) |
+
+Dependencies: `zod`, `react`, `react-dom`, `dockview-react`, `@xyflow/react`, `@tanstack/charts` (MIT); `playwright-core` (Apache-2.0, dev only). TanStack Table was evaluated and not installed: tables here are a few dozen rows of known columns with grouping, selection, and sorting, which is less code than the dependency. Rejected from the donors: framework backends, agent runtimes, auth and SaaS pieces, generative HTML/JS, chat message machinery, cloud sync.
+
 ## Read, nothing kept
 
 - `vivar/Hermes-Suno-Music-Agent` (CC BY-NC-SA 4.0): non-commercial and share-alike terms are incompatible with free reuse here; its mixing and
@@ -62,7 +79,7 @@ dependency. Licenses were read from each donor's own license file (or manifest, 
 
 ## Notices
 
-Copyright lines of donors whose ideas were used, preserved here as courtesy and in case any phrasing resembles theirs:
+Copyright lines of donors whose ideas were used (cockpit donors: Bombshell contributors, mathuo (dockview), webkid GmbH (xyflow), Atai Barkai (CopilotKit), AgentbaseAI Inc. (assistant-ui), ClickHouse Inc. (langfuse), the AG-UI authors, all MIT; Vercel Labs json-render, Apache-2.0), preserved here as courtesy and in case any phrasing resembles theirs:
 DiUS; Meng To; Bang Tutorial; Siqi Chen (2025); Cofoundy SAC; Corey Haines (2025); Phillip Tularak; dlazy;
 blender-industrial-kit contributors; kajisho5; Magnus Hedemark; RampStack Co.; Wondel.ai sp. z o.o. (2025); Seeed Studio (2026); lhbsaa (2026); Tal Raviv (2026) — all MIT.
 Alex Greenshpun (anidoodle), img2threejs authors, karekin/video-shotcraft authors, HeyGen (hyperframes), robotics-agent-skills contributors (2026), adityakamath (ros2-skill) — Apache-2.0

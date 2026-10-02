@@ -1,0 +1,25 @@
+scenario: robotics — system graph, sensor state, preflight, activity
+fixture: mote
+compose:
+  - surface:
+      id: neck-bringup
+      title: Neck bring-up
+      intent: decide
+    layout:
+      - type: graph
+        id: sys
+        title: Pan-tilt chain
+        direction: LR
+        nodes:
+          - { id: host, label: Pi Zero 2 W, kind: compute }
+          - { id: uart, label: UART 115200, kind: bus }
+          - { id: mcu, label: RP2040 neck, kind: mcu, tone: warning }
+          - { id: q1, label: Q1 servo switch, kind: power, tone: danger }
+          - { id: servo, label: TS-9 x2, kind: actuator, ref: "lens:robotics" }
+        edges: [{ from: host, to: uart }, { from: uart, to: mcu }, { from: mcu, to: q1 }, { from: q1, to: servo, label: gated 5 V }]
+      - { type: table, id: sensors, source: "file:evidence/robotics/envelopes.md#table1" }
+      - type: preflight
+        id: pf
+        evidence: ["evidence:embedded-systems/pincheck.py"]
+        action: { class: state-changing, target: "neck RP2040, /dev/ttyACM0", currentState: "firmware v0.3, servo rail off", expected: "boot log shows REV C pin map", stopIf: "no enumeration within 10 s", bounds: "UF2 copy only, no erase", action: "copy neck-v0.4.uf2 to the BOOTSEL volume", boundedBy: "single file copy", observation: "serial boot log; owner watches the servos", recovery: "hold BOOTSEL and reflash v0.3 (SWD on J5 as backup)" }
+      - { type: tree, id: act, source: "pa:trace", expand: 2, show: [status, duration] }

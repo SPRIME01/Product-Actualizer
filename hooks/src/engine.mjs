@@ -3,13 +3,14 @@
 import path from "node:path";
 import { findRun, loadState, saveState, readText, modelHash, log, zoneOf, CLI_PATH, skillsDir } from "./lib/store.mjs";
 import { parseModel, validateModel, validateArtifact, validateProposalRows, parseProposals } from "./lib/md.mjs";
+import { unhandled as inboxUnhandled, describe as describeInbox } from "./lib/inbox.mjs";
 import { loadLenses, lensOfPath } from "./lib/lenses.mjs";
 import { computeGate, nextAction, finish, withCli, cliCmd, GATE_LENS } from "./process.mjs";
 
 const MAX_STOP_BLOCKS = 4;
 const INTENT = /\b(actuali[sz]e|make (it|this|the product) (launch|ship|real)|get (it|this) (ready )?(to )?(launch|ship)|launch(-| )ready|finish (the |this |my )?product|take (it|this) to (market|launch)|launchable)\b/i;
-const WRITE_OPS = /(^|[\s;&|(])(tee|sed\s+-[a-z]*i|perl\s+-[a-z]*i|mv|cp|rm|truncate|install|dd|touch|ed|ex|git\s+(checkout|restore|reset|stash|clean|apply|mv|rm))\b|>>?|\bpython3?\b[^|]*\bopen\(|\bnode\b[^|]*\b(writeFile|appendFile)/;
-const READ_OPS = /(^|[\s;&|(])(cat|head|tail|less|more|bat|sed\s+-n|awk|grep|rg|nl|view|xxd|strings|cp|node|python3?)\b|<\s*\S/;
+const WRITE_OPS = /(^|[\s;&|(])(tee|sed\s+-[a-z]*i|perl\s+-[a-z]*i|mv|cp|rm|truncate|install|dd|touch|ed|ex|git\s+(checkout|restore|reset|stash|clean|apply|mv|rm))\b|>>?|\bpython3?\b[^|]*\bopen\(|\b(node|bun)\b[^|]*\b(writeFile|appendFile|write)\b/;
+const READ_OPS = /(^|[\s;&|(])(cat|head|tail|less|more|bat|sed\s+-n|awk|grep|rg|nl|view|xxd|strings|cp|node|bun|python3?)\b|<\s*\S/;
 const CONFIG_DOT = /^\./;
 
 export function handle(ev, env = process.env) {
@@ -44,11 +45,26 @@ export function statusBlock(run, state, lenses, full) {
     `Next: ${withCli(nextAction(run, state, lenses))}`,
   ];
   if (g.blockers.length) lines.push(`Open blockers (${g.blockers.length}): ${g.blockers.slice(0, 3).map((x) => x.text).join(" | ")}`);
+  const waiting = inboxUnhandled(run);
+  if (waiting.length) lines.push(`Owner responses waiting (${waiting.length}): ${waiting.slice(0, 3).map(describeInbox).join(" | ")} -> route each, then \`inbox ack <id> --as "..."\``);
+  const ui = cockpitLine(run);
+  if (ui) lines.push(ui);
   if (full) {
     lines.push(`Process CLI: ${cliCmd()} <status|lenses|select|lens start|lens done|reconcile start|reconcile done|done>`);
     lines.push("Enforced: product-model.md is edited only between `reconcile start` and `reconcile done`; a lens writes only artifacts/<lens>/, evidence/<lens>/ and appends open rows to proposals.md; lens bodies load only through `lens start`; the run cannot stop with open proposals, stale artifacts, an invalid model, or no current release gate.");
   }
   return lines.join("\n");
+}
+
+// The cockpit keeps a compact summary of what the owner is looking at; one line of it is progressive disclosure for UI context.
+function cockpitLine(run) {
+  try {
+    const c = JSON.parse(readText(path.join(run.cockpitDir, "context.json"), "null"));
+    if (!c || !c.connected) return null;
+    try { process.kill(c.pid, 0); } catch { return null; }   // a crashed server must not leave a claim that someone is looking
+    const asks = c.asking?.length ? ` · asking: ${c.asking.slice(0, 2).map((a) => a.prompt).join(" | ")}` : "";
+    return `[cockpit] connected · focus: ${c.focus ?? "none"} · ${c.visible?.length ?? 0} surface(s)${asks} (full: ${cliCmd()} ui context)`;
+  } catch { return null; }
 }
 
 // ---------- pre-tool gates ----------
@@ -100,7 +116,7 @@ function preTool(ev, run, state, lenses, env) {
 
   if (strict && t.kind === "bash" && t.command) {
     const hw = hardwareAction(t.command, run, state);
-    if (hw) denials.push(hw);
+    if (hw) { denials.push(hw); log(run, { type: "preflight_required", command: t.command.slice(0, 160), reason: hw.slice(0, 120) }); }
   }
 
   const writeTargets = [];

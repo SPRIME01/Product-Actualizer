@@ -17,6 +17,7 @@ export function loadLenses(env = process.env) {
     let text;
     try { text = fs.readFileSync(file, "utf8"); } catch { continue; }
     const { fm } = frontmatter(text);
+    if (fm.kind === "tool") continue;   // a skill that is not a lens (e.g. cockpit): never selectable, never excluded
     lenses[name] = {
       name, file, dir: path.join(dir, name),
       description: fm.description ?? "",

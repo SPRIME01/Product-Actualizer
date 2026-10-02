@@ -1,0 +1,14 @@
+scenario: marketing — artifact, claim evidence, measurement
+fixture: mote
+compose:
+  - surface:
+      id: spec-sheet
+      title: Spec sheet claims
+      intent: verify
+      layout: columns
+    layout:
+      - { type: document, id: copy, source: "file:artifacts/marketing/spec-sheet.md", title: Public copy }
+      - { type: table, id: cites, source: "pa:claims", filter: [{ field: grade, op: in, value: [REPORTED, INFERRED, CONTRADICTED] }], columns: [{ field: id, kind: ref }, { field: grade, kind: grade }, { field: text }] }
+      - { type: entity, id: one, ref: "artifact:marketing/spec-sheet.md", show: [touches, consequence] }
+      - { type: chart, id: funnel, kind: bar, x: step, series: [{ y: visits }], data: [{ step: view, visits: 0 }, { step: signup, visits: 0 }] }
+      - { type: callout, id: no-analytics, tone: unknown, text: "No analytics exist yet: the signup channel is unknown [[U13]]." }

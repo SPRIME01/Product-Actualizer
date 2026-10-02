@@ -18,10 +18,10 @@ dependencies beyond Node and stay silent in any project that has no `actualize/`
 ## Install
 
 ```
-node hooks/install.mjs --scope project --project <dir>     # one project
-node hooks/install.mjs --scope user                        # everywhere; silent without a run
-node hooks/install.mjs --client claude                     # one client (claude|codex|cline|opencode|pi|prime|all)
-node hooks/install.mjs --dry-run | --status | --uninstall | --force
+bun hooks/install.mjs --scope project --project <dir>     # one project
+bun hooks/install.mjs --scope user                        # everywhere; silent without a run
+bun hooks/install.mjs --client claude                     # one client (claude|codex|cline|opencode|pi|prime|all)
+bun hooks/install.mjs --dry-run | --status | --uninstall | --force
 ```
 
 Installs are idempotent, back up any file they change, and touch only entries they manage. `--status` exits 1 if anything drifted.
@@ -67,10 +67,14 @@ Put `hooks/bin` on your PATH or call it by path. `begin` writes `actualize/state
 - Inspect an end state: `actualize gate [--json]`.
 - Debug a hook: set `ACTUALIZE_DEBUG=1`.
 
+## Runtime
+
+Hooks run `hooks/bin/actualize`, a three-line shell shim that execs `bun hooks/src/cli.mjs`; there is no Node implementation. A hook call costs about 10 ms. `bun run build` compiles the same entry point to a single executable (`dist/bin/actualize`); installing from it writes hook commands that call the binary directly, with no Bun on the target.
+
 ## Testing
 
 ```
-node --test tests/hooks/
+bun test
 ```
 
 The suite replays the Loam walkthrough and the physical-AI Mote walkthrough through the engine, including denied writes, a rejected proposal, stale rebuilds, nested hardware evidence,
@@ -79,5 +83,5 @@ the physical lens chain, the flashing preflight rule, the stop-gate loop guard, 
 ## Troubleshooting
 
 - Hook silently does nothing: no `actualize/state.json` at or above the working directory. Run `begin`, or set `ACTUALIZE_DIR`.
-- "node hangs" in a script with a temporary `HOME`: a version-manager shim for `node` may stall. Call the real binary
-  (`node -p process.execPath`).
+- Hooks installed but nothing happens, and stderr says "Bun >= 1.4 is required": the client was launched with a PATH that lacks `bun`. Install Bun (https://bun.sh) or use the compiled executable from `bun run build`. Hooks fail open on purpose so a missing runtime never bricks the client; `bun hooks/install.mjs --status` warns when `bun` is not on PATH.
+- The in-process clients (OpenCode, Pi / Prime) run the engine inside the host's own runtime, so the engine and its libraries use only `node:` modules that both Bun and Node provide; Bun-specific code lives in the CLI and the cockpit.

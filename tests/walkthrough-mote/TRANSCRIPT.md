@@ -8,7 +8,7 @@ Model snapshots are `model-v1..v6.md`; every one validates against `product-mode
 executed evidence below. Commands shown were really run; anything that needs the unit, a person, or a network was not, and is recorded as
 an unknown. There is no live unit in this repository, so every unit fact is an owner-supplied capture (`REPORTED`) or an owner confirmation (`VERIFIED`).
 
-Always-loaded context: `actualize-product` (21 lines) + `SCHEMA.md` (88 lines). Nothing else is loaded until a lens runs.
+Always-loaded context: `actualize-product` (22 lines) + `SCHEMA.md` (88 lines). Nothing else is loaded until a lens runs.
 
 ## Step 1: classify evidence
 

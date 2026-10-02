@@ -3,8 +3,9 @@
 Agent skills that take an incomplete real product (a repo, hardware, CAD or 3D assets, screenshots, documents,
 media, transcripts, or any mix) and move it toward a coherent, launchable whole.
 
-Everything is plain Markdown, YAML front matter, and JSON. There are no runtime dependencies and no framework
-assumptions; any coding agent that can read files and follow instructions can use it.
+The skills are plain Markdown, YAML front matter, and JSON, with no framework assumptions: any coding agent that can read files and follow
+instructions can use them. The optional enforcement hooks and the interactive cockpit run on [Bun](https://bun.sh) 1.4 or later (one runtime, no Node);
+the hook engine itself has no dependencies.
 
 ## The idea
 
@@ -29,6 +30,10 @@ Public-facing copy may only use `OBSERVED` or `VERIFIED` claims. Gaps are writte
 | `tests/fixture/`, `tests/walkthrough/` | a fake incomplete software-and-sensor product and a hand-run transcript through the whole system |
 | `tests/fixture-mote/`, `tests/walkthrough-mote/` | a fictional desk robot (schematics, BOM, datasheets, firmware, host app, unit captures) and its walkthrough to a no-go gate |
 | `product-model/PHYSICAL-PREFLIGHT.md` | the discipline for state-changing actions on a real unit |
+| `hooks/` | process engine, hook entry point, and installers for six agent clients (Bun) |
+| `cockpit/` | the interactive cockpit: typed surface vocabulary, workspace reducer, SQLite projection, Bun server, React UI, WebMCP |
+| `skills/cockpit/` | the small skill that teaches an agent to drive the cockpit (a tool skill, not a lens) |
+| `justfile` | `just cockpit-up`, `cockpit-down`, `test`, `build`, `dev` |
 | `AGENTS.md` | conventions for working in this repository |
 
 ## The lenses
@@ -90,20 +95,36 @@ model at each version, a rejected proposal, a defect found only by executing a c
 
 ## Enforcement hooks
 
-The process is enforced, not just described. `hooks/` holds a small Node engine (no dependencies) that tracks a run
+The process is enforced, not just described. `hooks/` holds a small Bun engine (no dependencies) that tracks a run
 (`begin`, `select`, `lens start/done`, `reconcile start/done`, `done`) and gates the agent: it injects status at session
 start and on each prompt, blocks writes that break the rules (for example lenses editing `product-model.md`), and refuses to
 let the agent stop while lenses, reconciliation, stale artifacts, or the release gate are outstanding.
 
 ```
-node hooks/install.mjs --scope project --project <dir>   # Claude Code, Codex, Cline, OpenCode, Pi / Prime Agent
-node hooks/install.mjs --status | --dry-run | --uninstall
+bun hooks/install.mjs --scope project --project <dir>   # Claude Code, Codex, Cline, OpenCode, Pi / Prime Agent
+bun hooks/install.mjs --status | --dry-run | --uninstall
 hooks/bin/actualize status                                # current run, next step, stop gate
-node --test tests/hooks/                                  # replays both walkthroughs through the engine
+bun test                                                  # hook engine, cockpit protocol, server, and browser tests
 ```
+
+Bun is required (`curl -fsSL https://bun.sh/install | bash`). If it is missing, hooks stay silent and print one line to stderr; every other command fails with a clear message. `just build` produces a single executable that needs no Bun on the target.
 
 Installs are idempotent and touch only entries marked as managed. `--scope user` is safe globally: hooks stay silent unless
 the working project has an actualize run.
+
+## The cockpit
+
+An optional interactive workbench over a run, for the owner. A fixed rail shows where the process is (never more than a fifth of the screen);
+the rest is a Dockview workspace of **surfaces** the agent composes from fifteen typed blocks (tables, charts, graphs, comparisons, documents,
+entities, preflights, questions) as data, never as code. Everything the owner clicks becomes recorded input (`actualize inbox`) that the router
+routes through proposals and reconciliation; the cockpit cannot edit the model, a grade, or a gate. The process works with it closed.
+
+```
+just cockpit-up        # or: actualize cockpit up      (opens your browser; PROJECT=<dir> or run from the project)
+just cockpit-down
+```
+
+See `docs/cockpit.md`.
 
 ## Provenance
 

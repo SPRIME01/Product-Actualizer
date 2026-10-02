@@ -1,0 +1,26 @@
+scenario: product decision — three alternatives, tradeoffs, selection
+fixture: loam
+compose:
+  - surface:
+      id: signup-channel
+      title: Signup channel for the beta page
+      intent: decide
+      summary: The page has no call to action; U9 blocks the gate.
+    layout:
+      - type: compare
+        id: opts
+        mode: matrix
+        items: [{ label: Waitlist form }, { label: Email link }, { label: Invite code }]
+        criteria:
+          - { name: Effort, cells: [{ text: new form + storage, tone: warning }, { text: one mailto line, tone: ok }, { text: needs an issuing process, tone: danger }] }
+          - { name: Evidence, cells: [{ text: "none yet" }, { text: "matches [[U1]] unknown owner" }, { text: "none yet" }] }
+      - { type: callout, id: c, tone: unknown, text: "Which channel the owner can actually staff is unknown [[U1]]." }
+      - type: ask
+        id: pick
+        prompt: Which channel should the beta use?
+        input: select
+        options:
+          - { value: waitlist, label: Waitlist form, consequence: "adds a constraint and a decision" }
+          - { value: email, label: Email link }
+          - { value: invite, label: Invite code }
+        resolves: "unknown:U1"

@@ -1,3 +1,38 @@
-__pycache__/
+# Dependencies
+node_modules/
+
+# Build output (bun run build) and compiled binaries
+dist/
+build/
+*.tsbuildinfo
+/actualize-bin
+
+# Cockpit operational state: a disposable SQLite projection, the server port/tokens, and the agent context file
+actualize/.cockpit/
+**/.cockpit/
+*.db
+*.db-shm
+*.db-wal
+
+# Local scratch and tooling
 .tmp/
 .serena/
+.context-mode/
+__pycache__/
+*.pyc
+
+# Environment and secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Logs and OS/editor noise
+*.log
+!tests/**/*.log
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp

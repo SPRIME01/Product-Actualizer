@@ -3,9 +3,9 @@
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { HOOKS_ROOT } from "../src/lib/store.mjs";
+import { HOOKS_ROOT, IS_COMPILED } from "../src/lib/store.mjs";
 
-export const BIN = path.join(HOOKS_ROOT, "bin", "actualize");
+export const BIN = IS_COMPILED ? process.execPath : path.join(HOOKS_ROOT, "bin", "actualize");
 export const MANAGED = "actualize-managed";
 // A command string we own, whatever path the repo lived at when it was installed.
 export const OWNED_CMD = /(^|[\s"'/])actualize"?\s+hook\s+(claude|codex|cline)\b/;

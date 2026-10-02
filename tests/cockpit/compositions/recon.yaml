@@ -1,0 +1,13 @@
+scenario: recon — evidence inventory, contradictions, and a source preview
+fixture: loam
+compose:
+  - surface:
+      id: recon-inbox
+      title: What the evidence says
+      intent: verify
+      summary: Four claims contradict their own sources; the trace is the oldest evidence.
+    layout:
+      - { type: table, id: ev, source: "pa:evidence", columns: [{ field: id, kind: ref }, { field: lens }, { field: bytes, kind: number }] }
+      - { type: table, id: contra, source: "pa:claims?grade=CONTRADICTED", columns: [{ field: id, kind: ref }, { field: text }, { field: source }] }
+      - { type: entity, id: why, follow: contra, show: [sources, touches, consequence] }
+      - { type: document, id: src, source: "file:evidence/recon-software/trace.md" }

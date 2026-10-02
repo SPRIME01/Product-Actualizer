@@ -1,6 +1,6 @@
 // Replays tests/walkthrough-mote (the physical-AI walkthrough) through the real state machine and hook engine:
 // the physical lens chain, nested hardware evidence, revision-driven staleness, and a no-go gate.
-import test from "node:test";
+import { test, describe } from "bun:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
@@ -42,12 +42,12 @@ function artifact(c, lens, name, text) {
   c.put(rel, text);
 }
 
-test("Mote walkthrough, end to end", async (t) => {
+describe("Mote walkthrough, end to end", () => {
   const project = sandbox();
   const c = ctx(project);
   c.cmd.begin({ goal: "closed-beta hardware kit for 10 builders with a public spec sheet", bar: "beta" });
 
-  await t.test("select: the physical chain closes under needs; brand is satisfied; digital lenses stay out", () => {
+  test("select: the physical chain closes under needs; brand is satisfied; digital lenses stay out", () => {
     const everyone = Object.keys(P.loadLenses());
     const sel = (chosen, satisfied = ["brand"]) => c.cmd.select({ chosen, satisfied, exclude: Object.fromEntries(everyone.filter((n) => !chosen.includes(n) && !satisfied.includes(n)).map((n) => [n, EXCLUDE_MOTE[n] ?? "left out of this selection to test closure"])) });
     throwsMsg(() => sel(CHOSEN.filter((x) => x !== "electronics")), /embedded-systems needs electronics/);
@@ -59,14 +59,14 @@ test("Mote walkthrough, end to end", async (t) => {
     assert.deepEqual(waves, [["marketing", "recon-physical", "recon-software", "release-readiness"], ["electronics"], ["embedded-systems"], ["robotics"]]);
   });
 
-  await t.test("order: physical lenses wait for the model, and for each other", () => {
+  test("order: physical lenses wait for the model, and for each other", () => {
     throwsMsg(() => c.cmd.lensStart("electronics"), /before the model exists/);
     throwsMsg(() => c.cmd.lensStart("provenance-licensing"), /not in the selection/);
     denied(c.bash("picotool load fw.uf2 -f"), /inside a physical lens run/);
     assert.equal(c.bash("picotool info -a"), null, "read-only discovery is never blocked");
   });
 
-  await t.test("wave 1: recon writes the nested hardware evidence package inside its own scope", () => {
+  test("wave 1: recon writes the nested hardware evidence package inside its own scope", () => {
     c.cmd.lensStart("recon-software");
     c.cmd.lensStart("recon-physical");
     assert.equal(c.write("actualize/evidence/recon-physical/hardware/components/tof/profile.yaml", "component: tof\n"), null);
@@ -84,7 +84,7 @@ test("Mote walkthrough, end to end", async (t) => {
     assert.equal(done.version, 1);
   });
 
-  await t.test("wave 2: electronics; its artifact is built after reconciliation and cannot cite what does not exist", () => {
+  test("wave 2: electronics; its artifact is built after reconciliation and cannot cite what does not exist", () => {
     c.cmd.lensStart("electronics");
     putEvidence(c, "electronics");
     addProposals(c, ["P8", "P9", "P10", "P11"]);
@@ -101,7 +101,7 @@ test("Mote walkthrough, end to end", async (t) => {
     c.cmd.lensDone("electronics");
   });
 
-  await t.test("wave 3 and 4: embedded-systems then robotics, each reconciled and stamped at its own version", () => {
+  test("wave 3 and 4: embedded-systems then robotics, each reconciled and stamped at its own version", () => {
     c.cmd.lensStart("embedded-systems");
     putEvidence(c, "embedded-systems");
     addProposals(c, ["P12", "P13", "P14", "P15"]);
@@ -136,7 +136,7 @@ test("Mote walkthrough, end to end", async (t) => {
     c.cmd.lensDone("robotics");
   });
 
-  await t.test("marketing: a public spec sheet may cite only OBSERVED or VERIFIED claims; a comparative on a contradicted claim is rejected", () => {
+  test("marketing: a public spec sheet may cite only OBSERVED or VERIFIED claims; a comparative on a contradicted claim is rejected", () => {
     c.cmd.lensStart("marketing");
     const draft = walk("history/spec-sheet@4.md");
     // C22 is OBSERVED (CAD); C23 is REPORTED (the owner's transcription of the unit)
@@ -146,7 +146,7 @@ test("Mote walkthrough, end to end", async (t) => {
     c.cmd.lensDone("marketing");
   });
 
-  await t.test("owner reply: recon-physical re-runs, the contradiction set changes, and reconciliation 5 stales exactly the artifacts whose cited claims changed", () => {
+  test("owner reply: recon-physical re-runs, the contradiction set changes, and reconciliation 5 stales exactly the artifacts whose cited claims changed", () => {
     c.cmd.lensStart("recon-physical");
     putEvidence(c, "recon-physical");
     addProposals(c, ["P23"]);
@@ -163,7 +163,7 @@ test("Mote walkthrough, end to end", async (t) => {
     assert.match(c.stop().block, /stale/);
   });
 
-  await t.test("stale rebuild: electronics and embedded-systems record model@5 and the confirmed revision", () => {
+  test("stale rebuild: electronics and embedded-systems record model@5 and the confirmed revision", () => {
     c.cmd.lensStart("electronics");
     denied(c.write("actualize/artifacts/electronics/electrical-review.md", walk("history/electrical-review@2.md")), /model@2 but the model is at version 5/);
     artifact(c, "electronics", "electrical-review.md", walk("artifacts/electronics/electrical-review.md"));
@@ -173,7 +173,7 @@ test("Mote walkthrough, end to end", async (t) => {
     c.cmd.lensDone("embedded-systems");
   });
 
-  await t.test("release-readiness: physical evidence walk produces the unknown and the verdict; marketing fixes its wording defect", () => {
+  test("release-readiness: physical evidence walk produces the unknown and the verdict; marketing fixes its wording defect", () => {
     c.cmd.lensStart("release-readiness");
     addProposals(c, ["P24", "P25", "P26"]);
     c.cmd.lensDone("release-readiness");

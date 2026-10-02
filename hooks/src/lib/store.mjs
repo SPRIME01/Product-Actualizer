@@ -4,9 +4,12 @@ import path from "node:path";
 import crypto from "node:crypto";
 import { fileURLToPath } from "node:url";
 
+// Running as a `bun build --compile` executable, source files live in a virtual filesystem. The skills and product-model are real files
+// the agents read, so they ship beside the binary: <home>/bin/actualize, <home>/skills, <home>/product-model (override with ACTUALIZE_HOME).
+export const IS_COMPILED = typeof globalThis.Bun !== "undefined" && String(globalThis.Bun.main ?? "").startsWith("/$bunfs");
 export const HOOKS_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
-export const REPO_ROOT = path.resolve(HOOKS_ROOT, "..");
-export const CLI_PATH = path.join(HOOKS_ROOT, "src", "cli.mjs");
+export const REPO_ROOT = IS_COMPILED ? path.resolve(process.env.ACTUALIZE_HOME ?? path.join(path.dirname(process.execPath), "..")) : path.resolve(HOOKS_ROOT, "..");
+export const CLI_PATH = IS_COMPILED ? process.execPath : path.join(HOOKS_ROOT, "src", "cli.mjs");
 export const DIR_NAME = "actualize";
 
 export function skillsDir(env = process.env) {
@@ -48,6 +51,8 @@ export function makeRun(dir) {
     historyDir: path.join(dir, "history"),
     hiddenDir: path.join(dir, ".state"),
     logPath: path.join(dir, ".log.jsonl"),
+    inboxPath: path.join(dir, "inbox.jsonl"),
+    cockpitDir: path.join(dir, ".cockpit"),
   };
 }
 
@@ -118,7 +123,7 @@ export function zoneOf(run, target, cwd = process.cwd()) {
   const parts = rel.split(path.sep);
   if (rel === "product-model.md") return { zone: "model", abs };
   if (rel === "proposals.md") return { zone: "proposals", abs };
-  if (rel === "state.json" || parts[0] === ".state" || rel === ".log.jsonl") return { zone: "state", abs };
+  if (rel === "state.json" || parts[0] === ".state" || parts[0] === ".cockpit" || rel === ".log.jsonl" || rel === "inbox.jsonl") return { zone: "state", abs };
   if (parts[0] === "history") return { zone: "history", abs };
   if (parts[0] === "artifacts") return { zone: "artifact", lens: parts[1] ?? null, abs };
   if (parts[0] === "evidence") return { zone: "evidence", lens: parts[1] ?? null, abs };

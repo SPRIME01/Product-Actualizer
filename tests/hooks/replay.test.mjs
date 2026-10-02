@@ -1,6 +1,6 @@
 // Replays tests/walkthrough (the Loam transcript) through the real state machine and hook engine.
 // If the process could not be run cleanly, the design would be wrong; this is that check, mechanically.
-import test from "node:test";
+import { test, describe } from "bun:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
@@ -9,18 +9,18 @@ import { sandbox, ctx, walk, addProposals, resolveProposals, CHOSEN, EXCLUDE, WA
 const throwsMsg = (fn, re) => assert.throws(fn, (e) => { assert.match(e.message, re); return true; });
 const denied = (d, re) => { assert.ok(d?.deny, `expected a denial, got ${JSON.stringify(d)}`); if (re) assert.match(d.deny, re); };
 
-test("Loam walkthrough, end to end", async (t) => {
+describe("Loam walkthrough, end to end", () => {
   const project = sandbox();
   const c = ctx(project);
 
-  await t.test("no run: hooks are silent; an actualize prompt gets a nudge", () => {
+  test("no run: hooks are silent; an actualize prompt gets a nudge", () => {
     assert.equal(c.ev("session_start"), null);
     assert.equal(c.ev("prompt", { prompt: "fix the typo in README" }), null);
     assert.match(c.ev("prompt", { prompt: "please help me actualize this product" }).context, /begin --goal/);
     assert.equal(c.write("src/app.js", "x"), null);
   });
 
-  await t.test("begin opens a run; hooks now inject status", () => {
+  test("begin opens a run; hooks now inject status", () => {
     throwsMsg(() => c.cmd.begin({ goal: "short", bar: "beta" }), /goal is required/);
     throwsMsg(() => c.cmd.begin({ goal: "closed-beta signup page, text only", bar: "nope" }), /--bar/);
     c.cmd.begin({ goal: "closed-beta signup page, text only, for about 50 people", bar: "beta" });
@@ -28,7 +28,7 @@ test("Loam walkthrough, end to end", async (t) => {
     assert.match(c.ev("prompt", { prompt: "go" }).context, /Next: classify evidence/);
   });
 
-  await t.test("product files, the model, and lens bodies are gated before a lens runs", () => {
+  test("product files, the model, and lens bodies are gated before a lens runs", () => {
     denied(c.write("src/app.js", "x"), /only inside a lens run/);
     denied(c.write("actualize/product-model.md", "x"), /only inside a reconciliation/);
     denied(c.write("actualize/state.json", "{}"), /managed by the process CLI/);
@@ -40,7 +40,7 @@ test("Loam walkthrough, end to end", async (t) => {
     assert.equal(c.bash(`node ${path.join(WALK, "..", "..", "hooks", "src", "cli.mjs")} status`), null);
   });
 
-  await t.test("select: closure, reasons, final gate, recon required", () => {
+  test("select: closure, reasons, final gate, recon required", () => {
     throwsMsg(() => c.cmd.select({ chosen: CHOSEN, exclude: {} }), /exclusion reason for each unselected lens/);
     throwsMsg(() => c.cmd.select({ chosen: CHOSEN.filter((x) => x !== "release-readiness"), exclude: { ...EXCLUDE, "release-readiness": "skip it because we are in a hurry" } }), /must always be selected/);
     throwsMsg(() => c.cmd.select({ chosen: ["marketing", "release-readiness"], exclude: { ...EXCLUDE, brand: "not part of the beta", "recon-software": "no code to read", "recon-physical": "no files to read", "provenance-licensing": "nothing ships yet" } }), /recon-\*/);
@@ -50,13 +50,13 @@ test("Loam walkthrough, end to end", async (t) => {
     assert.deepEqual(waves, [["brand", "provenance-licensing", "recon-physical", "recon-software", "release-readiness"], ["marketing"]]);
   });
 
-  await t.test("order: no downstream lens before the model exists; excluded lenses cannot run", () => {
+  test("order: no downstream lens before the model exists; excluded lenses cannot run", () => {
     throwsMsg(() => c.cmd.lensStart("brand"), /before the model exists/);
     throwsMsg(() => c.cmd.lensStart("direction"), /not in the selection/);
     throwsMsg(() => c.cmd.lensStart("marketing"), /before the model exists/);
   });
 
-  await t.test("wave 1: recon lenses run in parallel inside their write scopes", () => {
+  test("wave 1: recon lenses run in parallel inside their write scopes", () => {
     const r1 = c.cmd.lensStart("recon-software");
     assert.match(r1.body, /# Recon: software/);
     c.cmd.lensStart("recon-physical");
@@ -75,13 +75,13 @@ test("Loam walkthrough, end to end", async (t) => {
     c.cmd.lensDone("recon-physical");
   });
 
-  await t.test("stop is blocked until the wave is reconciled", () => {
+  test("stop is blocked until the wave is reconciled", () => {
     const d = c.stop();
     assert.ok(d.block, "stop should be blocked");
     assert.match(d.block, /not yet in the model|reconcile start/);
   });
 
-  await t.test("reconciliation 1: model is created, validated, snapshotted", () => {
+  test("reconciliation 1: model is created, validated, snapshotted", () => {
     const r = c.cmd.reconStart();
     assert.equal(r.created, true);
     assert.equal(c.write("actualize/product-model.md", walk("model-v1.md").replace("model_version: 1", "model_version: 1")), null);
@@ -95,7 +95,7 @@ test("Loam walkthrough, end to end", async (t) => {
     assert.deepEqual(done.stale, []);
   });
 
-  await t.test("tampering with the model outside a reconciliation is denied and detected", () => {
+  test("tampering with the model outside a reconciliation is denied and detected", () => {
     denied(c.write("actualize/product-model.md", "x"), /reconciliation/);
     denied(c.edit("actualize/product-model.md"), /reconciliation/);
     fs.appendFileSync(c.rel("actualize/product-model.md"), "\nsneaky edit\n");
@@ -105,7 +105,7 @@ test("Loam walkthrough, end to end", async (t) => {
     assert.ok(!c.cmd.gate().blockers.some((b) => b.code === "model-tampered"));
   });
 
-  await t.test("wave 2: brand and provenance-licensing propose; reconcile to v2", () => {
+  test("wave 2: brand and provenance-licensing propose; reconcile to v2", () => {
     throwsMsg(() => c.cmd.lensStart("marketing"), /needs brand/);
     c.cmd.lensStart("brand");
     c.cmd.lensStart("provenance-licensing");
@@ -125,7 +125,7 @@ test("Loam walkthrough, end to end", async (t) => {
     assert.equal(done.version, 2);
   });
 
-  await t.test("field-defining lenses build artifacts after reconciliation, at the new version", () => {
+  test("field-defining lenses build artifacts after reconciliation, at the new version", () => {
     c.cmd.lensStart("brand");
     const good = walk("artifacts/brand/identity.md");
     denied(c.write("actualize/artifacts/brand/identity.md", good.replace("model@2", "model@1")), /model@1 but the model is at version 2/);
@@ -140,7 +140,7 @@ test("Loam walkthrough, end to end", async (t) => {
     c.cmd.lensDone("provenance-licensing");
   });
 
-  await t.test("wave 3: marketing; public artifacts may only cite OBSERVED or VERIFIED", () => {
+  test("wave 3: marketing; public artifacts may only cite OBSERVED or VERIFIED", () => {
     c.cmd.lensStart("marketing");
     const page = fs.readFileSync(path.join(WALK, "history", "beta-page@2.md"), "utf8");
     denied(c.write("actualize/artifacts/marketing/beta-page.md", page.replace("[C1][C2]", "[C1][C2][C7]").replace("cites: [C1, C2, C3, C4, C13]", "cites: [C1, C2, C3, C4, C7, C13]")), /graded REPORTED/);
@@ -150,7 +150,7 @@ test("Loam walkthrough, end to end", async (t) => {
     c.cmd.lensDone("marketing");
   });
 
-  await t.test("reconciliation 3: a lazy rejection reason is refused; staleness narrows", () => {
+  test("reconciliation 3: a lazy rejection reason is refused; staleness narrows", () => {
     c.cmd.reconStart();
     c.put("actualize/product-model.md", walk("model-v3.md"));
     resolveProposals(c, { P11: { status: "rejected", reason: "not needed" } });
@@ -161,7 +161,7 @@ test("Loam walkthrough, end to end", async (t) => {
     assert.deepEqual(done.stale, [], "D9 touched only unknowns, which no artifact reads");
   });
 
-  await t.test("release-readiness runs last; its defect finding becomes v4 and stales only the cited artifact", () => {
+  test("release-readiness runs last; its defect finding becomes v4 and stales only the cited artifact", () => {
     c.cmd.lensStart("release-readiness");
     addProposals(c, ["P13", "P14"]);
     c.cmd.lensDone("release-readiness");
@@ -175,7 +175,7 @@ test("Loam walkthrough, end to end", async (t) => {
     assert.match(c.stop().block, /stale/);
   });
 
-  await t.test("stale rebuild, then the gate artifact; stop completes the run", () => {
+  test("stale rebuild, then the gate artifact; stop completes the run", () => {
     c.cmd.lensStart("marketing");
     denied(c.write("actualize/artifacts/marketing/beta-page.md", walk("history/beta-page@2.md")), /model@2 but the model is at version 4|graded CONTRADICTED/);
     const page = walk("artifacts/marketing/beta-page.md");

@@ -18,4 +18,5 @@ Rules you enforce:
 - A lens never edits `product-model.md`; produce a defect list for the producing lens or a proposal for the model.
 - Existing capabilities named in a lens's `executes_with` are its execution layer when installed; use them, don't reimplement them.
 - A state-changing physical action (power, rewiring, flashing, any actuator or motion, destructive configuration) follows `product-model/PHYSICAL-PREFLIGHT.md`; read-only discovery stays separate and is never blocked by it.
+- When the cockpit is up (`actualize cockpit status`), prefer it over prose for evidence, comparisons, contradictions, staleness, physical preflights, and judgements only the owner can make: use the `cockpit` skill. Its answers arrive in `actualize inbox`; route each one through proposals and the next reconciliation, then `inbox ack`. The cockpit is optional and never a second decision system.
 - Ask the user only when blocked on something no evidence can answer; otherwise log the assumption as `PROPOSED` and continue.

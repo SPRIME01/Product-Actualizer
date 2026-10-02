@@ -1,0 +1,13 @@
+scenario: electronics — power tree, chart, evidence, warning
+fixture: mote
+compose:
+  - surface:
+      id: power-budget
+      title: Power budget
+      intent: verify
+    layout:
+      - { type: callout, id: w, tone: danger, text: "Servo start-up exceeds the 2.5 A supply [[C57]]; the owner reports resets [[C42]]." }
+      - { type: table, id: states, source: "file:evidence/electronics/power-budget.md#table1", group: verdict }
+      - { type: chart, id: load, kind: bar, x: state, series: [{ y: load_a, label: load }], source: "file:evidence/electronics/power-budget.md#table1", threshold: { value: 2.5, label: supply, tone: danger }, unit: A }
+      - { type: metric, id: m, label: Controlling corner, value: 3.06, unit: A, of: "2.5 A supply", tone: danger, refs: ["claim:C57"] }
+      - { type: document, id: tree, source: "file:evidence/recon-physical/hardware/power-tree.md" }

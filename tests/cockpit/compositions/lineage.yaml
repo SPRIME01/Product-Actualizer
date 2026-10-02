@@ -1,0 +1,11 @@
+scenario: claim lineage — evidence to claim to public artifact, with a human annotation target
+fixture: mote
+compose:
+  - surface:
+      id: lineage-c44
+      title: C44 lineage
+      intent: verify
+    layout:
+      - { type: graph, id: lin, source: "graph:claims?focus=claim:C44", focus: "claim:C44" }
+      - { type: entity, id: c, ref: "claim:C44", show: [sources, consequence, actions] }
+      - { type: compare, id: diff, mode: diff, items: [{ label: spec sheet @6, source: "file:artifacts/marketing/spec-sheet.md" }, { label: spec sheet @4, source: "file:history/spec-sheet@4.md" }] }

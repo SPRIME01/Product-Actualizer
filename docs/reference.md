@@ -72,9 +72,22 @@ public: true
 
 Each lens file has the sections Reads from the model, Distinctions, Failure modes, Check, and Writes to proposals. Detail lives in its `references/`.
 
+## Commands added by the cockpit
+
+| command | what it does |
+|---|---|
+| `actualize cockpit up [--port N] [--no-open] [--print-url]` | start the cockpit daemon for this project and open the browser |
+| `actualize cockpit down` / `status` / `open` | stop it, report, or re-open the page |
+| `actualize cockpit rebuild` / `reset` | regenerate the SQLite projection from the run; or delete the cockpit state |
+| `actualize ui status\|context\|catalog [block]\|list <what>\|entity <ref>` | read what the agent may read |
+| `actualize ui put <file.yaml> [--right-of id]` · `show <ref>` · `compare <a> <b>` · `ask '<json>'` · `arrange '<json>'` · `annotate <target> <text>` | compose the cockpit (typed, validated) |
+| `actualize inbox [--all] [--json]` · `inbox ack <id> --as "..."` · `inbox add <kind> ...` | the owner's responses, and routing them; `add` records something the owner said in chat as REPORTED |
+
+Files: `actualize/inbox.jsonl` (authoritative, append only), `actualize/.cockpit/` (SQLite projection, `server.json`, `agent.token`, `context.json`; disposable, git-ignored). Environment: `ACTUALIZE_HOME` (location of `skills/` and `product-model/` for the compiled executable).
+
 ## Repository checks
 
 `python3 tests/check.py` enforces: router at most 40 lines, schema at most 120, lenses 60 to 100, references linked from their lens and at most 150 lines, required sections, the physical lens chain and
 routing scenarios (digital-only and passive products load no physical lens), both walkthroughs' models against the schema, artifact staleness (with expected results), grade discipline, the hardware evidence
 package (manifest, revision contradictions, component profiles and sources), re-execution of the executed evidence (power budget, pin check, host tests, with a negative control), and the release gate's physical evidence walk
-(with mutations that must fail). `node --test tests/hooks/` replays both walkthroughs through the hook engine.
+(with mutations that must fail). `bun test` replays both walkthroughs through the hook engine.

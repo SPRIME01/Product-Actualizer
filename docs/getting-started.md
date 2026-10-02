@@ -55,13 +55,21 @@ Read `product-model.md` first: it shows what the system believes, what it can pr
 Instructions alone can be skipped. Hooks make the process mandatory. See [Hooks](hooks.md):
 
 ```
-node hooks/install.mjs --scope project --project ~/projects/loam
+bun hooks/install.mjs --scope project --project ~/projects/loam
 hooks/bin/actualize begin --goal "closed-beta signup page" --bar beta
 ```
+
+## 6. Open the cockpit (optional)
+
+```
+just cockpit-up          # or: actualize cockpit up
+```
+
+A fixed rail shows where the run is; the agent shows you evidence, comparisons, and questions as surfaces beside it. What you answer is recorded for the router (`actualize inbox`), never applied directly. See [Cockpit](cockpit.md).
 
 ## Check the system itself
 
 ```
 python3 tests/check.py          # sizes, lens structure, fixture model vs schema, staleness
-node --test tests/hooks/        # replays the walkthrough through the hook engine
+bun test        # replays the walkthrough through the hook engine
 ```

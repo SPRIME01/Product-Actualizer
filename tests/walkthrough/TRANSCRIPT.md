@@ -5,7 +5,7 @@ Hand-run of `actualize-product`. Inputs are in `tests/fixture/`: a tiny firmware
 validates against `product-model/SCHEMA.md` (`python3 tests/check.py`). Commands below were really run;
 actions that need a network or a person (name screening, listening, signup) were not, and are recorded as unknowns.
 
-Always-loaded context: `actualize-product` (21 lines) + `SCHEMA.md` (88 lines). Nothing else is loaded until a lens runs.
+Always-loaded context: `actualize-product` (22 lines) + `SCHEMA.md` (88 lines). Nothing else is loaded until a lens runs.
 
 ## Step 1: classify evidence
 

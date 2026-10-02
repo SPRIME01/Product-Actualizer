@@ -1,0 +1,12 @@
+scenario: reconciliation — open proposals, evidence, accept or reject
+fixture: mote
+prepare: { openProposals: [P24, P25] }
+compose:
+  - surface:
+      id: reconcile
+      title: Reconcile
+      intent: decide
+    layout:
+      - { type: table, id: open, source: "pa:proposals?status=open", columns: [{ field: id, kind: ref }, { field: lens }, { field: field }, { field: proposal }] }
+      - { type: entity, id: p, follow: open, show: [sources, consequence, actions] }
+      - { type: timeline, id: tl, source: "pa:events", window: 10 }

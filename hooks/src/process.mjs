@@ -1,19 +1,20 @@
 // The actualization process as a state machine, plus the gate that decides whether a run may stop.
 // Hooks (any client) and the CLI both call into this; nothing here is client-specific.
+import { unhandled as inboxUnhandled } from "./lib/inbox.mjs";
 import fs from "node:fs";
 import path from "node:path";
 import {
   parseModel, validateModel, diffModels, touchCoverage, parseProposals, validateProposalRows, validateResolution,
   parseStamp, validateArtifact, staleReasons, FIELDS,
 } from "./lib/md.mjs";
-import { makeRun, loadState, saveState, newState, readText, writeAtomic, modelHash, listFiles, sha, log, schemaDir, DIR_NAME, CLI_PATH } from "./lib/store.mjs";
+import { makeRun, loadState, saveState, newState, readText, writeAtomic, modelHash, listFiles, sha, log, schemaDir, DIR_NAME, CLI_PATH, IS_COMPILED } from "./lib/store.mjs";
 import { loadLenses, lensBody, waves, ROUTER } from "./lib/lenses.mjs";
 
 const PROPOSALS_HEADER = "# proposals.md\n\n| id | lens | field | kind | proposal | evidence | status | reason |\n|---|---|---|---|---|---|---|---|\n";
 const GATE_LENS = "release-readiness";
 const isRecon = (n) => n.startsWith("recon-");
-export const cliCmd = () => `node "${CLI_PATH}"`;
-export const withCli = (t) => String(t).replaceAll("node $CLI", cliCmd()).replaceAll("$CLI", cliCmd());
+export const cliCmd = () => (IS_COMPILED ? `"${CLI_PATH}"` : `bun "${CLI_PATH}"`);
+export const withCli = (t) => String(t).replaceAll("$CLI", cliCmd());
 const fail = (msg) => { throw new ProcessError(withCli(msg)); };
 export class ProcessError extends Error {}
 
@@ -53,34 +54,36 @@ export function inspectArtifacts(run, state, lenses) {
 export function computeGate(run, state, lenses, { forStop = true } = {}) {
   const b = [];
   const add = (code, text, fix) => b.push({ code, text, fix });
-  if (!state.selection) add("select", "No lens selection recorded.", "node $CLI lenses, then node $CLI select --lenses a,b --exclude lens=reason ...");
-  if (state.phase === "reconcile") add("reconcile-open", "A reconciliation is open.", "Resolve proposals and the model, then run: node $CLI reconcile done");
+  if (!state.selection) add("select", "No lens selection recorded.", "$CLI lenses, then $CLI select --lenses a,b --exclude lens=reason ...");
+  if (state.phase === "reconcile") add("reconcile-open", "A reconciliation is open.", "Resolve proposals and the model, then run: $CLI reconcile done");
   const active = Object.keys(state.activeLenses);
-  if (active.length) add("lens-open", `Lens still running: ${active.join(", ")}.`, `node $CLI lens done ${active[0]}`);
-  if (state.unreconciled.length) add("unreconciled", `Lens output not yet in the model: ${state.unreconciled.join(", ")}.`, "node $CLI reconcile start");
+  if (active.length) add("lens-open", `Lens still running: ${active.join(", ")}.`, `$CLI lens done ${active[0]}`);
+  if (state.unreconciled.length) add("unreconciled", `Lens output not yet in the model: ${state.unreconciled.join(", ")}.`, "$CLI reconcile start");
   const model = readModel(run);
   const props = readProposals(run);
   if (state.selection) {
-    if (!model) add("model-missing", "The Product Model has not been built.", "Run the recon lenses, then: node $CLI reconcile start");
+    if (!model) add("model-missing", "The Product Model has not been built.", "Run the recon lenses, then: $CLI reconcile start");
     else {
       if (state.phase !== "reconcile") {
-        if (state.modelHash && modelHash(run) !== state.modelHash) add("model-tampered", "product-model.md changed outside a reconciliation.", "Revert with: node $CLI model restore, and put the change in proposals.md instead");
+        if (state.modelHash && modelHash(run) !== state.modelHash) add("model-tampered", "product-model.md changed outside a reconciliation.", "Revert with: $CLI model restore, and put the change in proposals.md instead");
         const errs = validateModel(model);
         if (errs.length) add("model-invalid", `Model fails SCHEMA checks: ${errs.slice(0, 3).join("; ")}`, "Fix in a reconciliation (reconcile start)");
       }
       const open = props.filter((p) => p.status === "open");
-      if (open.length && state.phase !== "reconcile") add("proposals-open", `${open.length} open proposal(s): ${open.map((p) => p.id).join(", ")}.`, "node $CLI reconcile start; accept or reject each with a logged reason");
+      if (open.length && state.phase !== "reconcile") add("proposals-open", `${open.length} open proposal(s): ${open.map((p) => p.id).join(", ")}.`, "$CLI reconcile start; accept or reject each with a logged reason");
     }
-    for (const n of state.selection.lenses) if (!state.completed[n] && n !== GATE_LENS) add("lens-not-run", `Selected lens never ran: ${n}.`, `node $CLI lens start ${n} (or change the selection with select)`);
+    for (const n of state.selection.lenses) if (!state.completed[n] && n !== GATE_LENS) add("lens-not-run", `Selected lens never ran: ${n}.`, `$CLI lens start ${n} (or change the selection with select)`);
   }
+  const waiting = inboxUnhandled(run);
+  if (waiting.length) add("inbox", `${waiting.length} owner response(s) not yet handled: ${waiting.slice(0, 4).map((e) => e.id).join(", ")}.`, "$CLI inbox, then route each (proposal, decision, unknown, or no action with a reason) and $CLI inbox ack <id> --as \"...\"");
   const arts = model ? inspectArtifacts(run, state, lenses) : [];
   for (const a of arts) {
-    if (a.errors.length) add("artifact-invalid", `artifacts/${a.rel}: ${a.errors[0]}`, `Re-run the owning lens: node $CLI lens start ${a.lens}`);
-    else if (a.stale.length && !a.isGate) add("stale", `artifacts/${a.rel} is stale (decision ${a.stale.join(", ")} touched what it reads/cites).`, `node $CLI lens start ${a.lens}, rebuild it, node $CLI lens done ${a.lens}`);
+    if (a.errors.length) add("artifact-invalid", `artifacts/${a.rel}: ${a.errors[0]}`, `Re-run the owning lens: $CLI lens start ${a.lens}`);
+    else if (a.stale.length && !a.isGate) add("stale", `artifacts/${a.rel} is stale (decision ${a.stale.join(", ")} touched what it reads/cites).`, `$CLI lens start ${a.lens}, rebuild it, $CLI lens done ${a.lens}`);
   }
   if (model && state.selection) {
     const gate = arts.find((a) => a.isGate);
-    if (!gate) add("no-gate", `No release gate at artifacts/${GATE_LENS}/gate.md.`, `node $CLI lens start ${GATE_LENS}`);
+    if (!gate) add("no-gate", `No release gate at artifacts/${GATE_LENS}/gate.md.`, `$CLI lens start ${GATE_LENS}`);
     else if (gate.stamp.built !== state.modelVersion) add("gate-stale", `Gate was built from model@${gate.stamp.built}; the model is at ${state.modelVersion}.`, `Re-run ${GATE_LENS} against the current version`);
   }
   return { blockers: b, ready: b.length === 0, model, props, arts };
@@ -173,7 +176,7 @@ function outputHashes(run, name) {
 
 export function lensStart(run, state, lenses, name) {
   if (!state.active) fail("no active run");
-  if (!state.selection) fail("select lenses first (node $CLI lenses; node $CLI select ...)");
+  if (!state.selection) fail("select lenses first ($CLI lenses; $CLI select ...)");
   if (!lenses[name]) fail(`unknown lens ${name}`);
   if (!state.selection.lenses.includes(name)) fail(`${name} is not in the selection (${state.selection.lenses.join(", ")}); change it with select and a logged reason`);
   if (state.phase === "reconcile") fail("a reconciliation is open; finish it before starting a lens");
@@ -182,13 +185,13 @@ export function lensStart(run, state, lenses, name) {
   for (const d of lenses[name].needs) {
     if (state.selection.satisfied.includes(d)) continue;
     if (!state.completed[d]) fail(`${name} needs ${d}, which has not run`);
-    if (state.unreconciled.includes(d)) fail(`${name} needs ${d}'s output, which is not in the model yet: node $CLI reconcile start`);
+    if (state.unreconciled.includes(d)) fail(`${name} needs ${d}'s output, which is not in the model yet: $CLI reconcile start`);
   }
   if (name === GATE_LENS) {
     const g = computeGate(run, state, lenses);
     const others = state.selection.lenses.filter((x) => x !== GATE_LENS && !state.completed[x]);
     if (others.length) fail(`${GATE_LENS} runs last; still to run: ${others.join(", ")}`);
-    if (state.unreconciled.length) fail(`reconcile before ${GATE_LENS}: node $CLI reconcile start`);
+    if (state.unreconciled.length) fail(`reconcile before ${GATE_LENS}: $CLI reconcile start`);
     const stale = g.arts.filter((a) => a.stale.length && !a.isGate);
     if (stale.length) fail(`rebuild stale artifacts before verifying: ${stale.map((a) => a.lens).join(", ")}`);
     if (g.props.some((p) => p.status === "open")) fail("resolve open proposals before verifying");
@@ -270,7 +273,7 @@ export function reconcileStart(run, state, lenses) {
 }
 
 export function reconcileDone(run, state, lenses) {
-  if (state.phase !== "reconcile") fail("no reconciliation is open (node $CLI reconcile start)");
+  if (state.phase !== "reconcile") fail("no reconciliation is open ($CLI reconcile start)");
   const base = state.reconcile.baseVersion;
   const text = readText(run.modelPath);
   if (text === null) fail("product-model.md is missing");

@@ -1,0 +1,12 @@
+scenario: staleness — why artifacts became stale
+fixture: mote
+prepare: { stale: true }
+compose:
+  - surface:
+      id: stale-why
+      title: Why stale
+      intent: verify
+    layout:
+      - { type: graph, id: g, source: "graph:staleness" }
+      - { type: table, id: arts, source: "pa:artifacts?stale=1", columns: [{ field: id, kind: ref }, { field: lens }, { field: built, kind: number }, { field: status, kind: status }] }
+      - { type: entity, id: dec, ref: "decision:D7", show: [consequence, touches] }

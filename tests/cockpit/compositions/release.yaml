@@ -1,0 +1,18 @@
+scenario: release readiness — gate lanes, blockers, evidence, exception decision
+fixture: mote
+prepare: { stale: true }
+compose:
+  - surface:
+      id: gate-room
+      title: Release gate
+      intent: decide
+    layout:
+      - { type: entity, id: gate, ref: gate }
+      - { type: table, id: blockers, source: "pa:blockers" }
+      - { type: table, id: walk, source: "file:artifacts/release-readiness/gate.md#table1", group: result, title: Physical evidence walk }
+      - type: form
+        id: exception
+        title: Exception decision
+        asks:
+          - { id: ex-go, prompt: "Grant a go-with-exception for the camera claim?", input: confirm }
+          - { id: ex-why, prompt: "Why, and who is accountable?", input: multiline }

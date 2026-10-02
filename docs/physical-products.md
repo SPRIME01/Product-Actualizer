@@ -66,8 +66,10 @@ State-changing actions (power, rewiring, flashing, any actuator or motion, destr
 expected result, bounds, action, locally bounded completion, observation, and recovery are recorded in `evidence/<lens>/actions.md` first; read-only discovery is never blocked, but discovery that mutates is classified by effect.
 With hooks installed, flashing and erasing commands are denied unless a physical lens is running and the action log has a preflight record, and irreversible steps (fuses, secure boot, OTP) are denied for the owner to run.
 
+With the cockpit up, the agent shows the preflight as a `preflight` block (class, target, current state, expected result, stop-if, bounds, bounded-by, observation, recovery) and the owner confirms or declines it. The confirmation is recorded as the owner's own input; it does not replace the preflight record or the hook rule, and it authorizes nothing by itself: the agent still performs the action through the normal path and a named person still observes what the agent cannot.
+
 ## Worked example
 
 `tests/walkthrough-mote/TRANSCRIPT.md` takes a fictional desk robot (Raspberry Pi, RP2040 neck board, servos, camera, microphone, amplifier) from a messy package to a no-go verdict: 15 contradictions across revisions, documents, code, and marketing;
 a power budget that the hardware guide understated; a sensor module that puts 5 V on 3.3 V pins; firmware for the wrong board revision; an unbounded motion command; a boot service that fails; and a gate that refuses to pass hardware
-claims that were never exercised on the unit. `python3 tests/check.py` re-runs its executed evidence, and `node --test tests/hooks/` replays it through the hook engine.
+claims that were never exercised on the unit. `python3 tests/check.py` re-runs its executed evidence, and `bun test` replays it through the hook engine.

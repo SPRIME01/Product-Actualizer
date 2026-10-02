@@ -1,8 +1,14 @@
 #!/bin/sh
-# Stable entry point (same convention as ~/.agents/bin/*): resolves symlinks, then runs the CLI.
+# Stable entry point: resolves symlinks, then runs the CLI on Bun (>= 1.4). Product Actualizer requires Bun and has no second runtime.
 SELF="$0"
 while [ -h "$SELF" ]; do
   LINK="$(readlink "$SELF")"
   case "$LINK" in /*) SELF="$LINK" ;; *) SELF="$(dirname "$SELF")/$LINK" ;; esac
 done
-exec node "$(cd "$(dirname "$SELF")/../src" && pwd)/cli.mjs" "$@"
+if ! command -v bun >/dev/null 2>&1; then
+  # A hook must not brick the agent client: say why once on stderr and fail open. Every other command fails loudly.
+  echo "actualize: Bun >= 1.4 is required and was not found on PATH (https://bun.sh). Hooks are inactive until it is installed." >&2
+  [ "$1" = "hook" ] && exit 0
+  exit 127
+fi
+exec bun "$(cd "$(dirname "$SELF")/../src" && pwd)/cli.mjs" "$@"

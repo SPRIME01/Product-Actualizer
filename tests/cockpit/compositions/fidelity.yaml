@@ -1,0 +1,13 @@
+scenario: fidelity — reference, output, measurements, defects
+fixture: loam
+assets: ["evidence/recon-software/ref.png", "evidence/recon-software/out.png"]
+compose:
+  - surface:
+      id: fidelity-1
+      title: Header fidelity
+      intent: verify
+    layout:
+      - { type: compare, id: ro, mode: overlay, title: reference | built, items: [{ label: reference, image: "file:evidence/recon-software/ref.png" }, { label: built, image: "file:evidence/recon-software/out.png" }] }
+      - { type: media, id: pins, items: [{ label: built, src: "file:evidence/recon-software/out.png", pins: [{ x: 0.4, y: 0.3, text: "heading is 3px low", tone: danger }] }] }
+      - { type: chart, id: delta, kind: bar, x: region, unit: px, series: [{ y: dx, label: dx }, { y: dy, label: dy }], data: [{ region: header, dx: 0, dy: 3 }, { region: cta, dx: 1, dy: 0 }], threshold: { value: 2, label: tolerance, tone: warning } }
+      - { type: callout, id: defects, tone: warning, text: "Header sits 3 px below the reference, over the 2 px tolerance." }

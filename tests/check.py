@@ -54,6 +54,11 @@ def check_system():
         if name == "actualize-product":
             continue
         n = nlines(p)
+        tool = frontmatter(open(p, encoding="utf-8").read())[0].get("kind") == "tool"
+        if tool:
+            if n > 60:
+                err(f"{name}: tool skill is {n} lines, keep it under 60")
+            continue
         if not 60 <= n <= 100:
             err(f"{name}: {n} lines, need 60-100")
         fm, body = frontmatter(open(p, encoding="utf-8").read())
@@ -589,6 +594,42 @@ def negative_controls(final):
                 err(f"negative control '{label}' was not caught by check_hardware")
 
 
+def check_cockpit_and_runtime():
+    """The cockpit skill is a tool skill (never selectable as a lens); Node is gone from commands, scripts, and docs."""
+    sk = f"{ROOT}/skills/cockpit/SKILL.md"
+    if not os.path.exists(sk):
+        err("skills/cockpit/SKILL.md missing")
+    else:
+        fm = frontmatter(open(sk, encoding="utf-8").read())[0]
+        if fm.get("kind") != "tool":
+            err("cockpit skill must declare kind: tool so it is never treated as a lens")
+        for needle in ("never write UI code", "inbox", "actualize ui"):
+            if needle.lower() not in open(sk, encoding="utf-8").read().lower():
+                err(f"cockpit skill should mention {needle!r}")
+    for f in ("cockpit/protocol/spec.ts", "cockpit/protocol/actions.ts", "cockpit/server/workspace.ts", "cockpit/web/Surface.tsx", "justfile", "package.json"):
+        if not os.path.exists(f"{ROOT}/{f}"):
+            err(f"{f} missing")
+    pkg = open(f"{ROOT}/package.json", encoding="utf-8").read()
+    if '"bun": ">=1.4.0"' not in pkg:
+        err("package.json must require bun >=1.4.0")
+    pat = re.compile(r"(^|[\s`\"'(])node\s+(--test|-e|-p|\S+\.m?js|hooks/|tests/)|#!/usr/bin/env node|exec node ")
+    skip = ("tests/walkthrough", "tests/fixture", "PROVENANCE.md", "node_modules", ".tmp", ".git/", "bun.lock", "__pycache__")
+    for dp, dn, fn in os.walk(ROOT):
+        rel_dir = os.path.relpath(dp, ROOT)
+        if any(rel_dir == x.rstrip("/") or rel_dir.startswith(x) for x in skip) or (rel_dir != "." and os.path.basename(rel_dir).startswith(".")):
+            dn[:] = []; continue
+        for f in fn:
+            if not f.endswith((".md", ".mjs", ".ts", ".tsx", ".js", ".json", ".py", ".yaml", ".sh")) and f not in ("justfile", "actualize"):
+                continue
+            rel = os.path.join(rel_dir, f) if rel_dir != "." else f
+            if rel == "tests/check.py":
+                continue
+            text = open(f"{ROOT}/{rel}", encoding="utf-8", errors="replace").read()
+            m = pat.search(text)
+            if m:
+                err(f"{rel}: still invokes Node ({m.group(0).strip()!r}); the runtime is Bun")
+
+
 def check_cleanup():
     if os.path.exists(f"{ROOT}/.tmp/ref"):
         err(".tmp/ref still exists")
@@ -610,6 +651,7 @@ if __name__ == "__main__":
         for a, w in EXPECT_STALE.get(name, {}).items():
             if stale.get(a) != w:
                 err(f"{name}/{a}: expected staleness {w}, got {stale.get(a)}")
+    check_cockpit_and_runtime()
     check_cleanup()
     if errors:
         print("\nFAIL")
