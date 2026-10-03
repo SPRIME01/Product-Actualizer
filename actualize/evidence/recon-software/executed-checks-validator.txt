@@ -1,0 +1,6 @@
+# check 1: the shipped public artifact validates against its model
+errors: []
+# check 2 (negative control): C1 OBSERVED -> REPORTED
+errors: ["public artifact cites C1 graded REPORTED; only OBSERVED or VERIFIED may be public"]
+# check 3: staleness of beta-page (built_from model@4) against the current model@4: []
+# check 4: same artifact pretending it was built at model@3: ["D10"]

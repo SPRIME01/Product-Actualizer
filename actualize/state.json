@@ -1,0 +1,74 @@
+{
+  "version": 1,
+  "active": true,
+  "goal": "Product Actualizer Architect is understood, trusted and adoptable by its first buyers: grounded category and name, brand, public website with a live mechanism demo, JS-rendered voiced explainer, and a GTM kit, every public claim OBSERVED or VERIFIED",
+  "bar": "release",
+  "strict": true,
+  "phase": "idle",
+  "selection": {
+    "lenses": [
+      "recon-software",
+      "brand",
+      "direction",
+      "experience",
+      "marketing",
+      "illustration",
+      "motion-editorial",
+      "audio-sound",
+      "fidelity-qa",
+      "provenance-licensing",
+      "release-readiness"
+    ],
+    "satisfied": [],
+    "excluded": {
+      "recon-physical": "no hardware, CAD or media in the product; external web research is cited as REPORTED sources",
+      "electronics": "software-only product, no powered circuitry",
+      "embedded-systems": "no firmware or microcontroller target in the product",
+      "robotics": "no embodied closed loop with a physical actuator",
+      "product-visualization": "no physical or 3D product form to render faithfully",
+      "legacy-modernization": "the code is not being changed to launch; this run produces launch artifacts only"
+    },
+    "waves": [
+      [
+        "brand",
+        "fidelity-qa",
+        "provenance-licensing",
+        "recon-software",
+        "release-readiness"
+      ],
+      [
+        "direction",
+        "experience",
+        "marketing"
+      ],
+      [
+        "illustration",
+        "motion-editorial"
+      ],
+      [
+        "audio-sound"
+      ]
+    ]
+  },
+  "selectionLogged": true,
+  "activeLenses": {},
+  "completed": {
+    "recon-software": 1,
+    "brand": 14,
+    "direction": 7,
+    "experience": 5,
+    "marketing": 7,
+    "illustration": 5,
+    "motion-editorial": 5,
+    "provenance-licensing": 2,
+    "audio-sound": 2,
+    "fidelity-qa": 1
+  },
+  "unreconciled": [],
+  "reconcile": null,
+  "modelVersion": 9,
+  "modelHash": "82c959571f70a330",
+  "stopBlocks": 0,
+  "lastBlockSig": "",
+  "startedAt": "2026-10-03T19:16:38.572Z"
+}

@@ -1,0 +1,35 @@
+{
+  "ready": false,
+  "blockers": [
+    {
+      "code": "lens-open",
+      "text": "Lens still running: motion-editorial.",
+      "fix": "$CLI lens done motion-editorial"
+    },
+    {
+      "code": "lens-not-run",
+      "text": "Selected lens never ran: motion-editorial.",
+      "fix": "$CLI lens start motion-editorial (or change the selection with select)"
+    },
+    {
+      "code": "lens-not-run",
+      "text": "Selected lens never ran: audio-sound.",
+      "fix": "$CLI lens start audio-sound (or change the selection with select)"
+    },
+    {
+      "code": "lens-not-run",
+      "text": "Selected lens never ran: fidelity-qa.",
+      "fix": "$CLI lens start fidelity-qa (or change the selection with select)"
+    },
+    {
+      "code": "lens-not-run",
+      "text": "Selected lens never ran: provenance-licensing.",
+      "fix": "$CLI lens start provenance-licensing (or change the selection with select)"
+    },
+    {
+      "code": "no-gate",
+      "text": "No release gate at artifacts/release-readiness/gate.md.",
+      "fix": "$CLI lens start release-readiness"
+    }
+  ]
+}

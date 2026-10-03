@@ -1,0 +1,445 @@
+{
+  "note": "capability = the lens; implementation = a candidate from executes_with; executor = who runs it. found means seen here; unknown is not usable.",
+  "capabilities": [
+    {
+      "id": "audio-sound",
+      "title": "Audio and Sound",
+      "category": "Media",
+      "status": "waiting",
+      "needs": [
+        "motion-editorial"
+      ],
+      "implementation": "ffmpeg",
+      "basis": "default: first one found",
+      "candidates": [
+        {
+          "name": "ffmpeg",
+          "found": "found",
+          "where": "on PATH"
+        }
+      ],
+      "executor": "current-agent",
+      "observes": [],
+      "warnings": []
+    },
+    {
+      "id": "brand",
+      "title": "Brand Identity",
+      "category": "Strategy",
+      "status": "waiting",
+      "needs": [],
+      "implementation": null,
+      "basis": "none found; the lens procedure itself",
+      "candidates": [],
+      "executor": "current-agent",
+      "observes": [],
+      "warnings": []
+    },
+    {
+      "id": "direction",
+      "title": "Creative Direction",
+      "category": "Design",
+      "status": "waiting",
+      "needs": [
+        "brand"
+      ],
+      "implementation": "hallmark",
+      "basis": "default: first one found",
+      "candidates": [
+        {
+          "name": "hallmark",
+          "found": "found",
+          "where": "skill in ~/.agents/skills"
+        },
+        {
+          "name": "impeccable",
+          "found": "found",
+          "where": "skill in ~/.agents/skills"
+        }
+      ],
+      "executor": "current-agent",
+      "observes": [],
+      "warnings": [
+        "hallmark and impeccable (experience) both claim the design system (DESIGN.md); choose one authority"
+      ]
+    },
+    {
+      "id": "electronics",
+      "title": "Electronics",
+      "category": "Hardware",
+      "status": "excluded",
+      "needs": [
+        "recon-physical"
+      ],
+      "implementation": null,
+      "basis": "none found; the lens procedure itself",
+      "candidates": [
+        {
+          "name": "kicad-design",
+          "found": "unknown",
+          "where": "not seen where this process can look"
+        },
+        {
+          "name": "schematic-analyzer",
+          "found": "unknown",
+          "where": "not seen where this process can look"
+        },
+        {
+          "name": "ee-datasheet-master",
+          "found": "unknown",
+          "where": "not seen where this process can look"
+        }
+      ],
+      "executor": "current-agent",
+      "observes": [
+        {
+          "capability": "hardware.measure",
+          "best": "owner",
+          "status": "unproven"
+        }
+      ],
+      "warnings": []
+    },
+    {
+      "id": "embedded-systems",
+      "title": "Embedded Systems",
+      "category": "Hardware",
+      "status": "excluded",
+      "needs": [
+        "electronics"
+      ],
+      "implementation": null,
+      "basis": "none found; the lens procedure itself",
+      "candidates": [
+        {
+          "name": "esp32-development",
+          "found": "unknown",
+          "where": "not seen where this process can look"
+        },
+        {
+          "name": "xiao-assistant",
+          "found": "unknown",
+          "where": "not seen where this process can look"
+        }
+      ],
+      "executor": "current-agent",
+      "observes": [
+        {
+          "capability": "device.serial",
+          "best": "owner",
+          "status": "unproven"
+        }
+      ],
+      "warnings": []
+    },
+    {
+      "id": "experience",
+      "title": "Experience Design",
+      "category": "Design",
+      "status": "waiting",
+      "needs": [
+        "brand"
+      ],
+      "implementation": "impeccable",
+      "basis": "default: first one found",
+      "candidates": [
+        {
+          "name": "impeccable",
+          "found": "found",
+          "where": "skill in ~/.agents/skills"
+        },
+        {
+          "name": "hallmark",
+          "found": "found",
+          "where": "skill in ~/.agents/skills"
+        }
+      ],
+      "executor": "current-agent",
+      "observes": [],
+      "warnings": [
+        "impeccable and hallmark (direction), hallmark (illustration) both claim the design system (DESIGN.md); choose one authority"
+      ]
+    },
+    {
+      "id": "fidelity-qa",
+      "title": "Visual Fidelity QA",
+      "category": "Verification",
+      "status": "waiting",
+      "needs": [],
+      "implementation": "playwright-cli",
+      "basis": "default: first one found",
+      "candidates": [
+        {
+          "name": "playwright-cli",
+          "found": "found",
+          "where": "on PATH"
+        },
+        {
+          "name": "agent-browser",
+          "found": "found",
+          "where": "on PATH"
+        }
+      ],
+      "executor": "current-agent",
+      "observes": [
+        {
+          "capability": "browser.inspect",
+          "best": "chrome",
+          "status": "unproven"
+        }
+      ],
+      "warnings": []
+    },
+    {
+      "id": "illustration",
+      "title": "Illustration",
+      "category": "Media",
+      "status": "waiting",
+      "needs": [
+        "direction"
+      ],
+      "implementation": "hallmark",
+      "basis": "default: first one found",
+      "candidates": [
+        {
+          "name": "anidoodle",
+          "found": "unknown",
+          "where": "not seen where this process can look"
+        },
+        {
+          "name": "hallmark",
+          "found": "found",
+          "where": "skill in ~/.agents/skills"
+        }
+      ],
+      "executor": "current-agent",
+      "observes": [],
+      "warnings": [
+        "hallmark and impeccable (experience) both claim the design system (DESIGN.md); choose one authority"
+      ]
+    },
+    {
+      "id": "legacy-modernization",
+      "title": "Legacy Modernization",
+      "category": "Build",
+      "status": "excluded",
+      "needs": [
+        "recon-software"
+      ],
+      "implementation": null,
+      "basis": "none found; the lens procedure itself",
+      "candidates": [],
+      "executor": "current-agent",
+      "observes": [],
+      "warnings": []
+    },
+    {
+      "id": "marketing",
+      "title": "Marketing and Launch",
+      "category": "Strategy",
+      "status": "waiting",
+      "needs": [
+        "brand"
+      ],
+      "implementation": null,
+      "basis": "none found; the lens procedure itself",
+      "candidates": [
+        {
+          "name": "marketingskills",
+          "found": "unknown",
+          "where": "not seen where this process can look"
+        },
+        {
+          "name": "humanizer",
+          "found": "unknown",
+          "where": "not seen where this process can look"
+        }
+      ],
+      "executor": "current-agent",
+      "observes": [],
+      "warnings": []
+    },
+    {
+      "id": "motion-editorial",
+      "title": "Motion and Editorial",
+      "category": "Media",
+      "status": "waiting",
+      "needs": [
+        "brand",
+        "direction"
+      ],
+      "implementation": "ffmpeg",
+      "basis": "default: first one found",
+      "candidates": [
+        {
+          "name": "hyperframes",
+          "found": "unknown",
+          "where": "not seen where this process can look"
+        },
+        {
+          "name": "bang-motion",
+          "found": "unknown",
+          "where": "not seen where this process can look"
+        },
+        {
+          "name": "ffmpeg",
+          "found": "found",
+          "where": "on PATH"
+        }
+      ],
+      "executor": "current-agent",
+      "observes": [],
+      "warnings": []
+    },
+    {
+      "id": "product-visualization",
+      "title": "Product Visualization",
+      "category": "Media",
+      "status": "excluded",
+      "needs": [
+        "recon-physical",
+        "direction"
+      ],
+      "implementation": "blender",
+      "basis": "default: first one found",
+      "candidates": [
+        {
+          "name": "img2three",
+          "found": "unknown",
+          "where": "not seen where this process can look"
+        },
+        {
+          "name": "threejs-skills",
+          "found": "unknown",
+          "where": "not seen where this process can look"
+        },
+        {
+          "name": "blender",
+          "found": "found",
+          "where": "on PATH"
+        }
+      ],
+      "executor": "current-agent",
+      "observes": [],
+      "warnings": []
+    },
+    {
+      "id": "provenance-licensing",
+      "title": "Provenance and Licensing",
+      "category": "Governance",
+      "status": "waiting",
+      "needs": [],
+      "implementation": null,
+      "basis": "none found; the lens procedure itself",
+      "candidates": [],
+      "executor": "current-agent",
+      "observes": [],
+      "warnings": []
+    },
+    {
+      "id": "recon-physical",
+      "title": "Physical Reconnaissance",
+      "category": "Recon",
+      "status": "excluded",
+      "needs": [],
+      "implementation": null,
+      "basis": "none found; the lens procedure itself",
+      "candidates": [
+        {
+          "name": "ee-datasheet-master",
+          "found": "unknown",
+          "where": "not seen where this process can look"
+        },
+        {
+          "name": "schematic-analyzer",
+          "found": "unknown",
+          "where": "not seen where this process can look"
+        },
+        {
+          "name": "xiao-assistant",
+          "found": "unknown",
+          "where": "not seen where this process can look"
+        }
+      ],
+      "executor": "current-agent",
+      "observes": [
+        {
+          "capability": "cad.inspect",
+          "best": "owner",
+          "status": "unproven"
+        }
+      ],
+      "warnings": []
+    },
+    {
+      "id": "recon-software",
+      "title": "Software Reconnaissance",
+      "category": "Recon",
+      "status": "done",
+      "needs": [],
+      "implementation": null,
+      "basis": "none found; the lens procedure itself",
+      "candidates": [],
+      "executor": "current-agent",
+      "observes": [
+        {
+          "capability": "repo.inspect",
+          "best": "git",
+          "status": "unproven"
+        }
+      ],
+      "warnings": []
+    },
+    {
+      "id": "release-readiness",
+      "title": "Release Readiness",
+      "category": "Verification",
+      "status": "waiting",
+      "needs": [],
+      "implementation": "playwright-cli",
+      "basis": "default: first one found",
+      "candidates": [
+        {
+          "name": "playwright-cli",
+          "found": "found",
+          "where": "on PATH"
+        },
+        {
+          "name": "agent-browser",
+          "found": "found",
+          "where": "on PATH"
+        }
+      ],
+      "executor": "current-agent",
+      "observes": [
+        {
+          "capability": "browser.inspect",
+          "best": "chrome",
+          "status": "unproven"
+        }
+      ],
+      "warnings": []
+    },
+    {
+      "id": "robotics",
+      "title": "Robotics",
+      "category": "Hardware",
+      "status": "excluded",
+      "needs": [
+        "embedded-systems"
+      ],
+      "implementation": null,
+      "basis": "none found; the lens procedure itself",
+      "candidates": [
+        {
+          "name": "ros2-skill",
+          "found": "unknown",
+          "where": "not seen where this process can look"
+        }
+      ],
+      "executor": "current-agent",
+      "observes": [],
+      "warnings": []
+    }
+  ]
+}

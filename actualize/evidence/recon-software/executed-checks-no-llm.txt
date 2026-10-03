@@ -1,0 +1,3 @@
+# LLM-client scan of the process engine and the cockpit (run 2026-10-03, commit 79484ce)
+$ grep -rniE "openai|anthropic.com|api.anthropic|@anthropic|generativelanguage|openrouter|fetch(.https?://" cockpit/ hooks/ --include=*.ts --include=*.tsx --include=*.mjs -l
+(no files listed above = no match)

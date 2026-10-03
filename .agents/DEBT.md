@@ -6,13 +6,13 @@ Closed in the change after `a837ffd`: an owner's direction with no model row (no
 
 Between `fd2cd84` and the Workbench: D1 was corrected (its first mitigation never applied), and D5 and D6 were added.
 
-## D1: a cold full `bun test` run failed once; the first mitigation did nothing, the second is in place
+## D1: a cold full `bun test` run failed intermittently; cause found in one file and fixed, the original failure is still unmatched
 
-- **Observed:** the first full `bun test` at the start of the outcome-navigation work printed `165 pass / 3 fail / 1 error` on a tree that had passed 168/168. The failing test names were not captured. Every run since has passed.
-- **Evidence:** the baseline run on 2026-10-02 at `b1b7c95`, then more than ten clean full runs. While building the Workbench, a test that ran longer than 5 s still failed with `this test timed out after 5000ms` although `bunfig.toml` set `timeout = 30000`: Bun 1.4 ignores that key (a 6 s test failed with the file, and passed with `setDefaultTimeout(30000)` in a preload). So the earlier mitigation never applied.
-- **Consequence:** a spurious red build on a cold start if the cause is something other than a timeout.
-- **Why not now:** the cause is still unconfirmed. `tests/setup.ts` now raises the default to 30 s through a preload, which is the likeliest casualty (a cold Chrome plus a cold page bundle), but no failure with captured names has been matched to it.
-- **Reachable when:** it recurs with the failing test names in the output; then the cause is findable.
+- **Observed:** the first full `bun test` of the outcome-navigation work printed `165 pass / 3 fail / 1 error` on a tree that had passed 168/168; names were not captured. On 2026-10-03, a clean clone at `79484ce` failed 3, then 2, then 0 tests on consecutive full runs.
+- **Evidence:** `tests/cockpit/workbench.e2e.test.ts` failed in 2 of 6 isolated runs, a different test each time. The test read a surface's text while its blocks still said `loading…`. An `opened()` helper now waits for the load; the file then passed 8 of 8 runs. Record: `actualize/evidence/recon-software/clean-checkout.txt`.
+- **Consequence:** the Workbench e2e file no longer flakes. The earlier unnamed failure may have been the same race or another.
+- **Why not now:** no failure with captured names from the earlier run can be matched to this cause.
+- **Reachable when:** a full run fails again with names in the output.
 
 ## D4: the pattern evidence contract has no outcome data behind it
 
@@ -37,3 +37,61 @@ Between `fd2cd84` and the Workbench: D1 was corrected (its first mitigation neve
 - **Consequence:** an owner who wants a named executor (a specific model or tool) beyond `current-agent` and `owner` has to send the operation over the socket.
 - **Why not now:** the existing `form` block submits through the inbox, which is process authority, and a profile is not that; a terminal grammar for free-form profile fields would be the fragile NLP the design avoids. Nothing in the lifecycle needs a profile yet: a binding that names none uses `current-agent`.
 - **Reachable when:** an executor needs more than a name, for instance when the cockpit can learn which agent is connected, or when a cockpit-owned form (not an inbox ask) exists.
+
+Added by the self-actualization run (2026-10-03, `docs/validation/self-actualization.md`): D7 to D13. Each is a deficiency the run exposed and did not fix, because none blocks the result.
+
+## D7: the Work Terminal's request grammar is narrow
+
+- **Observed:** `research and establish the market position for ...` was "not understood" and queued nothing (`request:` worked). `verify the public website` queued but named no capability, while `verify the current frontend` classified to fidelity-qa.
+- **Evidence:** `actualize/evidence/dogfood/02-request-queued.png`, `08-r2-queued.png`; the ordered rules and keyword hints in `cockpit/server/terminal.ts`.
+- **Consequence:** a natural imperative the owner types is refused or left unclassified, so the owner learns the grammar instead of the grammar learning the owner.
+- **Why not now:** widening the verb and noun lists is easy, but each addition is a guess presented as a rule unless it is checked against real phrasings, and the design deliberately keeps this rule set small and deterministic.
+- **Reachable when:** a sample of real owner phrasings exists (from `interactions`) to choose the words from.
+
+## D8: the Workbench's first view is hard to read, and old surfaces persist
+
+- **Observed:** in ORIENT mode the workflow graph renders as a one-line strip at default zoom. Surfaces opened in an earlier session (`lens audio-sound`, `Open proposals`) were still open in a new run.
+- **Evidence:** `actualize/evidence/dogfood/01-show-the-workflow.png`.
+- **Consequence:** the first screen of a run is noisy and the key graph is unreadable until zoomed.
+- **Why not now:** layout is the owner's by design (the Workbench never moves or closes what the owner placed), so clearing leftovers is a policy decision, and the graph needs a fit-to-content rule.
+- **Reachable when:** the next change to workspace persistence decides whether a new run starts clean.
+
+## D9: wave lists put the gate in wave 1
+
+- **Observed:** `actualize select` printed `release-readiness` in wave 1 because it has no `needs`, although `lens start` forces it last.
+- **Evidence:** `actualize/evidence/recon-software/select-waves.json`; `hooks/src/lib/lenses.mjs:35`, `hooks/src/process.mjs:190`.
+- **Consequence:** the printed waves and the enforced order disagree; the site's waves demo has to explain it.
+- **Why not now:** it changes the process layer's output that tests and tools read.
+- **Reachable when:** `select` output is next revised.
+
+## D10: the Product Model has no grade for attributed third-party statements
+
+- **Observed:** public copy may cite only OBSERVED or VERIFIED, and prose sources are REPORTED. Quoting a published sentence ("Instructions are not guarantees") needed a workaround (decision D5): grade what the source says as OBSERVED and never state the finding as the product's fact. Reddit pages that refuse automated access can only be REPORTED, so they cannot be quoted at all until someone re-opens them (U13), and no cockpit gesture records that someone did.
+- **Evidence:** model decisions D5 and D10, claims C26 to C55.
+- **Consequence:** every team that wants a quotation on a public page rediscovers the workaround, and the written confirmation that upgrades a claim to VERIFIED has no home.
+- **Why not now:** a new grade or source kind changes the schema, which `check.py`, the hooks and the cockpit all read.
+- **Reachable when:** the schema next changes for another reason.
+
+## D11: staleness is coarse for fields every lens reads
+
+- **Observed:** each reconciliation that adds a decision row made every artifact whose lens reads `decisions` stale, though the decision changed nothing it says; rebuilding was a lens start, a stamp bump, and a lens done. This happened after nearly every reconciliation in this run.
+- **Evidence:** `actualize/evidence/dogfood/findings.md` F5, F11; staleness rule in `product-model/SCHEMA.md`.
+- **Consequence:** rebuild churn grows with run length and trains people to bump stamps without re-reading.
+- **Why not now:** the rule is the product's central mechanism and a finer one (ids in `decisions`, as `claims` already has) is a schema change.
+- **Reachable when:** the schema next changes; then `touched` could name decision ids a lens cites.
+
+## D12: without the hooks installed, the write-scope rules are not enforced
+
+- **Observed:** the run used the CLI only; editing four artifacts before `lens start` was not stopped, and `lens done` then saw no output.
+- **Evidence:** `actualize/evidence/dogfood/findings.md` F12.
+- **Consequence:** the process is as strong as the hooks around it; a CLI-only session relies on the agent's discipline.
+- **Why not now:** installing hooks into the owner's agent settings is the owner's decision, and this run did not touch them.
+- **Reachable when:** the owner installs the hooks (`bun hooks/install.mjs`) and a run is repeated under them.
+
+## D13: the owner boundary is a channel, not a person
+
+- **Observed:** request R1 was accepted through the owner's page by a delegated cofounder agent under the brief's explicit authorization. The cockpit cannot tell a delegate from the owner; it knows only which socket sent the operation.
+- **Evidence:** `actualize/evidence/dogfood/04-accepted.png`, `R1-history.json`.
+- **Consequence:** whoever holds the owner page can accept; "the agent cannot accept its own work" holds only while the agent has no route to that page.
+- **Why not now:** identity beyond a local token is out of scope for a local tool.
+- **Reachable when:** the cockpit is shared between people, or a delegated acceptance needs to be recorded as such.

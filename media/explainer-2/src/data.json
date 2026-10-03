@@ -1,0 +1,194 @@
+{
+ "modelVersion": 9,
+ "hn": [
+  {
+   "q": "Are these videos of it eg tidying up real or just staged / cherry picked?",
+   "src": "Launch HN comment, 2026-09-01"
+  },
+  {
+   "q": "None of the videos on website say how much are they speed up (or not), and is robot teleoperated or running autonomously.",
+   "src": "Launch HN comment, 2026-09-01"
+  }
+ ],
+ "mote": [
+  {
+   "id": "C7",
+   "text": "Face tracking is a stub: `follow_face` raises NotImplementedError",
+   "grade": "OBSERVED",
+   "source": "tests/fixture-mote/host/mote/track.py:4-6"
+  },
+  {
+   "id": "C36",
+   "text": "The firmware has not been flashed to the REV C board",
+   "grade": "REPORTED",
+   "source": "tests/fixture-mote/docs/notes.md:9; tests/fixture-mote/unit/owner-notes.txt:5"
+  }
+ ],
+ "grades": [
+  "OBSERVED",
+  "VERIFIED",
+  "REPORTED",
+  "INFERRED",
+  "PROPOSED",
+  "UNKNOWN",
+  "CONTRADICTED"
+ ],
+ "groups": [
+  {
+   "name": "Recon",
+   "lenses": [
+    "recon-physical",
+    "recon-software"
+   ]
+  },
+  {
+   "name": "Strategy",
+   "lenses": [
+    "brand",
+    "marketing"
+   ]
+  },
+  {
+   "name": "Design",
+   "lenses": [
+    "direction",
+    "experience"
+   ]
+  },
+  {
+   "name": "Media",
+   "lenses": [
+    "audio-sound",
+    "illustration",
+    "motion-editorial",
+    "product-visualization"
+   ]
+  },
+  {
+   "name": "Hardware",
+   "lenses": [
+    "electronics",
+    "embedded-systems",
+    "robotics"
+   ]
+  },
+  {
+   "name": "Build",
+   "lenses": [
+    "legacy-modernization"
+   ]
+  },
+  {
+   "name": "Governance",
+   "lenses": [
+    "provenance-licensing"
+   ]
+  },
+  {
+   "name": "Verification",
+   "lenses": [
+    "fidelity-qa",
+    "release-readiness"
+   ]
+  }
+ ],
+ "notEnough": [
+  "a firmware build",
+  "passing tests",
+  "a schematic",
+  "a render",
+  "documentation"
+ ],
+ "walk": [
+  {
+   "id": "PHY1",
+   "claim": "camera works",
+   "kind": "documentation",
+   "onUnit": "no",
+   "result": "none"
+  },
+  {
+   "id": "PHY2",
+   "claim": "microphone works",
+   "kind": "documentation",
+   "onUnit": "no",
+   "result": "none"
+  },
+  {
+   "id": "PHY3",
+   "claim": "speaker is audible",
+   "kind": "documentation",
+   "onUnit": "no",
+   "result": "none"
+  },
+  {
+   "id": "PHY4",
+   "claim": "servos reach the stated range",
+   "kind": "build",
+   "onUnit": "no",
+   "result": "none"
+  },
+  {
+   "id": "PHY5",
+   "claim": "head stops safely",
+   "kind": "documentation",
+   "onUnit": "no",
+   "result": "none"
+  },
+  {
+   "id": "PHY6",
+   "claim": "sensors are accurate",
+   "kind": "documentation",
+   "onUnit": "no",
+   "result": "none"
+  },
+  {
+   "id": "PHY7",
+   "claim": "starts unattended at boot",
+   "kind": "unit capture",
+   "onUnit": "yes",
+   "result": "fail"
+  },
+  {
+   "id": "PHY8",
+   "claim": "update and recovery work",
+   "kind": "documentation",
+   "onUnit": "no",
+   "result": "none"
+  },
+  {
+   "id": "PHY9",
+   "claim": "supply holds under motion and speech",
+   "kind": "calculation",
+   "onUnit": "no",
+   "result": "none"
+  }
+ ],
+ "verdict": "no-go",
+ "validatorRefusal": "public artifact cites C3 graded REPORTED; only OBSERVED or VERIFIED may be public",
+ "copyLine": "A public artifact that cites a claim graded below OBSERVED is rejected.",
+ "copyStamp": "marketing/website-copy.md · built_from: model@8 · public: true",
+ "stale": {
+  "from": 4,
+  "to": 5,
+  "decision": "D11",
+  "touched": "positioning, jobs, criteria, opportunities",
+  "artifacts": [
+   "brand/identity.md",
+   "direction/system.md",
+   "illustration/mark-and-diagrams.md",
+   "marketing/website-copy.md"
+  ]
+ },
+ "lifecycle": [
+  "queued",
+  "acknowledged",
+  "running",
+  "produced",
+  "ready_for_review",
+  "accepted"
+ ],
+ "authorityMessage": "AUTHORITY_HUMAN: accepted belongs to the owner: an agent can report progress and mark work ready_for_review, but cannot accept, reject, or cancel it",
+ "tagline": "Finish the product. Show the evidence.",
+ "cta": "Read the run: github.com/SPRIME01/Product-Actualizer, actualize/"
+}

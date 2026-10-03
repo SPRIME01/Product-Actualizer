@@ -21,6 +21,8 @@ const survey = (dir: string) => { const out: Record<string, string> = {}; const 
 const tool = (name: string, input: any) => fetch(srv.url + "/api/agent/tool", { method: "POST", headers: { "x-cockpit-token": srv.agentToken, "content-type": "application/json" }, body: JSON.stringify({ name, input }) }).then((r) => r.json());
 const say = async (text: string) => { await page.locator(".term-input").fill(text); await page.locator(".term-input").press("Enter"); };
 const panel = (id: string) => page.locator(`[data-surface="${id}"]`);
+// A surface mounts before its blocks have loaded; read it only once nothing in it still says "loading…".
+const opened = async (id: string) => { await panel(id).waitFor(); await page.waitForFunction((i) => { const e = document.querySelector(`[data-surface="${i}"]`); return !!e && !/loading…/.test((e as HTMLElement).innerText); }, id); };
 
 beforeAll(async () => {
   if (!CHROME) return;
@@ -36,7 +38,7 @@ d("the owner's journey through the Workbench", () => {
   test("the Workbench opens from the first offer, shows the mode the run is in, and writes nothing to the run", async () => {
     const before = survey(fx.run.dir);
     await page.locator(".hint").first().waitFor(); expect((await page.locator(".hint b").allTextContents())[0]).toBe("Open the Workbench");
-    await page.locator(".hint").first().click(); await panel("workbench").waitFor();
+    await page.locator(".hint").first().click(); await opened("workbench");
     expect(await panel("workbench").locator(".surface-head p").innerText()).toMatch(/^VERIFY: \d+ blockers? stand/);
     expect(await panel("workbench").locator("section").evaluateAll((s) => s.map((x) => (x as HTMLElement).dataset.block))).toEqual(expect.arrayContaining(["ledger", "blockers", "arts", "contract"]));
     expect(await page.locator(".term-mode").innerText()).toBe("VERIFY");
@@ -46,7 +48,7 @@ d("the owner's journey through the Workbench", () => {
   });
 
   test("\"show the workflow\" opens the real stages and the lens dependency graph, with no model call", async () => {
-    await say("show the workflow"); await panel("workflow").waitFor();
+    await say("show the workflow"); await opened("workflow");
     await panel("workflow").locator(".react-flow, [data-type=graph]").first().waitFor();
     const text = await panel("workflow").innerText();
     for (const s of ["Classify Evidence", "Execute Dependency Waves", "Reconcile", "Rebuild Stale Work", "Accept / Defer / No-Go"]) expect(text).toContain(s);
@@ -55,7 +57,7 @@ d("the owner's journey through the Workbench", () => {
   });
 
   test("a capability is shown as capability, implementation, and executor, and an unseen implementation is unknown, not usable", async () => {
-    await say("show capability fidelity-qa"); await panel("capabilities").waitFor();
+    await say("show capability fidelity-qa"); await opened("capabilities");
     const layers = panel("capabilities").locator("[data-block=layers]"); await layers.waitFor();
     for (const l of ["Capability", "Implementation", "Alternative", "Executor", "Observation (Reach)"]) expect(await layers.innerText()).toContain(l);
     expect(await layers.innerText()).toMatch(/Visual Fidelity QA/); expect(await layers.innerText()).toMatch(/Current agent or tool/);
@@ -64,15 +66,15 @@ d("the owner's journey through the Workbench", () => {
   });
 
   test("\"show the task contract\" projects context, goal, skills, authority, executors, budget, invariants, and acceptance", async () => {
-    await say("show the task contract"); await panel("contract").waitFor();
+    await say("show the task contract"); await opened("contract");
     const text = await panel("contract").innerText();
     for (const f of ["Context", "Goal", "Skills", "Authority", "Executors", "Budget", "Invariants", "Acceptance"]) expect(text).toContain(f);
     expect(text).toMatch(/Model cost is not recorded/); expect(text).toMatch(/declared: none/);
   });
 
   test("\"show me what blocks acceptance\" is answered locally with the gate, and \"what should happen next?\" with the Case", async () => {
-    await say("show me what blocks acceptance"); await panel("gate").waitFor(); expect(await page.locator(".term-last").innerText()).toMatch(/blocker/);
-    await say("what should happen next?"); await panel("case-run").waitFor(); expect(await page.locator(".term-last").innerText()).toMatch(/guidance, not an instruction/);
+    await say("show me what blocks acceptance"); await opened("gate"); expect(await page.locator(".term-last").innerText()).toMatch(/blocker/);
+    await say("what should happen next?"); await opened("case-run"); expect(await page.locator(".term-last").innerText()).toMatch(/guidance, not an instruction/);
     await page.getByRole("button", { name: "terminal log" }).click();
     const log = await page.locator(".term-log").innerText(); expect(log).toContain("› show me what blocks acceptance"); expect(log).toContain("› what should happen next?");
     await page.getByRole("button", { name: "terminal log" }).click();
@@ -123,7 +125,7 @@ d("the owner's journey through the Workbench", () => {
   });
 
   test("the Workbench follows the work without moving the owner's layout: a pinned tab stays pinned and in place while its mode changes", async () => {
-    await panel("workbench").waitFor();
+    await opened("workbench");
     await page.locator(".tab-title", { hasText: "Workbench" }).locator('button[aria-label="pin"]').click();
     await page.waitForFunction(() => document.querySelector(".tab-title .pinned"));
     const order = async () => page.locator(".tab-title span").evaluateAll((s) => s.map((x) => x.textContent).filter((t) => t && t.length > 2));

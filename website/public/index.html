@@ -1,0 +1,215 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Product Actualizer: evidence-gated product completion</title>
+<meta name="description" content="Product Actualizer keeps one graded model of what is true about your product and refuses to call a launch ready until the evidence is there.">
+<meta name="color-scheme" content="light dark">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Product Actualizer: evidence-gated product completion">
+<meta property="og:description" content="Product Actualizer keeps one graded model of what is true about your product and refuses to call a launch ready until the evidence is there.">
+<meta property="og:image" content="social/og.png">
+<meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="icons/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="icons/favicon-32.png" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="preload" href="fonts/atkinson-hyperlegible-next-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="css/tokens.css">
+<link rel="stylesheet" href="css/site.css">
+<script>try{var t=localStorage.getItem("pa-theme");if(t==="light"||t==="dark")document.documentElement.dataset.theme=t}catch(e){}</script>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="top">
+  <div class="wrap bar">
+    <a class="brand" href="#top" aria-label="Product Actualizer, start of page"><svg class="lockup" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 473.5 64" role="img" aria-label="Product Actualizer"><title>Product Actualizer</title><path d="M9 55V9H55" fill="none" stroke="currentColor" stroke-width="6" stroke-dasharray="14 6" stroke-linejoin="miter"/><path d="M55 9V55H9" fill="none" stroke="currentColor" stroke-width="6" stroke-linejoin="miter"/><rect x="29" y="29" width="20" height="20" fill="var(--accent)"/><g transform="translate(84 15)"><path transform="translate(-2.36 33.48) scale(0.43702)" d="M22.40 0L5.40 0L5.40-66.80L36.10-66.80Q43.30-66.80 49.40-64.50Q55.50-62.20 59.20-57.30Q62.90-52.40 62.90-44.60L62.90-44.60Q62.90-36.80 59.20-31.85Q55.50-26.90 49.40-24.60Q43.30-22.30 36.10-22.30L36.10-22.30L22.40-22.30L22.40 0ZM22.40-52.40L22.40-36.70L35.80-36.70Q39.60-36.70 42.30-38.55Q45-40.40 45-44.60L45-44.60Q45-48.70 42.30-50.55Q39.60-52.40 35.80-52.40L35.80-52.40L22.40-52.40ZM86.30 0L69.80 0L69.80-49.60L82.90-49.60L85.60-40.50Q87-44.70 89.70-47.10Q92.40-49.50 95.90-50.45Q99.40-51.40 103.10-51.10L103.10-51.10L103.10-34.70Q98.30-35.50 94.50-34.65Q90.70-33.80 88.50-31.05Q86.30-28.30 86.30-23.30L86.30-23.30L86.30 0ZM133.10 1.20L133.10 1.20Q127.90 1.20 123.10-0.40Q118.30-2 114.50-5.25Q110.70-8.50 108.55-13.45Q106.40-18.40 106.40-25.10L106.40-25.10Q106.40-31.80 108.55-36.70Q110.70-41.60 114.50-44.80Q118.30-48 123.10-49.55Q127.90-51.10 133.10-51.10L133.10-51.10Q138.40-51.10 143.15-49.55Q147.90-48 151.70-44.80Q155.50-41.60 157.65-36.70Q159.80-31.80 159.80-25.10L159.80-25.10Q159.80-18.40 157.65-13.45Q155.50-8.50 151.70-5.25Q147.90-2 143.15-0.40Q138.40 1.20 133.10 1.20ZM133.10-11.40L133.10-11.40Q136.10-11.40 138.30-12.95Q140.50-14.50 141.75-17.55Q143-20.60 143-25.10L143-25.10Q143-29.70 141.70-32.65Q140.40-35.60 138.20-37.05Q136-38.50 133.10-38.50L133.10-38.50Q130.30-38.50 128.05-37.05Q125.80-35.60 124.50-32.65Q123.20-29.70 123.20-25.10L123.20-25.10Q123.20-20.60 124.45-17.55Q125.70-14.50 127.95-12.95Q130.20-11.40 133.10-11.40ZM187.50 1.20L187.50 1.20Q181.00 1.20 176.00-2.05Q171.00-5.30 168.25-11.30Q165.50-17.30 165.50-25.30L165.50-25.30Q165.50-33.40 168.30-39.15Q171.10-44.90 176.05-48Q181.00-51.10 187.50-51.10L187.50-51.10Q191.20-51.10 195.55-49.15Q199.90-47.20 202.40-43L202.40-43L202.40-70.80L218.90-70.80L218.90-19.50Q218.90-15.50 219.25-10.40Q219.60-5.30 220.60 0L220.60 0L204.80 0L202.90-6.30Q199.50-2.20 195.35-0.50Q191.20 1.20 187.50 1.20ZM192.90-11.50L192.90-11.50Q195.60-11.50 197.95-12.75Q200.30-14 201.75-17Q203.20-20 203.20-25L203.20-25Q203.20-32.40 200.10-35.45Q197.00-38.50 192.90-38.50L192.90-38.50Q188.70-38.50 185.60-35.15Q182.50-31.80 182.50-25.30L182.50-25.30Q182.50-18.80 185.60-15.15Q188.70-11.50 192.90-11.50ZM246.10 1.20L246.10 1.20Q239.40 1.20 235.55-1.25Q231.70-3.70 230.15-8.45Q228.60-13.20 228.60-20.10L228.60-20.10L228.60-49.60L245.10-49.60L245.10-24.20Q245.10-20.70 245.40-17.80Q245.70-14.90 247.15-13.15Q248.60-11.40 252.20-11.40L252.20-11.40Q256.80-11.40 258.55-14.20Q260.30-17 260.30-23.70L260.30-23.70L260.30-49.60L276.80-49.60L276.80 0L262.40 0L260.30-7Q258.10-3.30 254.90-1.05Q251.70 1.20 246.10 1.20ZM310.50 1.20L310.50 1.20Q302.10 1.20 296.35-2.10Q290.60-5.40 287.65-11.35Q284.70-17.30 284.70-25.20L284.70-25.20Q284.70-33.10 287.95-38.90Q291.20-44.70 296.95-47.90Q302.70-51.10 310.30-51.10L310.30-51.10Q314.50-51.10 318.90-49.95Q323.30-48.80 327.15-45.95Q331.00-43.10 333.40-37.80L333.40-37.80L319.80-32.80Q318.70-36 316.40-37.25Q314.10-38.50 311.50-38.50L311.50-38.50Q309.00-38.50 306.65-37.25Q304.30-36 302.85-33.10Q301.40-30.20 301.40-25.10L301.40-25.10Q301.40-19.90 302.90-16.90Q304.40-13.90 306.70-12.65Q309.00-11.40 311.50-11.40L311.50-11.40Q314.50-11.40 316.55-12.55Q318.60-13.70 319.90-15.80L319.90-15.80L333.10-11Q330.50-6.20 326.65-3.55Q322.80-0.90 318.60 0.15Q314.40 1.20 310.50 1.20ZM372.50 0L362.50 0Q356.10 0 352.30-1.10Q348.50-2.20 346.85-5.25Q345.20-8.30 345.20-14.30L345.20-14.30L345.20-37.10L337.00-37.10L337.00-49.60L345.20-49.60L345.20-62L361.70-62L361.70-49.60L372.50-49.60L372.50-37.10L361.70-37.10L361.70-18.80Q361.70-15.40 363.15-14.35Q364.60-13.30 368.30-13.30L368.30-13.30L372.50-13.30L372.50 0ZM427.00 0L408.40 0L433.70-66.80L452.40-66.80L477.80 0L459.20 0L455.40-11.40L430.70-11.40L427.00 0ZM443.00-48.70L435.20-25.10L450.90-25.10L443.00-48.70ZM505.10 1.20L505.10 1.20Q496.70 1.20 490.95-2.10Q485.20-5.40 482.25-11.35Q479.30-17.30 479.30-25.20L479.30-25.20Q479.30-33.10 482.55-38.90Q485.80-44.70 491.55-47.90Q497.30-51.10 504.90-51.10L504.90-51.10Q509.10-51.10 513.50-49.95Q517.90-48.80 521.75-45.95Q525.60-43.10 528-37.80L528-37.80L514.40-32.80Q513.30-36 511.00-37.25Q508.70-38.50 506.10-38.50L506.10-38.50Q503.60-38.50 501.25-37.25Q498.90-36 497.45-33.10Q496.00-30.20 496.00-25.10L496.00-25.10Q496.00-19.90 497.50-16.90Q499.00-13.90 501.30-12.65Q503.60-11.40 506.10-11.40L506.10-11.40Q509.10-11.40 511.15-12.55Q513.20-13.70 514.50-15.80L514.50-15.80L527.70-11Q525.10-6.20 521.25-3.55Q517.40-0.90 513.20 0.15Q509.00 1.20 505.10 1.20ZM567.10 0L557.10 0Q550.70 0 546.90-1.10Q543.10-2.20 541.45-5.25Q539.80-8.30 539.80-14.30L539.80-14.30L539.80-37.10L531.60-37.10L531.60-49.60L539.80-49.60L539.80-62L556.30-62L556.30-49.60L567.10-49.60L567.10-37.10L556.30-37.10L556.30-18.80Q556.30-15.40 557.75-14.35Q559.20-13.30 562.90-13.30L562.90-13.30L567.10-13.30L567.10 0ZM592.80 1.20L592.80 1.20Q586.10 1.20 582.25-1.25Q578.40-3.70 576.85-8.45Q575.30-13.20 575.30-20.10L575.30-20.10L575.30-49.60L591.80-49.60L591.80-24.20Q591.80-20.70 592.10-17.80Q592.40-14.90 593.85-13.15Q595.30-11.40 598.90-11.40L598.90-11.40Q603.50-11.40 605.25-14.20Q607-17 607-23.70L607-23.70L607-49.60L623.50-49.60L623.50 0L609.10 0L607-7Q604.80-3.30 601.60-1.05Q598.40 1.20 592.80 1.20ZM648.20 1.20L648.20 1.20Q643.10 1.20 639.10-0.60Q635.10-2.40 632.85-5.70Q630.60-9 630.60-13.40L630.60-13.40Q630.60-19.40 634.65-23.15Q638.70-26.90 646.15-28.90Q653.60-30.90 663.80-31.40L663.80-31.40L663.80-32.80Q663.80-36.80 661.60-38.40Q659.40-40 655.60-40L655.60-40Q652.80-40 650.50-38.55Q648.20-37.10 647.40-34.60L647.40-34.60L633.40-39.40Q635.90-44.30 641.80-47.70Q647.70-51.10 656.50-51.10L656.50-51.10Q667.50-51.10 673.60-46.35Q679.70-41.60 679.70-31.20L679.70-31.20L679.70-18.50Q679.70-15 679.90-11.45Q680.10-7.90 680.50-4.90Q680.90-1.90 681.40 0L681.40 0L665.90 0L664.20-5.90Q661.50-1.80 657.35-0.30Q653.20 1.20 648.20 1.20ZM654-9.90L654-9.90Q657-9.90 659.20-10.80Q661.40-11.70 662.60-14Q663.80-16.30 663.80-20.40L663.80-20.40L663.80-21.70Q654.80-21.20 651.35-19.35Q647.90-17.50 647.90-14.80L647.90-14.80Q647.90-12.60 649.65-11.25Q651.40-9.90 654-9.90ZM717.40 0L706.70 0Q700.40 0 696.60-1.10Q692.80-2.20 691.15-5.30Q689.50-8.40 689.50-14.50L689.50-14.50L689.50-70.80L706.10-70.80L706.10-19.70Q706.10-15.60 707.30-14.40Q708.50-13.20 712.70-13.20L712.70-13.20L717.40-13.20L717.40 0ZM744 0L727.40 0L727.40-37.20L718.80-37.20L718.80-49.60L744-49.60L744 0ZM734.80-57.60L734.80-57.60Q730.80-57.60 728.05-60.35Q725.30-63.10 725.30-67.10L725.30-67.10Q725.30-71.10 728.05-73.85Q730.80-76.60 734.80-76.60L734.80-76.60Q738.80-76.60 741.55-73.85Q744.30-71.10 744.30-67.10L744.30-67.10Q744.30-63.10 741.55-60.35Q738.80-57.60 734.80-57.60ZM800.10 0L752.10 0L752.10-13L777.30-36.60L753.60-36.60L753.60-49.60L798.70-49.60L798.70-36.60L773.60-13L800.10-13L800.10 0ZM831.20 1.20L831.20 1.20Q823.10 1.20 816.85-1.90Q810.60-5 807.05-10.90Q803.50-16.80 803.50-25.20L803.50-25.20Q803.50-33.10 807.20-38.90Q810.90-44.70 817.05-47.90Q823.20-51.10 830.50-51.10L830.50-51.10Q836.70-51.10 841.65-48.90Q846.60-46.70 850.05-42.65Q853.50-38.60 855.15-33Q856.80-27.40 856.30-20.50L856.30-20.50L819.50-20.50Q820.10-18.20 821.15-16.50Q822.20-14.80 823.65-13.65Q825.10-12.50 826.90-11.95Q828.70-11.40 830.70-11.40L830.70-11.40Q834.10-11.40 836.60-12.35Q839.10-13.30 840.40-14.90L840.40-14.90L853.30-10.10Q849.20-4.20 843.15-1.50Q837.10 1.20 831.20 1.20ZM819.40-30.10L819.40-30.10L841.30-30.10Q841.00-33.20 839.60-35.15Q838.20-37.10 835.95-38.05Q833.70-39 831.00-39L831.00-39Q828.30-39 825.90-38.10Q823.50-37.20 821.80-35.25Q820.10-33.30 819.40-30.10ZM879.90 0L863.40 0L863.40-49.60L876.50-49.60L879.20-40.50Q880.60-44.70 883.30-47.10Q886.00-49.50 889.50-50.45Q893.00-51.40 896.70-51.10L896.70-51.10L896.70-34.70Q891.90-35.50 888.10-34.65Q884.30-33.80 882.10-31.05Q879.90-28.30 879.90-23.30L879.90-23.30L879.90 0Z" fill="currentColor"/></g></svg>
+</a>
+    <nav aria-label="Sections">
+      <a href="#mechanism">Mechanism</a><a href="#lab">Lab</a><a href="#order">Order of work</a><a href="#authority">Authority</a><a href="#proof">Proof</a><a href="#faq">Questions</a>
+    </nav>
+    <button class="theme" type="button" id="theme" aria-label="Switch colour theme">Theme</button>
+  </div>
+</header>
+
+<main id="main">
+<section class="hero wrap" id="top">
+  <div class="hero-text">
+    <p class="kicker mono">Evidence-gated product completion</p>
+    <h1>Finish the product. Show the evidence.</h1>
+    <p class="lede">Coding agents make things fast. Product Actualizer keeps the model they answer to: every claim graded, every artifact citing it, and a gate that can refuse the launch. <a class="cl" href="#claim-C2" title="C2: OBSERVED">C2</a><a class="cl" href="#claim-C6" title="C6: VERIFIED">C6</a></p>
+    <p class="actions">
+      <a class="btn primary" href="https://github.com/SPRIME01/Product-Actualizer/tree/main/actualize" rel="noopener">Read the run</a>
+      <a class="btn" href="#replay">Replay a worked example</a>
+      <a class="btn quiet" href="https://github.com/SPRIME01/Product-Actualizer" rel="noopener">Source on GitHub</a>
+    </p>
+    <p class="fine">The source is public to read. No license has been declared, so this page does not invite you to reuse it. <a class="cl" href="#claim-C17" title="C17: OBSERVED">C17</a></p>
+  </div>
+  <div class="instrument" id="ledger-app" aria-labelledby="ledger-title">
+    <h2 id="ledger-title">Check a claim yourself</h2>
+    <p class="intro">Below is a public page from a worked example, with the claims it cites. Downgrade one, then run the validator. <a class="cl" href="#claim-C3" title="C3: VERIFIED">C3</a><a class="cl" href="#claim-C38" title="C38: OBSERVED">C38</a></p>
+    <noscript><p class="note">With JavaScript on, this panel runs the product's validator in your browser. Downgrading claim C1 to REPORTED makes it print: <code>public artifact cites C1 graded REPORTED; only OBSERVED or VERIFIED may be public</code></p></noscript>
+  </div>
+</section>
+
+<section class="wrap block" id="film" aria-labelledby="film-title">
+  <h2 id="film-title" class="label"><span class="mono">00</span> The short version</h2>
+  <div class="film">
+  <video controls preload="none" poster="media/poster.jpg" width="1920" height="1080" playsinline>
+    <source src="media/explainer.mp4" type="video/mp4">
+    <track kind="captions" src="media/explainer.en.vtt" srclang="en" label="English" default>
+    <p>Your browser cannot play the film. <a href="media/explainer.mp4">Download it</a> or <a href="media/transcript.md">read the transcript</a>.</p>
+  </video>
+  <p class="note"><a href="media/transcript.md">Transcript</a> · <a href="media/explainer.en.vtt">Captions (WebVTT)</a> · <a href="media/explainer.mp4" download>Download MP4</a></p>
+</div>
+
+</section>
+
+<section class="wrap block" id="problem" aria-labelledby="problem-title">
+  <h2 id="problem-title" class="label"><span class="mono">01</span> The hard part moved from making to finishing</h2>
+  <p class="lead">Agents have made the first stretch of building fast. The people doing the finishing describe a different job.</p>
+  <div class="quotes">
+    <figure><blockquote><p>“Instructions are not guarantees.”</p></blockquote><figcaption>A Show HN post, 2026-06-16 <a class="cl" href="#claim-C43" title="C43: OBSERVED">C43</a></figcaption></figure>
+    <figure><blockquote><p>“The bottleneck isn't building anymore. It's completing.”</p></blockquote><figcaption>DEV Community, 2026-09-27 <a class="cl" href="#claim-C31" title="C31: OBSERVED">C31</a></figcaption></figure>
+    <figure><blockquote><p>Agents left a required file unread in 67.9% of runs, and 80.4% of those runs were misleading about it.</p></blockquote><figcaption>arXiv 2609.20812, submitted 2026-09-17 <a class="cl" href="#claim-C27" title="C27: OBSERVED">C27</a></figcaption></figure>
+    <figure><blockquote><p>46% of developers do not trust the accuracy of AI tool output, up from 31% a year earlier.</p></blockquote><figcaption>Stack Overflow, 2025 Developer Survey press release <a class="cl" href="#claim-C26" title="C26: OBSERVED">C26</a></figcaption></figure>
+  </div>
+  <p class="prose">Spec toolkits point an agent from intent to code. Spec Kit had 139,998 GitHub stars on 2026-10-03 <a class="cl" href="#claim-C29" title="C29: OBSERVED">C29</a>, and one close reading reports that it produced many repetitive Markdown files to review <a class="cl" href="#claim-C28" title="C28: OBSERVED">C28</a>. This page is about what comes after the code: the brand, site, film and copy that make a launch, and whether their sentences are true.</p>
+</section>
+
+<section class="wrap block" id="mechanism" aria-labelledby="mech-title">
+  <h2 id="mech-title" class="label"><span class="mono">02</span> One model, five rules</h2>
+  <ol class="rules">
+    <li><h3>One ledger, seven grades</h3><p>Every claim about the product carries a grade and a source anyone can re-open. OBSERVED and VERIFIED claims can be published. The rest stay internal. <a class="cl" href="#claim-C2" title="C2: OBSERVED">C2</a></p></li>
+    <li><h3>Copy cannot outrun the evidence</h3><p>A public artifact that cites a claim graded below OBSERVED is rejected. We downgraded a claim in a worked example and the validator refused. We restored it and it passed. <a class="cl" href="#claim-C3" title="C3: VERIFIED">C3</a></p></li>
+    <li><h3>Changes make dependents stale</h3><p>Artifacts record the model version they were built from. When a later decision touches a claim they cite, they are flagged stale, by version comparison and not by memory. <a class="cl" href="#claim-C4" title="C4: VERIFIED">C4</a></p></li>
+    <li><h3>Work is capabilities, in an order</h3><p>Seventeen lenses declare what they read and what they need. Selecting some orders them into waves. <a class="cl" href="#claim-C1" title="C1: OBSERVED">C1</a><a class="cl" href="#claim-C5" title="C5: VERIFIED">C5</a> The tool that does the work is a replaceable executor, and the catalogue says found or unknown, never usable. <a class="cl" href="#claim-C20" title="C20: OBSERVED">C20</a></p></li>
+    <li><h3>The agent cannot accept its own work</h3><p>An agent can report progress and mark work ready for review. Only the owner accepts. When an agent tries, the cockpit returns AUTHORITY_HUMAN. <a class="cl" href="#claim-C12" title="C12: VERIFIED">C12</a></p>
+      <figure class="aside"><blockquote><p>“A prompt is a probabilistic influence on model behavior. A rule is an enforcement mechanism.”</p></blockquote><figcaption>A Show HN post, 2026-06-16 <a class="cl" href="#claim-C43" title="C43: OBSERVED">C43</a></figcaption></figure></li>
+  </ol>
+</section>
+
+<section class="wrap block" id="lab" aria-labelledby="lab-title">
+  <h2 id="lab-title" class="label"><span class="mono">03</span> Change the model, watch the work go stale</h2>
+  <p class="lead">The worked example is Loam, a fictional soil probe. <a class="cl" href="#claim-C38" title="C38: OBSERVED">C38</a> Record a decision, then see which artifacts depend on what it touched.</p>
+  <div class="instrument wide" id="lab-app"><noscript><p class="note">This lab needs JavaScript. In the product, recording a decision that touches a claim an artifact cites makes that artifact stale; one that touches nothing it reads leaves it current.</p></noscript></div>
+</section>
+
+<section class="wrap block" id="order" aria-labelledby="order-title">
+  <h2 id="order-title" class="label"><span class="mono">04</span> The order of work comes from what each lens needs</h2>
+  <p class="lead">Pick the lenses a goal needs. They arrange into waves from their declared needs, and the gate always runs last. <a class="cl" href="#claim-C5" title="C5: VERIFIED">C5</a></p>
+  <div class="instrument wide" id="waves-app"><noscript><p class="note">This explorer needs JavaScript. Lenses arrange into waves by their declared needs; the gate runs last.</p></noscript></div>
+  <h3 class="sub">Capability, implementation, executor</h3>
+  <p class="prose">A lens is the capability: a kind of judgement work. An implementation is a mechanism that can realise it, listed as candidates. The executor is whoever runs it. The three stay separate. <a class="cl" href="#claim-C20" title="C20: OBSERVED">C20</a> On the machine that made this page, ffmpeg was found, and hyperframes, bang-motion and anidoodle were unknown. <a class="cl" href="#claim-C20" title="C20: OBSERVED">C20</a></p>
+</section>
+
+<section class="wrap block" id="authority" aria-labelledby="auth-title">
+  <h2 id="auth-title" class="label"><span class="mono">05</span> Who may move a request</h2>
+  <p class="lead">A typed request stays queued until an executor acknowledges it. The agent moves it forward. Only the owner accepts. <a class="cl" href="#claim-C13" title="C13: OBSERVED">C13</a> In the run that made this page, request R1 passed through every state. <a class="cl" href="#claim-C41" title="C41: OBSERVED">C41</a></p>
+  <div class="instrument wide" id="lifecycle-app"><noscript><p class="note">This explorer needs JavaScript. An agent that tries to accept a request receives AUTHORITY_HUMAN.</p></noscript></div>
+</section>
+
+<section class="wrap block" id="proof" aria-labelledby="proof-title">
+  <h2 id="proof-title" class="label"><span class="mono">06</span> This page came out of a run</h2>
+  <p class="prose">The governed run is stored in the repository: the model with its decisions, the proposals each lens made and how each was ruled on, the history of model versions, and the evidence. <a class="cl" href="#claim-C39" title="C39: OBSERVED">C39</a> The cockpit screenshots on this page were captured from that run. <a class="cl" href="#claim-C40" title="C40: OBSERVED">C40</a></p>
+  <div class="figures"><figure><img src="img/fig-gate.png" alt="The cockpit's Release gate panel reading Gate blocked (5), listing five reasons: three lenses selected but never run, no release gate file yet." width="750" height="295" loading="lazy"><figcaption>The release gate in the cockpit partway through this run: blocked, with each reason named. <a class="cl" href="#claim-C40" title="C40: OBSERVED">C40</a></figcaption></figure>
+<figure><img src="img/fig-capabilities.png" alt="The cockpit's Capabilities table listing lenses such as Brand Identity, Creative Direction and Electronics with category, status, needs, and implementation candidates." width="690" height="660" loading="lazy"><figcaption>The capability catalogue from the same run: each lens with its status, its needs, and the implementation it would use. <a class="cl" href="#claim-C40" title="C40: OBSERVED">C40</a></figcaption></figure></div>
+  <h3 class="sub">What was run</h3>
+  <ul class="plain">
+    <li>The validator refuses a public artifact once a cited claim drops below OBSERVED, and accepts it again when the grade is restored. <a class="cl" href="#claim-C3" title="C3: VERIFIED">C3</a></li><li>The staleness check flags an artifact built from an earlier model version once a later decision touched a claim it cites. <a class="cl" href="#claim-C4" title="C4: VERIFIED">C4</a></li><li>Two worked examples, one software and one hardware, replay as tests. The hardware checks are tested against mutated copies and must fail each one. <a class="cl" href="#claim-C15" title="C15: VERIFIED">C15</a><a class="cl" href="#claim-C16" title="C16: VERIFIED">C16</a></li><li>A clean clone installs, type-checks and builds. Its first test run failed on a race in one of our own browser tests. After the fix, 315 tests passed. <a class="cl" href="#claim-C19" title="C19: OBSERVED">C19</a></li><li>The compiled executable, 85 MB for Linux x86_64, ran with no Bun on the path. <a class="cl" href="#claim-C8" title="C8: VERIFIED">C8</a><a class="cl" href="#claim-C21" title="C21: OBSERVED">C21</a></li><li>Neither the process engine nor the cockpit contains a reference to a model provider's endpoint. <a class="cl" href="#claim-C11" title="C11: VERIFIED">C11</a></li>
+  </ul>
+  <div class="split">
+    <div><h3 class="sub">What was not verified</h3><p class="prose">The hooks were not run on Codex, Cline, OpenCode or Prime, though the installer has adapters for them. <a class="cl" href="#claim-C23" title="C23: OBSERVED">C23</a> The executable was built for Linux x86_64 only. <a class="cl" href="#claim-C21" title="C21: OBSERVED">C21</a> No release or package has been published. <a class="cl" href="#claim-C18" title="C18: OBSERVED">C18</a> We make no claim about outcomes, speed or adoption.</p></div>
+    <div><h3 class="sub">What the run found about the product itself</h3><ul class="plain"><li>The Work Terminal did not understand our own example request and queued nothing until we used the request: prefix. <a class="cl" href="#claim-C14" title="C14: OBSERVED">C14</a></li><li>A browser test read the page before it had loaded and failed in some runs. We fixed the test. <a class="cl" href="#claim-C19" title="C19: OBSERVED">C19</a></li><li>The repository is public and has no license file. <a class="cl" href="#claim-C17" title="C17: OBSERVED">C17</a></li></ul></div>
+  </div>
+</section>
+
+<section class="wrap block" id="for" aria-labelledby="who-title">
+  <h2 id="who-title" class="label"><span class="mono">07</span> Who it is for</h2>
+  <div class="split">
+    <div><p class="prose">The change: coding agents made building cheap, so the hard part moved to completing and launching. <a class="cl" href="#claim-C31" title="C31: OBSERVED">C31</a></p><p class="prose">Technical founders and small teams who already build with a coding agent, have a working product, and have an owner who will read a verdict. Studios that inherit an agent-built product and must hand over what is true and what is not. <a class="cl" href="#claim-C33" title="C33: OBSERVED">C33</a></p><p class="prose">Developers are already building stopgaps in public: a permission guard, verified spec-driven development, a policy gate. <a class="cl" href="#claim-C55" title="C55: OBSERVED">C55</a></p></div>
+    <div><p class="prose">Not for buyers who want an agent to ship without an owner reading the verdict, buyers who need a hosted service, or buyers who need guarantees about code correctness.</p></div>
+  </div>
+</section>
+
+<section class="wrap block" id="faq" aria-labelledby="faq-title">
+  <h2 id="faq-title" class="label"><span class="mono">08</span> Questions</h2>
+  <dl class="faq">
+    <dt>Is this another spec-driven framework?</dt><dd>Spec toolkits direct an agent from intent to code. <a class="cl" href="#claim-C28" title="C28: OBSERVED">C28</a> Here the unit is the claim with its evidence, and it covers brand, site, film and copy as well as code. <a class="cl" href="#claim-C1" title="C1: OBSERVED">C1</a> We make no claim that it is better at code.</dd>
+    <dt>Does it make my agent's code correct?</dt><dd>No. It grades claims, cites sources, flags stale work and refuses to pass a gate. <a class="cl" href="#claim-C6" title="C6: VERIFIED">C6</a> Tests still run, and their results become evidence.</dd>
+    <dt>Does it call a model?</dt><dd>No. Neither the process engine nor the cockpit contains a reference to a model provider's endpoint. <a class="cl" href="#claim-C11" title="C11: VERIFIED">C11</a> Your agents are the executors.</dd>
+    <dt>Will it bloat my context?</dt><dd>The text the process always loads is 12,195 bytes. The 17 lens files total 160,045 bytes, but selecting lenses reads only their 7,091 bytes of front matter, and the hook engine denies a read of a lens body until that lens starts. <a class="cl" href="#claim-C44" title="C44: VERIFIED">C44</a><a class="cl" href="#claim-C45" title="C45: OBSERVED">C45</a></dd>
+    <dt>Which agents does it work with?</dt><dd>The installer has adapters for Claude Code, Codex, Cline, OpenCode and Prime. <a class="cl" href="#claim-C23" title="C23: OBSERVED">C23</a> Skills are plain Markdown files with front matter. <a class="cl" href="#claim-C22" title="C22: OBSERVED">C22</a> Codex and Cursor both document skills as a directory with a SKILL.md file. <a class="cl" href="#claim-C32" title="C32: OBSERVED">C32</a></dd>
+    <dt>Can I use the code?</dt><dd>You can read it. No license has been declared yet. <a class="cl" href="#claim-C17" title="C17: OBSERVED">C17</a> When the owner declares one, this page will say so.</dd>
+    <dt>Is it released?</dt><dd>No release or package has been published. <a class="cl" href="#claim-C18" title="C18: OBSERVED">C18</a></dd>
+    <dt>Where does the name come from?</dt><dd>To actualize is to make real, and the command line verb is actualize. Product Actualizer Architect is the internal descriptor.</dd>
+  </dl>
+</section>
+
+<section class="wrap block" id="replay" aria-labelledby="replay-title">
+  <h2 id="replay-title" class="label"><span class="mono">09</span> Replay it</h2>
+  <div class="cmds">
+    <div><p>Replay both worked examples as tests. <a class="cl" href="#claim-C15" title="C15: VERIFIED">C15</a></p><pre><code>git clone https://github.com/SPRIME01/Product-Actualizer
+cd Product-Actualizer
+python3 tests/check.py</code></pre></div>
+    <div><p>List the lenses. <a class="cl" href="#claim-C1" title="C1: OBSERVED">C1</a></p><pre><code>bun hooks/src/cli.mjs lenses</code></pre></div>
+  </div>
+  <p class="actions">
+    <a class="btn primary" href="https://github.com/SPRIME01/Product-Actualizer/tree/main/actualize" rel="noopener">Read the run</a>
+    <a class="btn quiet" href="https://github.com/SPRIME01/Product-Actualizer" rel="noopener">Source on GitHub</a>
+  </p>
+</section>
+
+<section class="wrap block" id="ledger-behind" aria-labelledby="claims-title">
+  <h2 id="claims-title" class="label"><span class="mono">10</span> The ledger behind this page</h2>
+  <p class="prose">Every claim cited above, with its grade and a source you can re-open. Built from model@5 by the same validator the demos use.</p>
+  <div class="tablewrap"><table class="claims"><thead><tr><th scope="col">id</th><th scope="col">claim</th><th scope="col">grade</th><th scope="col">source</th></tr></thead><tbody>
+<tr id="claim-C1"><th scope="row">C1</th><td>The repository ships 17 lens skills plus a router skill and a cockpit tool skill, and `actualize lenses` lists the 17 lenses</td><td><span class="g g-observed">OBSERVED</span></td><td class="src">skills/*/SKILL.md (19 directories); evidence/recon-software/executed-checks-binary.txt</td></tr>
+<tr id="claim-C2"><th scope="row">C2</th><td>The model defines seven evidence grades and limits public copy to OBSERVED and VERIFIED</td><td><span class="g g-observed">OBSERVED</span></td><td class="src">product-model/SCHEMA.md &quot;Evidence grades&quot;; hooks/src/lib/md.mjs:18-19</td></tr>
+<tr id="claim-C3"><th scope="row">C3</th><td>The validator rejects a public artifact that cites a claim graded REPORTED and accepts the same artifact when the claim is OBSERVED</td><td><span class="g g-verified">VERIFIED</span></td><td class="src">evidence/recon-software/executed-checks-validator.txt checks 1 and 2</td></tr>
+<tr id="claim-C4"><th scope="row">C4</th><td>An artifact built from an earlier model version is flagged stale when a later decision touched a claim it cites</td><td><span class="g g-verified">VERIFIED</span></td><td class="src">evidence/recon-software/executed-checks-validator.txt checks 3 and 4; test:python3 tests/check.py</td></tr>
+<tr id="claim-C5"><th scope="row">C5</th><td>Selecting lenses orders them into dependency waves; this run's selection of 11 lenses produced four waves</td><td><span class="g g-verified">VERIFIED</span></td><td class="src">evidence/recon-software/select-waves.json</td></tr>
+<tr id="claim-C6"><th scope="row">C6</th><td>The gate blocks the end of a run while a lens is running, a reconciliation is open, proposals are open, artifacts are stale or invalid, or no current release gate exists</td><td><span class="g g-verified">VERIFIED</span></td><td class="src">hooks/src/process.mjs:54-90; test:bun test tests/hooks/replay.test.mjs (evidence/recon-software/full-suite-after-fix.log)</td></tr>
+<tr id="claim-C8"><th scope="row">C8</th><td>The compiled 85 MB executable ran `lenses`, `begin`, and `status` on Linux x86_64 with no Bun on PATH</td><td><span class="g g-verified">VERIFIED</span></td><td class="src">evidence/recon-software/executed-checks-binary.txt</td></tr>
+<tr id="claim-C11"><th scope="row">C11</th><td>Neither hooks/ nor cockpit/ contains a reference to an LLM provider endpoint, and the Work Terminal answered &quot;show the workflow&quot; from local rules</td><td><span class="g g-verified">VERIFIED</span></td><td class="src">evidence/recon-software/executed-checks-no-llm.txt; cockpit/server/terminal.ts:1-4; evidence/dogfood/01-show-the-workflow.png</td></tr>
+<tr id="claim-C12"><th scope="row">C12</th><td>When an agent tries to accept a work request, the cockpit returns AUTHORITY_HUMAN</td><td><span class="g g-verified">VERIFIED</span></td><td class="src">cockpit/server/control.ts:93; tests/cockpit/workbench.transport.test.ts:55 (evidence/recon-software/full-suite-after-fix.log)</td></tr>
+<tr id="claim-C13"><th scope="row">C13</th><td>A typed work request stays queued until an executor acknowledges it; R1 was queued, then acknowledged, in this run</td><td><span class="g g-observed">OBSERVED</span></td><td class="src">cockpit/protocol/work.ts:7-21; actualize work requests, 2026-10-03</td></tr>
+<tr id="claim-C14"><th scope="row">C14</th><td>The Work Terminal did not understand &quot;research and establish the market position for Product Actualizer Architect&quot; and queued nothing; the `request:` prefix queued it as R1</td><td><span class="g g-observed">OBSERVED</span></td><td class="src">evidence/dogfood/02-request-queued.png</td></tr>
+<tr id="claim-C15"><th scope="row">C15</th><td>Both worked examples, Loam (software and a sensor) and Mote (hardware), replay through tests/check.py without error</td><td><span class="g g-verified">VERIFIED</span></td><td class="src">test:python3 tests/check.py</td></tr>
+<tr id="claim-C16"><th scope="row">C16</th><td>The hardware checks are tested against mutated copies of the Mote walkthrough and must fail each mutation</td><td><span class="g g-verified">VERIFIED</span></td><td class="src">tests/check.py:585; test:python3 tests/check.py</td></tr>
+<tr id="claim-C17"><th scope="row">C17</th><td>The repository is public and has no LICENSE file</td><td><span class="g g-observed">OBSERVED</span></td><td class="src">gh repo view SPRIME01/Product-Actualizer (licenseInfo null), 2026-10-03; no LICENSE* in the tree</td></tr>
+<tr id="claim-C18"><th scope="row">C18</th><td>No release or package has been published, and package.json is marked private</td><td><span class="g g-observed">OBSERVED</span></td><td class="src">package.json:3; gh release list SPRIME01/Product-Actualizer (empty), 2026-10-03</td></tr>
+<tr id="claim-C19"><th scope="row">C19</th><td>The first clean-clone run of bun test had 3 failures from a race in tests/cockpit/workbench.e2e.test.ts; after the fix, 315 tests passed with 0 failures</td><td><span class="g g-observed">OBSERVED</span></td><td class="src">evidence/recon-software/clean-checkout.txt; evidence/recon-software/full-suite-after-fix.log</td></tr>
+<tr id="claim-C20"><th scope="row">C20</th><td>The capability catalogue lists ffmpeg as found and hyperframes, bang-motion, and anidoodle as unknown on this machine, and says unknown is not usable</td><td><span class="g g-observed">OBSERVED</span></td><td class="src">evidence/dogfood/capabilities-before.json</td></tr>
+<tr id="claim-C21"><th scope="row">C21</th><td>Only a Linux x86_64 binary has been built and exercised</td><td><span class="g g-observed">OBSERVED</span></td><td class="src">evidence/recon-software/executed-checks-binary.txt</td></tr>
+<tr id="claim-C22"><th scope="row">C22</th><td>Skills are plain Markdown files with name, description, reads, needs, and executes_with front matter</td><td><span class="g g-observed">OBSERVED</span></td><td class="src">skills/*/SKILL.md</td></tr>
+<tr id="claim-C23"><th scope="row">C23</th><td>The hooks installer has adapters for Claude Code, Codex, Cline, OpenCode, and Prime (also addressed as pi)</td><td><span class="g g-observed">OBSERVED</span></td><td class="src">hooks/install.mjs:3,13 (read, not run)</td></tr>
+<tr id="claim-C26"><th scope="row">C26</th><td>The Stack Overflow 2025 Developer Survey press release states that 84% of respondents use or plan to use AI tools and 46% do not trust the accuracy of their output, up from 31% the year before</td><td><span class="g g-observed">OBSERVED</span></td><td class="src"><a href="https://stackoverflow.co/company/press/archive/stack-overflow-2025-developer-survey/" rel="noopener">https://stackoverflow.co/company/press/archive/stack-overflow-2025-developer-survey/@2026-10-03</a> (evidence/brand/market-research.md S3)</td></tr>
+<tr id="claim-C27"><th scope="row">C27</th><td>arXiv 2609.20812 states that in its OverclaimBench runs agents left at least one required file unread in 67.9% of runs, and 80.4% of those incomplete runs were misleading</td><td><span class="g g-observed">OBSERVED</span></td><td class="src"><a href="https://arxiv.org/abs/2609.20812" rel="noopener">https://arxiv.org/abs/2609.20812@2026-10-03</a> (S4)</td></tr>
+<tr id="claim-C28"><th scope="row">C28</th><td>Martin Fowler's site (Böckeler, 2025-10-15) distinguishes spec-first, spec-anchored, and spec-as-source development and reports that spec-kit produced many repetitive Markdown files to review</td><td><span class="g g-observed">OBSERVED</span></td><td class="src"><a href="https://martinfowler.com/articles/exploring-gen-ai/sdd-3-tools.html" rel="noopener">https://martinfowler.com/articles/exploring-gen-ai/sdd-3-tools.html@2026-10-03</a> (S1)</td></tr>
+<tr id="claim-C29"><th scope="row">C29</th><td>On 2026-10-03 the GitHub repositories github/spec-kit, Fission-AI/OpenSpec, and bmad-code-org/BMAD-METHOD had 139,998, 70,977, and 53,753 stars</td><td><span class="g g-observed">OBSERVED</span></td><td class="src">`gh api` on each repository, 2026-10-03 (S14)</td></tr>
+<tr id="claim-C31"><th scope="row">C31</th><td>A DEV Community post of 2026-09-27 states that agents made the first 80% of building fast and that the bottleneck is now completing</td><td><span class="g g-observed">OBSERVED</span></td><td class="src"><a href="https://dev.to/kentkandiforge/the-last-mile-problem-in-agentic-development-5768" rel="noopener">https://dev.to/kentkandiforge/the-last-mile-problem-in-agentic-development-5768@2026-10-03</a> (S2)</td></tr>
+<tr id="claim-C32"><th scope="row">C32</th><td>The Codex and Cursor documentation both describe skills as a directory with a SKILL.md file under an open agent skills standard</td><td><span class="g g-observed">OBSERVED</span></td><td class="src"><a href="https://developers.openai.com/codex/skills" rel="noopener">https://developers.openai.com/codex/skills@2026-10-03</a>; <a href="https://cursor.com/docs/skills" rel="noopener">https://cursor.com/docs/skills@2026-10-03</a> (S13)</td></tr>
+<tr id="claim-C33"><th scope="row">C33</th><td>Studios advertise takeover of AI-built apps, naming chat-as-source-of-truth and handoff gaps</td><td><span class="g g-observed">OBSERVED</span></td><td class="src"><a href="https://hunchbite.com/hire-developer-ai-app" rel="noopener">https://hunchbite.com/hire-developer-ai-app@2026-10-03</a>; <a href="https://kitrum.com/services/ai-code-handoff-services/" rel="noopener">https://kitrum.com/services/ai-code-handoff-services/@2026-10-03</a> (S12)</td></tr>
+<tr id="claim-C38"><th scope="row">C38</th><td>Loam and Mote are fictional products used as test fixtures and worked examples, not customers</td><td><span class="g g-observed">OBSERVED</span></td><td class="src">README.md:30-31; tests/walkthrough-mote/TRANSCRIPT.md:3</td></tr>
+<tr id="claim-C39"><th scope="row">C39</th><td>The governed run for this validation, with its model, proposals, history, and evidence, is stored in the repository's actualize/ directory</td><td><span class="g g-observed">OBSERVED</span></td><td class="src">actualize/ (product-model.md, proposals.md, history/, evidence/), 2026-10-03</td></tr>
+<tr id="claim-C40"><th scope="row">C40</th><td>The cockpit screenshots in actualize/evidence/dogfood/ were captured from the cockpit running against this run</td><td><span class="g g-observed">OBSERVED</span></td><td class="src">actualize/evidence/dogfood/01-show-the-workflow.png; 02-request-queued.png; 03-ready-for-review.png; 04-accepted.png</td></tr>
+<tr id="claim-C41"><th scope="row">C41</th><td>Work request R1 moved queued, acknowledged, running, produced, ready_for_review, accepted in this run, and its history records who moved it each time</td><td><span class="g g-observed">OBSERVED</span></td><td class="src">actualize/evidence/dogfood/R1-history.json</td></tr>
+<tr id="claim-C43"><th scope="row">C43</th><td>A Hacker News Show HN post of 2026-06-16 (item 48558502) states &quot;Instructions are not guarantees.&quot; and &quot;A prompt is a probabilistic influence on model behavior. A rule is an enforcement mechanism.&quot;</td><td><span class="g g-observed">OBSERVED</span></td><td class="src"><a href="https://news.ycombinator.com/item?id=48558502" rel="noopener">https://news.ycombinator.com/item?id=48558502@2026-10-03</a>; text matched through hacker-news.firebaseio.com/v0/item/48558502.json</td></tr>
+<tr id="claim-C44"><th scope="row">C44</th><td>The text the process always loads is 12,195 bytes (router 4,096 plus SCHEMA 8,099); the 17 lens files total 160,045 bytes, and their front matter, which is all that lens selection reads, totals 7,091 bytes</td><td><span class="g g-verified">VERIFIED</span></td><td class="src">evidence/recon-software/executed-checks-context-size.txt</td></tr>
+<tr id="claim-C45"><th scope="row">C45</th><td>The hook engine denies a read of a lens body until lens start has been run for that lens</td><td><span class="g g-observed">OBSERVED</span></td><td class="src">hooks/src/engine.mjs:185</td></tr>
+<tr id="claim-C55"><th scope="row">C55</th><td>Hacker News items 47343927 (2026-03-11, 127 points, 94 comments), 47197595 (2026-02-28, 211 points, 118 comments) and 48558502 (2026-06-16, 1 point, 0 comments) are posts about a permission guard, verified spec-driven development, and a policy gate for coding agents</td><td><span class="g g-observed">OBSERVED</span></td><td class="src">hacker-news.firebaseio.com/v0/item/&lt;id&gt;.json for each id, 2026-10-03</td></tr>
+  </tbody></table></div>
+</section>
+</main>
+
+<footer class="foot">
+  <div class="wrap">
+    <p>Product Actualizer. Internal descriptor: Product Actualizer Architect.</p>
+    <p>No license declared. <a class="cl" href="#claim-C17" title="C17: OBSERVED">C17</a></p>
+  </div>
+</footer>
+<script type="module" src="js/app.mjs"></script>
+</body>
+</html>

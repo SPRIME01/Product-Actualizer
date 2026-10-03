@@ -1,0 +1,18 @@
+# Delivered-file probes, 2026-10-03
+## renders/explainer.mp4
+codec_name=h264 codec_type=video width=1920 height=1080 pix_fmt=yuv420p color_range=tv color_space=bt709 color_transfer=bt709 color_primaries=bt709 r_frame_rate=30/1 duration=72.400000 nb_frames=2172 codec_name=aac codec_type=audio sample_rate=48000 channels=2 r_frame_rate=0/0 duration=72.413000 nb_frames=3396 duration=72.413000 size=4176405 
+video 72.4s audio 72.413s difference 0.39 frames at 30 fps
+## renders/explainer-captioned.mp4
+codec_name=h264 codec_type=video width=1920 height=1080 pix_fmt=yuv420p color_range=tv color_space=bt709 color_transfer=bt709 color_primaries=bt709 r_frame_rate=30/1 duration=72.400000 nb_frames=2172 codec_name=aac codec_type=audio sample_rate=48000 channels=2 r_frame_rate=0/0 duration=72.413000 nb_frames=3396 duration=72.413000 size=4749856 
+video 72.4s audio 72.413s difference 0.39 frames at 30 fps
+## loudness of the delivered file, decoded from the mp4
+    I:         -16.2 LUFS
+    LRA:         2.7 LU
+    Peak:       -4.4 dBFS
+
+## noise floor in the gap after line 1 (2.69 s, 0.5 s)
+[Parsed_astats_0 @ 0x780fac002140] RMS level dB: -66.074463
+
+## digital silence below -90 dB for 40 ms or more (count)
+0
+

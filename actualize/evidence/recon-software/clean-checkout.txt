@@ -1,0 +1,15 @@
+commit: 79484ce
+71 packages installed [1406.00ms]
+bun install exit=0
+typecheck exit=0
+check.py exit=0
+bun test exit=1
+build exit=0
+elapsed 48s
+
+First full `bun test` in the clean clone (79484ce): 315 tests, 3 failed. Second: 2 failed. Third: 0 failed.
+Isolated, tests/cockpit/workbench.e2e.test.ts failed in 2 of 6 runs, a different test each time
+("show the workflow", "show the task contract"). Cause (read from the failure): the test mounted a surface and read its
+text while the blocks still said "loading…". Fix: wait for the surface to finish loading (`opened()` helper). After the
+fix the file passed 8 of 8 consecutive runs. This is the failure DEBT D1 predicted ("recurs with names"); the cause is
+a test race in this one file, not the product.

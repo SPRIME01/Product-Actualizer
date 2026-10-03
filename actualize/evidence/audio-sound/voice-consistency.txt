@@ -1,0 +1,5 @@
+# Voice consistency across ten separate syntheses (measured 2026-10-03, autocorrelation pitch on 16 kHz mono; no listening)
+Voice id pinned: b347db033a6549378b48d00acb0d06cd (the example in https://openrouter.ai/fish-audio/s2.1-pro-free/llms.txt). Model: fish-audio/s2.1-pro-free:free.
+Median F0 per line: L01 155, L02 163, L03 155, L04 154, L05 157, L06 155, L07 151, L08 154, L09 151, L10 145 Hz. Median 155 Hz, spread 18 Hz.
+For comparison, the provider's default voice (no voice id) measured 104 to 114 Hz and its pacing for the same sentence varied by 25% between two calls (2.19 s and 1.70 s).
+This shows the speaker is stable. It does not show the voice sounds right, is intelligible, or pronounces "Actualizer" correctly: a human has not listened (U15).

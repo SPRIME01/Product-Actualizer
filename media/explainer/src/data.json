@@ -1,0 +1,161 @@
+{
+ "modelVersion": 8,
+ "claims": {
+  "C3": {
+   "id": "C3",
+   "text": "The validator rejects a public artifact that cites a claim graded REPORTED and accepts the same artifact when the claim is OBSERVED",
+   "grade": "VERIFIED",
+   "source": "evidence/recon-software/executed-checks-validator.txt checks 1 and 2"
+  },
+  "C18": {
+   "id": "C18",
+   "text": "No release or package has been published, and package.json is marked private",
+   "grade": "OBSERVED",
+   "source": "package.json:3; gh release list SPRIME01/Product-Actualizer (empty), 2026-10-03"
+  },
+  "C9": {
+   "id": "C9",
+   "text": "The cockpit's surface vocabulary has 15 block types",
+   "grade": "OBSERVED",
+   "source": "cockpit/protocol/spec.ts:175"
+  },
+  "C31": {
+   "id": "C31",
+   "text": "A DEV Community post of 2026-09-27 states that agents made the first 80% of building fast and that the bottleneck is now completing",
+   "grade": "OBSERVED",
+   "source": "https://dev.to/kentkandiforge/the-last-mile-problem-in-agentic-development-5768@2026-10-03 (S2)"
+  },
+  "C43": {
+   "id": "C43",
+   "text": "A Hacker News Show HN post of 2026-06-16 (item 48558502) states \"Instructions are not guarantees.\" and \"A prompt is a probabilistic influence on model behavior. A rule is an enforcement mechanism.\"",
+   "grade": "OBSERVED",
+   "source": "https://news.ycombinator.com/item?id=48558502@2026-10-03; text matched through hacker-news.firebaseio.com/v0/item/48558502.json"
+  },
+  "C2": {
+   "id": "C2",
+   "text": "The model defines seven evidence grades and limits public copy to OBSERVED and VERIFIED",
+   "grade": "OBSERVED",
+   "source": "product-model/SCHEMA.md \"Evidence grades\"; hooks/src/lib/md.mjs:18-19"
+  }
+ },
+ "grades": [
+  "OBSERVED",
+  "VERIFIED",
+  "REPORTED",
+  "INFERRED",
+  "PROPOSED",
+  "UNKNOWN",
+  "CONTRADICTED"
+ ],
+ "validatorRefusal": "public artifact cites C3 graded REPORTED; only OBSERVED or VERIFIED may be public",
+ "copyLine": "A public artifact that cites a claim graded below OBSERVED is rejected.",
+ "copyStamp": "marketing/website-copy.md · built_from: model@8 · public: true",
+ "stale": {
+  "from": 4,
+  "to": 5,
+  "decision": "D11",
+  "touched": "positioning, jobs, criteria, opportunities",
+  "artifacts": [
+   "brand/identity.md",
+   "direction/system.md",
+   "illustration/mark-and-diagrams.md",
+   "marketing/website-copy.md"
+  ]
+ },
+ "waves": [
+  [
+   "brand",
+   "fidelity-qa",
+   "provenance-licensing",
+   "recon-software",
+   "release-readiness"
+  ],
+  [
+   "direction",
+   "experience",
+   "marketing"
+  ],
+  [
+   "illustration",
+   "motion-editorial"
+  ],
+  [
+   "audio-sound"
+  ]
+ ],
+ "executors": {
+  "found": "ffmpeg",
+  "unknown": [
+   "hyperframes",
+   "bang-motion",
+   "anidoodle"
+  ]
+ },
+ "lifecycle": [
+  "queued",
+  "acknowledged",
+  "running",
+  "produced",
+  "ready_for_review",
+  "accepted"
+ ],
+ "ownerOnly": [
+  "accepted"
+ ],
+ "transitions": {
+  "queued": [
+   "acknowledged",
+   "blocked",
+   "failed",
+   "cancelled"
+  ],
+  "acknowledged": [
+   "running",
+   "blocked",
+   "failed",
+   "cancelled"
+  ],
+  "running": [
+   "produced",
+   "ready_for_review",
+   "blocked",
+   "failed",
+   "cancelled"
+  ],
+  "produced": [
+   "ready_for_review",
+   "running",
+   "failed",
+   "cancelled"
+  ],
+  "ready_for_review": [
+   "accepted",
+   "blocked",
+   "running",
+   "cancelled"
+  ],
+  "blocked": [
+   "acknowledged",
+   "running",
+   "failed",
+   "cancelled"
+  ],
+  "accepted": [],
+  "cancelled": [],
+  "failed": []
+ },
+ "authorityMessage": "AUTHORITY_HUMAN: accepted belongs to the owner: an agent can report progress and mark work ready_for_review, but cannot accept, reject, or cancel it",
+ "gate": {
+  "count": 6,
+  "reasons": [
+   "Lens still running: motion-editorial.",
+   "Selected lens never ran: motion-editorial.",
+   "Selected lens never ran: audio-sound.",
+   "Selected lens never ran: fidelity-qa.",
+   "Selected lens never ran: provenance-licensing.",
+   "No release gate at artifacts/release-readiness/gate.md."
+  ]
+ },
+ "tagline": "Finish the product. Show the evidence.",
+ "cta": "Read the run: github.com/SPRIME01/Product-Actualizer, actualize/"
+}

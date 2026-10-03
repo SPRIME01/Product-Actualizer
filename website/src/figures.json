@@ -1,0 +1,4 @@
+[
+  { "from": "website/src/fig-gate.png", "w": 750, "h": 295, "alt": "The cockpit's Release gate panel reading Gate blocked (5), listing five reasons: three lenses selected but never run, no release gate file yet.", "caption": "The release gate in the cockpit partway through this run: blocked, with each reason named.", "claims": ["C40"] },
+  { "from": "website/src/fig-capabilities.png", "w": 690, "h": 660, "alt": "The cockpit's Capabilities table listing lenses such as Brand Identity, Creative Direction and Electronics with category, status, needs, and implementation candidates.", "caption": "The capability catalogue from the same run: each lens with its status, its needs, and the implementation it would use.", "claims": ["C40"] }
+]

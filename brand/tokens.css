@@ -1,0 +1,54 @@
+/* Product Actualizer brand tokens. Values for colour are the product's own (DESIGN.md); the brand adds type, scale and measure.
+   Rule ids (D-R1 ... ) are defined in actualize/artifacts/direction/system.md. Nothing outside this file sets a colour, family or size. */
+:root {
+  /* surfaces and ink (D-R1) */
+  --surface-base: oklch(97.0% 0.002 248);
+  --surface-panel: oklch(99.3% 0.002 248);
+  --surface-raised: oklch(98.2% 0.002 248);
+  --ink: oklch(20.7% 0.012 254);
+  --ink-2: oklch(43.5% 0.019 254);
+  --ink-3: oklch(51.0% 0.017 251);
+  --rule: oklch(90.2% 0.006 255);
+  --rule-soft: oklch(93.9% 0.005 258);
+  /* the one accent (D-R2) */
+  --accent: oklch(50.1% 0.091 224);
+  --accent-on: oklch(98.5% 0.004 224);
+  --accent-wash: oklch(94.5% 0.018 218);
+  /* evidence grades: a hue means exactly one grade (D-R1) */
+  --g-observed: oklch(51.0% 0.114 156);
+  --g-verified: oklch(47.5% 0.083 180);
+  --g-reported: oklch(48.5% 0.133 255);
+  --g-inferred: oklch(50.8% 0.108 73);
+  --g-proposed: oklch(46.7% 0.152 301);
+  --g-unknown: oklch(50.6% 0.019 251);
+  --g-contradicted: oklch(50.1% 0.178 29);
+  /* type (D-R4): two families, roman headings */
+  --font-text: "Atkinson Hyperlegible Next", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --step--1: 0.8rem; --step-0: 1rem; --step-1: 1.25rem; --step-2: 1.5625rem; --step-3: 1.953rem; --step-4: 2.441rem; --step-5: 3.052rem; --step-6: 3.815rem; --step-7: 4.768rem;
+  --measure: 68ch;
+  /* space and shape (D-R7): 4px base, hairlines do the structural work */
+  --s-1: 0.25rem; --s-2: 0.5rem; --s-3: 0.75rem; --s-4: 1rem; --s-5: 1.5rem; --s-6: 2rem; --s-7: 3rem; --s-8: 4.5rem; --s-9: 7rem;
+  --radius: 4px; --radius-pill: 999px;
+  /* motion (D-R6): only to report a change */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1); --t-fast: 140ms; --t-mid: 220ms;
+  color-scheme: light dark;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --surface-base: oklch(18.1% 0.007 258); --surface-panel: oklch(21.6% 0.009 256); --surface-raised: oklch(24.2% 0.011 254);
+    --ink: oklch(93.6% 0.005 258); --ink-2: oklch(75.8% 0.015 255); --ink-3: oklch(62.0% 0.018 254);
+    --rule: oklch(30.7% 0.014 257); --rule-soft: oklch(27.1% 0.013 258);
+    --accent: oklch(73.2% 0.106 219); --accent-on: oklch(18.1% 0.007 258); --accent-wash: oklch(29.9% 0.040 222);
+    --g-observed: oklch(74.1% 0.137 158); --g-verified: oklch(74.1% 0.112 180); --g-reported: oklch(72.1% 0.119 254);
+    --g-inferred: oklch(78.5% 0.131 82); --g-proposed: oklch(71.0% 0.140 304); --g-unknown: oklch(71.1% 0.018 251); --g-contradicted: oklch(72.6% 0.136 25);
+  }
+}
+:root[data-theme="dark"] {
+  --surface-base: oklch(18.1% 0.007 258); --surface-panel: oklch(21.6% 0.009 256); --surface-raised: oklch(24.2% 0.011 254);
+  --ink: oklch(93.6% 0.005 258); --ink-2: oklch(75.8% 0.015 255); --ink-3: oklch(62.0% 0.018 254);
+  --rule: oklch(30.7% 0.014 257); --rule-soft: oklch(27.1% 0.013 258);
+  --accent: oklch(73.2% 0.106 219); --accent-on: oklch(18.1% 0.007 258); --accent-wash: oklch(29.9% 0.040 222);
+  --g-observed: oklch(74.1% 0.137 158); --g-verified: oklch(74.1% 0.112 180); --g-reported: oklch(72.1% 0.119 254);
+  --g-inferred: oklch(78.5% 0.131 82); --g-proposed: oklch(71.0% 0.140 304); --g-unknown: oklch(71.1% 0.018 251); --g-contradicted: oklch(72.6% 0.136 25);
+}

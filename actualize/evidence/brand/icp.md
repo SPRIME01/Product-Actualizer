@@ -1,0 +1,12 @@
+# ICP, derived with the owner's test (2026-10-03)
+Test (owner): the ICP is the customer who succeeds in the world where this product is the solution hired for a job; the job exists because of a change the customer is facing; that change causes acute or unnamed pain (preferably both); and the pain urges them to do something other than nothing.
+
+| part | finding | sources (grade) |
+|---|---|---|
+| **The change** | Coding agents made building fast and cheap. The bottleneck moved from making to completing, verifying and launching. | DEV post 2026-09-27 (C31), Stack Overflow 2025 (C26), arXiv 2609.20812 (C27): OBSERVED as what each says |
+| **Acute pain (named by buyers)** | Confident wrong "done": "Finished" and "correct" get treated as the same thing. A working product with nothing to launch it with: "shipping is not the same as launching"; "it works but I'm scared to ship it". | C47, C46, r/VibeCodersNest 1t692t6: REPORTED (U13) |
+| **Unnamed pain (buyers do not yet call it a problem)** | The launch material and the agent's memory drift away from the product and nobody re-checks them: copy that says more than the product does, "the memory is still there, so the next agent has no reason not to trust it", "all blue, none of them the same blue". They see the symptoms (conversions, inconsistency), not the missing ledger. | C48, C49, C51, C52: REPORTED |
+| **Doing something other than nothing** | They already build stopgaps: Stop-hook test gates, receipt tools, adversarial second agents, memory-sync daemons, repo scanners, preflight scripts, hand-rewriting generated copy. These are the proof of urgency and the real alternatives. | C43, C55 (HN, OBSERVED); Reddit threads (REPORTED) |
+| **Who succeeds** | A technical founder or small team that already builds with a coding agent, has a working product, and has an owner who will read a verdict and tolerate a process. Their success: launch material in which every sentence traces to a checked claim. | PROPOSED (C37); no buyer interviewed (U10) |
+| **Who does not** | Buyers who want the agent to ship unattended; buyers who need a hosted service; buyers for whom a few extra steps are the objection (C50, C53 name this: weight). | C50, C53 REPORTED; C44 measured footprint |
+| **Second ICP** | A studio or consultant that inherits an agent-built product and must hand over what is true and what is not: the change is the same, the pain is the handoff gap. | C33 OBSERVED |

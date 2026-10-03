@@ -1,0 +1,58 @@
+{
+  "request": {
+    "id": "R1",
+    "seq": 1,
+    "run": "2026-10-03T19:16:38.572Z",
+    "text": "research and establish the market position for Product Actualizer Architect",
+    "kind": "unclassified",
+    "capability": null,
+    "status": "accepted",
+    "actor": "owner",
+    "refs": [
+      "artifact:brand/identity.md"
+    ],
+    "facts": {
+      "basis": "queued as typed: you used a request prefix"
+    },
+    "note": "Category, ICP, name, tagline decided with sources: evidence/brand/{market-research,name-clearance,positioning-tests}.md; reconciled as D3-D6 in model@2; verbal identity at artifacts/brand/identity.md. Comparative claim stays PROPOSED (C36); no buyer interviews (U10).",
+    "history": [
+      {
+        "ts": "2026-10-03T19:21:08.294Z",
+        "status": "queued",
+        "by": "owner"
+      },
+      {
+        "ts": "2026-10-03T19:21:32.214Z",
+        "status": "acknowledged",
+        "by": "agent",
+        "note": "picked up by the current agent; market research already gathered in this session, positioning to be settled in the brand lens"
+      },
+      {
+        "ts": "2026-10-03T19:21:47.950Z",
+        "status": "running",
+        "by": "agent",
+        "note": "recon first; positioning follows in the brand lens after model v1"
+      },
+      {
+        "ts": "2026-10-03T19:33:16.365Z",
+        "status": "produced",
+        "by": "agent",
+        "note": "positioning settled in model@2 (D3, D4); sources in evidence/brand"
+      },
+      {
+        "ts": "2026-10-03T19:33:20.666Z",
+        "status": "ready_for_review",
+        "by": "agent",
+        "note": "Category, ICP, name, tagline decided with sources: evidence/brand/{market-research,name-clearance,positioning-tests}.md; reconciled as D3-D6 in model@2; verbal identity at artifacts/brand/identity.md. Comparative claim stays PROPOSED (C36); no buyer interviews (U10)."
+      },
+      {
+        "ts": "2026-10-03T19:33:33.761Z",
+        "status": "accepted",
+        "by": "human"
+      }
+    ],
+    "createdAt": "2026-10-03T19:21:08.294Z",
+    "updatedAt": "2026-10-03T19:33:33.761Z",
+    "next": "accepted by the owner"
+  }
+}

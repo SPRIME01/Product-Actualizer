@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{text:meta.title}}</title>
+<meta name="description" content="{{text:meta.description}}">
+<meta name="color-scheme" content="light dark">
+<meta property="og:type" content="website">
+<meta property="og:title" content="{{text:meta.title}}">
+<meta property="og:description" content="{{text:meta.description}}">
+<meta property="og:image" content="{{abs:social/og.png}}">
+<meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="icons/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="icons/favicon-32.png" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="preload" href="fonts/atkinson-hyperlegible-next-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="css/tokens.css">
+<link rel="stylesheet" href="css/site.css">
+<script>try{var t=localStorage.getItem("pa-theme");if(t==="light"||t==="dark")document.documentElement.dataset.theme=t}catch(e){}</script>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="top">
+  <div class="wrap bar">
+    <a class="brand" href="#top" aria-label="Product Actualizer, start of page">{{lockup}}</a>
+    <nav aria-label="Sections">
+      <a href="#mechanism">Mechanism</a><a href="#any">Any product</a><a href="#lab">Lab</a><a href="#order">Order of work</a><a href="#authority">Authority</a><a href="#proof">Proof</a><a href="#faq">Questions</a>
+    </nav>
+    <button class="theme" type="button" id="theme" aria-label="Switch colour theme">Theme</button>
+  </div>
+</header>
+
+<main id="main">
+<section class="hero wrap" id="top">
+  <div class="hero-text">
+    <p class="kicker mono">{{html:hero.kicker}}</p>
+    <h1>{{html:hero.headline}}</h1>
+    <p class="lede">{{html:hero.sub}}</p>
+    <p class="actions">
+      <a class="btn primary" href="https://github.com/SPRIME01/Product-Actualizer/tree/main/actualize" rel="noopener">{{html:hero.cta.primary}}</a>
+      <a class="btn" href="#replay">{{html:hero.cta.secondary}}</a>
+      <a class="btn quiet" href="https://github.com/SPRIME01/Product-Actualizer" rel="noopener">{{html:hero.cta.tertiary}}</a>
+    </p>
+    <p class="fine">{{html:hero.license}}</p>
+  </div>
+  <div class="instrument" id="ledger-app" aria-labelledby="ledger-title">
+    <h2 id="ledger-title">{{html:ledger.title}}</h2>
+    <p class="intro">{{html:ledger.intro}}</p>
+    <p class="note">{{html:ledger.note}}</p>
+    <noscript><p class="note">With JavaScript on, this panel runs the product's validator in your browser. Downgrading claim C1 to REPORTED makes it print: <code>public artifact cites C1 graded REPORTED; only OBSERVED or VERIFIED may be public</code></p></noscript>
+  </div>
+</section>
+
+<section class="wrap block" id="film" aria-labelledby="film-title">
+  <h2 id="film-title" class="label"><span class="mono">00</span> {{html:film.title}}</h2>
+  {{film}}
+</section>
+
+<section class="wrap block" id="problem" aria-labelledby="problem-title">
+  <h2 id="problem-title" class="label"><span class="mono">01</span> {{html:problem.title}}</h2>
+  <p class="lead">{{html:problem.lead}}</p>
+  <div class="quotes">
+    <figure><blockquote><p>{{html:problem.q1.text}}</p></blockquote><figcaption>{{html:problem.q1.src}}</figcaption></figure>
+    <figure><blockquote><p>{{html:problem.q2.text}}</p></blockquote><figcaption>{{html:problem.q2.src}}</figcaption></figure>
+    <figure><blockquote><p>{{html:problem.q3.text}}</p></blockquote><figcaption>{{html:problem.q3.src}}</figcaption></figure>
+    <figure><blockquote><p>{{html:problem.q4.text}}</p></blockquote><figcaption>{{html:problem.q4.src}}</figcaption></figure>
+  </div>
+  <p class="prose">{{html:problem.body}}</p>
+</section>
+
+<section class="wrap block" id="mechanism" aria-labelledby="mech-title">
+  <h2 id="mech-title" class="label"><span class="mono">02</span> {{html:mech.title}}</h2>
+  <ol class="rules">
+    <li><h3>{{html:mech.1.title}}</h3><p>{{html:mech.1.body}}</p></li>
+    <li><h3>{{html:mech.2.title}}</h3><p>{{html:mech.2.body}}</p></li>
+    <li><h3>{{html:mech.3.title}}</h3><p>{{html:mech.3.body}}</p></li>
+    <li><h3>{{html:mech.4.title}}</h3><p>{{html:mech.4.body}}</p></li>
+    <li><h3>{{html:mech.5.title}}</h3><p>{{html:mech.5.body}}</p>
+      <figure class="aside"><blockquote><p>{{html:mech.5.quote}}</p></blockquote><figcaption>{{html:mech.5.quote.src}}</figcaption></figure></li>
+  </ol>
+</section>
+
+<section class="wrap block" id="any" aria-labelledby="any-title">
+  <h2 id="any-title" class="label"><span class="mono">03</span> {{html:any.title}}</h2>
+  <p class="lead">{{html:any.lead}}</p>
+  {{lens-groups}}
+  <h3 class="sub">{{html:any.rule.title}}</h3>
+  <p class="prose">{{html:any.rule}}</p>
+  {{mote-walk}}
+  <p class="prose">{{html:any.mote}}</p>
+  <p class="fine">{{html:any.gap}}</p>
+</section>
+
+<section class="wrap block" id="lab" aria-labelledby="lab-title">
+  <h2 id="lab-title" class="label"><span class="mono">03</span> {{html:lab.title}}</h2>
+  <p class="lead">{{html:lab.intro}}</p>
+  <p class="note">{{html:lab.note}}</p>
+  <div class="instrument wide" id="lab-app"><noscript><p class="note">This lab needs JavaScript. In the product, recording a decision that touches a claim an artifact cites makes that artifact stale; one that touches nothing it reads leaves it current.</p></noscript></div>
+</section>
+
+<section class="wrap block" id="order" aria-labelledby="order-title">
+  <h2 id="order-title" class="label"><span class="mono">04</span> {{html:waves.title}}</h2>
+  <p class="lead">{{html:waves.intro}}</p>
+  <p class="note">{{html:waves.note}}</p>
+  <div class="instrument wide" id="waves-app"><noscript><p class="note">This explorer needs JavaScript. Lenses arrange into waves by their declared needs; the gate runs last.</p></noscript></div>
+  <h3 class="sub">{{html:caps.title}}</h3>
+  <p class="prose">{{html:caps.body}}</p>
+</section>
+
+<section class="wrap block" id="authority" aria-labelledby="auth-title">
+  <h2 id="auth-title" class="label"><span class="mono">05</span> {{html:authority.title}}</h2>
+  <p class="lead">{{html:authority.intro}}</p>
+  <p class="note">{{html:authority.note}}</p>
+  <div class="instrument wide" id="lifecycle-app"><noscript><p class="note">This explorer needs JavaScript. An agent that tries to accept a request receives AUTHORITY_HUMAN.</p></noscript></div>
+</section>
+
+<section class="wrap block" id="proof" aria-labelledby="proof-title">
+  <h2 id="proof-title" class="label"><span class="mono">06</span> {{html:run.title}}</h2>
+  <p class="prose">{{html:run.body}}</p>
+  <div class="figures">{{figures}}</div>
+  <h3 class="sub">{{html:proof.title}}</h3>
+  <ul class="plain">
+    <li>{{html:proof.1}}</li><li>{{html:proof.2}}</li><li>{{html:proof.3}}</li><li>{{html:proof.4}}</li><li>{{html:proof.5}}</li><li>{{html:proof.6}}</li><li>{{html:proof.7}}</li><li>{{html:proof.8}}</li>
+  </ul>
+  <div class="split">
+    <div><h3 class="sub">{{html:proof.not.title}}</h3><p class="prose">{{html:proof.not.body}}</p></div>
+    <div><h3 class="sub">{{html:found.title}}</h3><ul class="plain"><li>{{html:found.1}}</li><li>{{html:found.2}}</li><li>{{html:found.3}}</li></ul></div>
+  </div>
+</section>
+
+<section class="wrap block" id="for" aria-labelledby="who-title">
+  <h2 id="who-title" class="label"><span class="mono">07</span> {{html:who.title}}</h2>
+  <div class="split">
+    <div><p class="prose">{{html:who.change}}</p><p class="prose">{{html:who.for}}</p><p class="prose">{{html:who.today}}</p></div>
+    <div><p class="prose">{{html:who.not}}</p></div>
+  </div>
+</section>
+
+<section class="wrap block" id="faq" aria-labelledby="faq-title">
+  <h2 id="faq-title" class="label"><span class="mono">08</span> {{html:faq.title}}</h2>
+  <dl class="faq">
+    <dt>{{html:faq.1.q}}</dt><dd>{{html:faq.1.a}}</dd>
+    <dt>{{html:faq.2.q}}</dt><dd>{{html:faq.2.a}}</dd>
+    <dt>{{html:faq.3.q}}</dt><dd>{{html:faq.3.a}}</dd>
+    <dt>{{html:faq.9.q}}</dt><dd>{{html:faq.9.a}}</dd>
+    <dt>{{html:faq.8.q}}</dt><dd>{{html:faq.8.a}}</dd>
+    <dt>{{html:faq.4.q}}</dt><dd>{{html:faq.4.a}}</dd>
+    <dt>{{html:faq.5.q}}</dt><dd>{{html:faq.5.a}}</dd>
+    <dt>{{html:faq.6.q}}</dt><dd>{{html:faq.6.a}}</dd>
+    <dt>{{html:faq.7.q}}</dt><dd>{{html:faq.7.a}}</dd>
+  </dl>
+</section>
+
+<section class="wrap block" id="replay" aria-labelledby="replay-title">
+  <h2 id="replay-title" class="label"><span class="mono">09</span> {{html:replay.title}}</h2>
+  <div class="cmds">
+    <div><p>{{html:replay.1}}</p><pre><code>git clone https://github.com/SPRIME01/Product-Actualizer
+cd Product-Actualizer
+python3 tests/check.py</code></pre></div>
+    <div><p>{{html:replay.2}}</p><pre><code>bun hooks/src/cli.mjs lenses</code></pre></div>
+    <div><p>{{html:replay.3}}</p><pre><code>bun hooks/src/cli.mjs begin --goal "what launchable means for your product" --bar beta</code></pre><p class="fine">{{html:replay.3.note}}</p></div>
+  </div>
+  <p class="actions">
+    <a class="btn primary" href="https://github.com/SPRIME01/Product-Actualizer/tree/main/actualize" rel="noopener">{{html:hero.cta.primary}}</a>
+    <a class="btn quiet" href="https://github.com/SPRIME01/Product-Actualizer" rel="noopener">{{html:hero.cta.tertiary}}</a>
+  </p>
+</section>
+
+<section class="wrap block" id="ledger-behind" aria-labelledby="claims-title">
+  <h2 id="claims-title" class="label"><span class="mono">10</span> The ledger behind this page</h2>
+  <p class="prose">Every claim cited above, with its grade and a source you can re-open. Built from model@{{model-version}} by the same validator the demos use.</p>
+  <div class="tablewrap"><table class="claims"><thead><tr><th scope="col">id</th><th scope="col">claim</th><th scope="col">grade</th><th scope="col">source</th></tr></thead><tbody>
+{{claim-rows}}
+  </tbody></table></div>
+</section>
+</main>
+
+<footer class="foot">
+  <div class="wrap">
+    <p>{{html:footer.name}}</p>
+    <p>{{html:footer.license}}</p>
+  </div>
+</footer>
+<script type="module" src="js/app.mjs"></script>
+</body>
+</html>

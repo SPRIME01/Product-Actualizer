@@ -1,0 +1,10 @@
+# compiled binary, PATH without bun: bun not on PATH
+$ actualize lenses | grep -c '^[a-z]'
+17
+$ actualize begin --goal ... --bar demo
+run opened at /tmp/claude-1000/pa/bintest/actualize
+next: classify the evidence, then `lenses` and `select`.
+run: /tmp/claude-1000/pa/bintest/actualize
+ACTIVE · goal: binary smoke test of the compiled executable · bar: demo · model@0 · phase: idle
+completed: none; unreconciled: none
+binary: Linux x86_64, 85185736 bytes

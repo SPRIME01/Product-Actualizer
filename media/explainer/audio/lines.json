@@ -1,0 +1,113 @@
+{
+ "voice": "b347db033a6549378b48d00acb0d06cd",
+ "method": "one synthesis per line; durations measured with ffprobe after trimming edge silence",
+ "lines": [
+  {
+   "id": 1,
+   "text": "Your coding agent says it's done.",
+   "file": "audio/lines/L01.mp3",
+   "start": 0,
+   "duration": 2.043,
+   "words": 6,
+   "breaks": []
+  },
+  {
+   "id": 2,
+   "text": "One developer writes that the bottleneck isn't building anymore. It's completing.",
+   "file": "audio/lines/L02.mp3",
+   "start": 0,
+   "duration": 5.771,
+   "words": 11,
+   "breaks": [
+    4.349
+   ]
+  },
+  {
+   "id": 3,
+   "text": "One Hacker News post puts it plainly: instructions are not guarantees.",
+   "file": "audio/lines/L03.mp3",
+   "start": 0,
+   "duration": 5.603,
+   "words": 11,
+   "breaks": []
+  },
+  {
+   "id": 4,
+   "text": "Product Actualizer keeps one model of what is true about your product. Every claim carries a grade, and a source anyone can re-open.",
+   "file": "audio/lines/L04.mp3",
+   "start": 0,
+   "duration": 10.424,
+   "words": 23,
+   "breaks": [
+    5.246
+   ]
+  },
+  {
+   "id": 5,
+   "text": "Public copy may cite only what was observed or verified. Downgrade a claim, and the validator refuses the page.",
+   "file": "audio/lines/L05.mp3",
+   "start": 0,
+   "duration": 8.368,
+   "words": 19,
+   "breaks": [
+    4.253
+   ]
+  },
+  {
+   "id": 6,
+   "text": "Change the model, and whatever cites it goes stale. By version, not by memory.",
+   "file": "audio/lines/L06.mp3",
+   "start": 0,
+   "duration": 6.498,
+   "words": 14,
+   "breaks": [
+    4.001
+   ]
+  },
+  {
+   "id": 7,
+   "text": "The work is split into lenses, ordered by what each one needs. The tools that do it are replaceable.",
+   "file": "audio/lines/L07.mp3",
+   "start": 0,
+   "duration": 8.049,
+   "words": 19,
+   "breaks": [
+    5.252
+   ]
+  },
+  {
+   "id": 8,
+   "text": "An agent can report work as ready for review. Only the owner can accept it.",
+   "file": "audio/lines/L08.mp3",
+   "start": 0,
+   "duration": 5.272,
+   "words": 15,
+   "breaks": [
+    3.296
+   ]
+  },
+  {
+   "id": 9,
+   "text": "And the gate can say no. It will not let the run end while work is outstanding.",
+   "file": "audio/lines/L09.mp3",
+   "start": 0,
+   "duration": 5.86,
+   "words": 17,
+   "breaks": [
+    1.933
+   ]
+  },
+  {
+   "id": 10,
+   "text": "Product Actualizer. Finish the product. Show the evidence.",
+   "file": "audio/lines/L10.mp3",
+   "start": 0,
+   "duration": 5.083,
+   "words": 8,
+   "breaks": [
+    2.029,
+    3.804
+   ]
+  }
+ ]
+}

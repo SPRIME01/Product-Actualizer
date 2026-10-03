@@ -1,0 +1,7 @@
+# Context footprint of the process text, measured 2026-10-03 (bytes, UTF-8; ~4 bytes per token is a rough rule, not a measurement)
+router SKILL.md: 4096
+SCHEMA.md: 8099
+always loaded (router + SCHEMA): 12195
+lens files: 17 total bytes: 160045 largest: 12569 smallest: 7116
+front matter only (what selection reads), all 17 lenses: 7091
+lines per lens body: min/max: 60 73

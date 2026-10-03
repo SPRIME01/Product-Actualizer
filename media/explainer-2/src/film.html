@@ -1,0 +1,31 @@
+<!doctype html>
+<meta charset="utf-8">
+<link rel="stylesheet" href="../../../brand/tokens.css">
+<style>
+@font-face { font-family: "Atkinson Hyperlegible Next"; src: url("../../../brand/fonts/atkinson-hyperlegible-next-latin-wght-normal.woff2") format("woff2"); font-weight: 200 800; }
+@font-face { font-family: "JetBrains Mono"; src: url("../../../brand/fonts/jetbrains-mono-latin-wght-normal.woff2") format("woff2"); font-weight: 100 800; }
+* { box-sizing: border-box; margin: 0; }
+html, body { width: 1920px; height: 1080px; overflow: hidden; background: var(--surface-base); color: var(--ink); font-family: var(--font-text); }
+#stage { position: relative; width: 1920px; height: 1080px; }
+#brand { position: absolute; left: 120px; top: 56px; height: 54px; }
+#stamp { position: absolute; right: 120px; top: 66px; font: 500 28px var(--font-mono); color: var(--ink-3); }
+#scene { position: absolute; left: 120px; top: 150px; width: 1680px; height: 690px; }
+#cap { position: absolute; left: 0; bottom: 0; width: 1920px; height: 240px; border-top: 2px solid var(--rule); background: var(--surface-panel); padding: 30px 120px; font: 600 62px/1.2 var(--font-text); color: var(--ink); display: flex; align-items: flex-start; }
+#cap.off { display: none; }
+.mono { font-family: var(--font-mono); }
+.abs { position: absolute; }
+.g { font: 500 40px var(--font-mono); padding: 4px 18px; border: 3px solid currentColor; border-radius: 6px; background: var(--surface-panel); white-space: nowrap; display: inline-block; }
+.g-observed { color: var(--g-observed); } .g-verified { color: var(--g-verified); } .g-reported { color: var(--g-reported); } .g-inferred { color: var(--g-inferred); }
+.g-proposed { color: var(--g-proposed); } .g-unknown { color: var(--g-unknown); } .g-contradicted { color: var(--g-contradicted); }
+.k { font: 500 40px var(--font-mono); color: var(--ink-3); }
+.panel { border: 2px solid var(--rule); border-radius: 8px; background: var(--surface-panel); }
+.lens { font: 500 40px var(--font-mono); border: 2px solid var(--rule); background: var(--surface-raised); border-radius: 6px; padding: 8px 20px; display: inline-block; margin: 0 16px 12px 0; }
+.stale { color: var(--g-inferred); } .bad { color: var(--g-contradicted); } .ok { color: var(--g-observed); }
+</style>
+<div id="stage">
+  <img id="brand" src="../../../brand/logo/lockup.svg" alt="">
+  <div id="stamp"></div>
+  <div id="scene"></div>
+  <div id="cap"></div>
+</div>
+<script type="module" src="film.mjs"></script>

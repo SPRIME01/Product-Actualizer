@@ -35,6 +35,7 @@ Public-facing copy may only use `OBSERVED` or `VERIFIED` claims. Gaps are writte
 | `cockpit/` | the interactive cockpit: typed surface vocabulary, workspace reducer, SQLite projection, Bun server, React UI, WebMCP |
 | `skills/cockpit/` | the small skill that teaches an agent to drive the cockpit (a tool skill, not a lens) |
 | `justfile` | `just cockpit-up`, `cockpit-down`, `test`, `build`, `dev` |
+| `website/`, `brand/`, `media/explainer/`, `launch/` | the product's own public site, brand system, explainer film and launch kit, all produced by running this process on itself (the run is in `actualize/`); see `launch/README.md` and `docs/validation/self-actualization.md` |
 | `AGENTS.md` | conventions for working in this repository |
 
 ## The lenses

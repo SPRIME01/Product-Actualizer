@@ -1,0 +1,1 @@
+One developer writes that the bottleneck isn't building anymore. It's completing.

@@ -1,0 +1,1 @@
+Product Actualizer keeps one model of what is true about your product. Every claim carries a grade, and a source anyone can re-open.

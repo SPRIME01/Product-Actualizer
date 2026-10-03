@@ -1,0 +1,19 @@
+Your coding agent says it's done.
+
+One developer writes that the bottleneck isn't building anymore. It's completing.
+
+One Hacker News post puts it plainly: instructions are not guarantees.
+
+Product Actualizer keeps one model of what is true about your product. Every claim carries a grade, and a source anyone can re-open.
+
+Public copy may cite only what was observed or verified. Downgrade a claim, and the validator refuses the page.
+
+Change the model, and whatever cites it goes stale. By version, not by memory.
+
+The work is split into lenses, ordered by what each one needs. The tools that do it are replaceable.
+
+An agent can report work as ready for review. Only the owner can accept it.
+
+And the gate can say no. It will not let the run end while work is outstanding.
+
+Product Actualizer. Finish the product. Show the evidence.

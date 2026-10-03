@@ -1,0 +1,120 @@
+{
+  "active": true,
+  "goal": "Product Actualizer Architect is understood, trusted and adoptable by its first buyers: grounded category and name, brand, public website with a live mechanism demo, JS-rendered voiced explainer, and a GTM kit, every public claim OBSERVED or VERIFIED",
+  "bar": "release",
+  "phase": "idle",
+  "modelVersion": 0,
+  "activeLenses": [
+    "recon-software"
+  ],
+  "completed": {},
+  "unreconciled": [],
+  "selection": {
+    "lenses": [
+      "recon-software",
+      "brand",
+      "direction",
+      "experience",
+      "marketing",
+      "illustration",
+      "motion-editorial",
+      "audio-sound",
+      "fidelity-qa",
+      "provenance-licensing",
+      "release-readiness"
+    ],
+    "waves": [
+      [
+        "brand",
+        "fidelity-qa",
+        "provenance-licensing",
+        "recon-software",
+        "release-readiness"
+      ],
+      [
+        "direction",
+        "experience",
+        "marketing"
+      ],
+      [
+        "illustration",
+        "motion-editorial"
+      ],
+      [
+        "audio-sound"
+      ]
+    ],
+    "excluded": [
+      "recon-physical",
+      "electronics",
+      "embedded-systems",
+      "robotics",
+      "product-visualization",
+      "legacy-modernization"
+    ]
+  },
+  "blockers": [
+    {
+      "code": "lens-open",
+      "text": "Lens still running: recon-software.",
+      "fix": "$CLI lens done recon-software"
+    },
+    {
+      "code": "model-missing",
+      "text": "The Product Model has not been built.",
+      "fix": "Run the recon lenses, then: $CLI reconcile start"
+    },
+    {
+      "code": "lens-not-run",
+      "text": "Selected lens never ran: recon-software.",
+      "fix": "$CLI lens start recon-software (or change the selection with select)"
+    },
+    {
+      "code": "lens-not-run",
+      "text": "Selected lens never ran: brand.",
+      "fix": "$CLI lens start brand (or change the selection with select)"
+    },
+    {
+      "code": "lens-not-run",
+      "text": "Selected lens never ran: direction.",
+      "fix": "$CLI lens start direction (or change the selection with select)"
+    },
+    {
+      "code": "lens-not-run",
+      "text": "Selected lens never ran: experience.",
+      "fix": "$CLI lens start experience (or change the selection with select)"
+    },
+    {
+      "code": "lens-not-run",
+      "text": "Selected lens never ran: marketing.",
+      "fix": "$CLI lens start marketing (or change the selection with select)"
+    },
+    {
+      "code": "lens-not-run",
+      "text": "Selected lens never ran: illustration.",
+      "fix": "$CLI lens start illustration (or change the selection with select)"
+    },
+    {
+      "code": "lens-not-run",
+      "text": "Selected lens never ran: motion-editorial.",
+      "fix": "$CLI lens start motion-editorial (or change the selection with select)"
+    },
+    {
+      "code": "lens-not-run",
+      "text": "Selected lens never ran: audio-sound.",
+      "fix": "$CLI lens start audio-sound (or change the selection with select)"
+    },
+    {
+      "code": "lens-not-run",
+      "text": "Selected lens never ran: fidelity-qa.",
+      "fix": "$CLI lens start fidelity-qa (or change the selection with select)"
+    },
+    {
+      "code": "lens-not-run",
+      "text": "Selected lens never ran: provenance-licensing.",
+      "fix": "$CLI lens start provenance-licensing (or change the selection with select)"
+    }
+  ],
+  "next": "finish lens work (recon-software), then `lens done <name>`",
+  "verdict": null
+}
