@@ -16,16 +16,18 @@ import { readText } from "../../hooks/src/lib/store.mjs";
 import type { Proj } from "./project";
 import { parseRef, fmtRef } from "../protocol/refs";
 import { worldId, parseWorldId, type Basis, type Capability, type EffectClass } from "../protocol/world";
+import { inRepo, firstCommit, logOf } from "./git";
 import { reach as reachFor, suggestNeeds, hostEnv, isCapability, type ReachEnv } from "./reach";
 
-export type WorldEnv = { proj: Proj; runDir: string; reach?: ReachEnv };
+// `observe` evaluates an observer over evidence the run holds; the source layer supplies it, so the kernel never reads files by itself.
+export type WorldEnv = { proj: Proj; runDir: string; reach?: ReachEnv; observe?: (def: ObserverDef) => ReturnType<typeof replay> };
 export type Row = Record<string, any>;
 type Model = ReturnType<typeof parseModel>;
 
 // ---- identity -------------------------------------------------------------------------------------------------------
 export type Digest = { scope: "product-model"; algo: "sha256"; value: string; covers: string[]; omits: string[]; complete: false };
 export type Identity = { id: string; scheme: "model-version"; version: number; current: boolean; settledAt: string | null; digest: Digest };
-const TABLES = new Set(["Claims ledger", "Unknowns", "Decision log", "Capabilities"]);
+const TABLES = new Set(["Claims ledger", "Unknowns", "Decision log", "Capabilities", "Jobs", "Success criteria", "Opportunities"]);
 const squash = (s: string) => String(s ?? "").replace(/\s+/g, " ").trim();
 
 // Intrinsic semantic content only. Version numbers, timestamps, front matter and whitespace are excluded, so two runs that settle the same
@@ -39,8 +41,13 @@ export function digestModel(m: Model): Digest {
     decisions: m.decisions.map((d: any) => [d.n, squash(d.decision), squash(d.rationale), squash(d.touched)]),
     capabilities: m.capabilities.map((k: any) => [k.id, squash(k.capability), squash(k.claims)]),
     narrative: Object.fromEntries(m.heads.filter((h: string) => !TABLES.has(h)).map((h: string) => [h, squash(m.sections[h])])),
+    // present only when the model has them, so a model without demand sections keeps the digest it always had
+    ...(m.jobs?.size ? { jobs: sorted([...m.jobs.values()], (j: any) => j.id).map((j: any) => [j.id, squash(j.actor), squash(j.job), j.grade, squash(j.source)]) } : {}),
+    ...(m.criteria?.size ? { criteria: sorted([...m.criteria.values()], (c: any) => c.id).map((c: any) => [c.id, c.job, c.direction, squash(c.measure), squash(c.object), squash(c.context), squash(c.importance), squash(c.satisfaction), c.grade, squash(c.source)]) } : {}),
+    ...(m.opportunities?.size ? { opportunities: sorted([...m.opportunities.values()], (o: any) => o.id).map((o: any) => [o.id, o.basis, squash(o.deficiency), squash(o.alternatives), o.grade, squash(o.source)]) } : {}),
   };
-  return { scope: "product-model", algo: "sha256", value: crypto.createHash("sha256").update(JSON.stringify(body)).digest("hex"), covers: ["claims", "unknowns", "decisions (without version)", "capabilities", "narrative sections"], omits: ["front matter", "artifacts", "evidence", "proposals"], complete: false };
+  const demand = m.jobs?.size || m.criteria?.size || m.opportunities?.size;
+  return { scope: "product-model", algo: "sha256", value: crypto.createHash("sha256").update(JSON.stringify(body)).digest("hex"), covers: ["claims", "unknowns", "decisions (without version)", "capabilities", "narrative sections", ...(demand ? ["jobs", "success criteria", "opportunities"] : [])], omits: ["front matter", "artifacts", "evidence", "proposals"], complete: false };
 }
 
 // ---- worlds ---------------------------------------------------------------------------------------------------------
@@ -75,6 +82,9 @@ export function worlds(W: WorldEnv) {
     for (const c of model.claims.values() as any) ents.set(`claim:${c.id}`, { ref: `claim:${c.id}`, kind: "claim", label: c.text, fields: { text: c.text, grade: c.grade, source: c.source } });
     for (const u of model.unknowns.values() as any) ents.set(`unknown:${u.id}`, { ref: `unknown:${u.id}`, kind: "unknown", label: u.question, fields: { question: u.question, blocks: u.blocks, who: u.who } });
     for (const d of model.decisions as any[]) ents.set(`decision:${d.n}`, { ref: `decision:${d.n}`, kind: "decision", label: d.decision, fields: { decision: d.decision, rationale: d.rationale, touched: d.touched } });
+    for (const j of model.jobs.values() as any) ents.set(`job:${j.id}`, { ref: `job:${j.id}`, kind: "job", label: j.job, fields: { job: j.job, actor: j.actor, grade: j.grade, source: j.source } });
+    for (const c of model.criteria.values() as any) ents.set(`criterion:${c.id}`, { ref: `criterion:${c.id}`, kind: "criterion", label: `${c.direction} ${c.measure}`, fields: { job: c.job, direction: c.direction, measure: c.measure, object: c.object, context: c.context, importance: c.importance, satisfaction: c.satisfaction, grade: c.grade, source: c.source } });
+    for (const o of model.opportunities.values() as any) ents.set(`opportunity:${o.id}`, { ref: `opportunity:${o.id}`, kind: "opportunity", label: o.deficiency, fields: { basis: o.basis, deficiency: o.deficiency, alternatives: o.alternatives, grade: o.grade, source: o.source } });
     const narrative: Record<string, string> = {};
     for (const h of model.heads as string[]) if (!TABLES.has(h)) narrative[SECTION_KEY[h]] = squash(model.sections[h]);
     for (const k of model.capabilities as any[]) narrative.capabilities = `${narrative.capabilities ?? ""} ${k.id} ${k.capability} ${k.claims}`.trim();
@@ -102,6 +112,8 @@ export function touches(d: { touched: string }, ref: string): "id" | "field" | n
   if (r.kind === "claim") return t.claims.has(r.id) ? "id" : t.all || t.fields.has("claims") ? "field" : null;
   if (r.kind === "unknown") return t.all || t.fields.has("unknowns") ? "field" : null;
   if (r.kind === "field") return t.all || t.fields.has(r.id) ? "field" : null;
+  const demand: Record<string, string> = { job: "jobs", criterion: "criteria", opportunity: "opportunities" };
+  if (demand[r.kind]) return t.all || t.fields.has(demand[r.kind]) ? "field" : null;
   return null;
 }
 
@@ -130,7 +142,7 @@ export function diff(W: WorldEnv, a: number | "current", b: number | "current") 
 }
 
 // ---- timeline: settled transitions, optionally for one ref ----------------------------------------------------------
-export function timeline(W: WorldEnv, ref?: string) {
+export function timeline(W: WorldEnv, ref?: string, o: { git?: boolean } = {}) {
   const w = worlds(W); const out: Row[] = []; let prev: Snap | null = null;
   for (const v of w.versions) {
     const s = w.load(v); if (!s) continue;
@@ -142,6 +154,13 @@ export function timeline(W: WorldEnv, ref?: string) {
     const dec = s.model.decisions.filter((x: any) => x.version === v).map((x: any) => x.n).join(", ");
     if (ref) for (const r of rows) out.push({ seq: v, ts, type: r.change === "added" ? "ref.appeared" : r.change === "removed" ? "ref.removed" : "ref.changed", subject: ref, detail: `${r.field ? r.field + ": " : ""}${r.before ? r.before + " → " : ""}${r.after}${r.because ? `  (by ${r.because})` : ""}`, version: v, world: s.id });
     else out.push({ seq: v, ts, type: d.same ? "model.settled-unchanged" : "model.settled", subject: `version:${v}`, detail: `${rows.filter((x) => x.change === "added").length} added, ${rows.filter((x) => x.change === "changed").length} changed, ${rows.filter((x) => x.change === "removed").length} removed${dec ? `; decisions ${dec}` : ""}${d.same ? "; no semantic change" : ""}`, version: v, world: s.id });
+  }
+  if (o.git) {
+    // commits that touched the run directory, from local git: provenance for the same history, never a substitute for it
+    const rel = ref && /^(artifact|evidence):/.test(ref) ? `${ref.startsWith("artifact:") ? "artifacts" : "evidence"}/${ref.slice(ref.indexOf(":") + 1)}` : null;
+    const cs = inRepo(W.runDir) ? logOf(W.runDir, rel, { limit: 30 }) : null;
+    if (cs) cs.slice().reverse().forEach((c, i) => out.push({ seq: 1000 + i, ts: c.ts, type: "git.commit", subject: ref ?? "run", detail: `${c.short} ${c.author}: ${short(c.subject, 90)}`, version: 0, world: "git" }));
+    else out.push({ seq: 1000, ts: "", type: "git.unavailable", subject: ref ?? "run", detail: "the run directory is not in a git work tree, so no commit history is recorded", version: 0, world: "git" });
   }
   return out;
 }
@@ -161,7 +180,13 @@ export function graphOf(W: WorldEnv) {
   for (const a of p.artifacts) node({ ref: `artifact:${a.id}`, kind: "artifact", label: a.id, status: a.status, tone: a.status === "current" ? "ok" : "danger" });
   for (const e of p.evidence) node({ ref: `evidence:${e.id}`, kind: "evidence", label: e.id });
   for (const l of p.lenses) node({ ref: `lens:${l.name}`, kind: "lens", label: l.name, status: l.status });
-  for (const f of ["purpose", "actors", "capabilities", "constraints", "form", "voice", "positioning", "claims", "unknowns", "decisions"]) node({ ref: `field:${f}`, kind: "field", label: f });
+  for (const f of ["purpose", "actors", "capabilities", "constraints", "form", "voice", "positioning", "claims", "unknowns", "decisions", "jobs", "criteria", "opportunities"]) node({ ref: `field:${f}`, kind: "field", label: f });
+  const dtone = (g: string) => (g === "CONTRADICTED" ? "danger" : g === "OBSERVED" || g === "VERIFIED" ? "ok" : g === "UNKNOWN" ? "unknown" : "warning");
+  const usedActors = new Set((p.jobs ?? []).map((j: any) => j.actor));
+  for (const a of p.actors ?? []) if (usedActors.has(a.id)) node({ ref: `actor:${a.id}`, kind: "actor", label: a.actor });
+  for (const j of p.jobs ?? []) node({ ref: `job:${j.id}`, kind: "job", label: j.job, status: j.grade, tone: dtone(j.grade) });
+  for (const c of p.criteria ?? []) node({ ref: `criterion:${c.id}`, kind: "criterion", label: c.statement, status: c.evidence === "measured" ? "measured" : c.evidence === "partial" ? "partly measured" : "unmeasured", tone: c.evidence === "measured" ? "ok" : "unknown" });
+  for (const o of p.opportunities ?? []) node({ ref: `opportunity:${o.id}`, kind: "opportunity", label: o.deficiency, status: o.addressed ? "addressed" : o.evidence === "measured" ? "measured" : "evidence insufficient", tone: o.evidence === "measured" ? "ok" : "unknown" });
   node({ ref: "gate", kind: "gate", label: "release gate", status: p.run.verdict ?? (p.run.ready ? "ready" : "blocked"), tone: p.run.verdict === "go" ? "ok" : p.blockers.length ? "danger" : "neutral" });
 
   for (const c of p.claims) {
@@ -169,6 +194,14 @@ export function graphOf(W: WorldEnv) {
     for (const e of p.evidence) if (c.source.includes(e.id)) edge(`evidence:${e.id}`, cr, "evidence for");
     if (c.grade === "INFERRED") for (const par of c.source.match(/C\d+/g) ?? []) if (par !== c.id) edge(`claim:${par}`, cr, "inferred from");
     for (const u of `${c.text} ${c.source}`.match(/U\d+/g) ?? []) if (nodes.has(`unknown:${u}`)) edge(`unknown:${u}`, cr, "left open by");
+  }
+  // demand: actor pursues job, job is judged by criterion, criterion exposes opportunity, opportunity is addressed by candidates
+  const evidenceIn = (to: string, source: string) => { for (const e of p.evidence) if (source.includes(e.id)) edge(`evidence:${e.id}`, to, "evidence for"); for (const c of source.match(/C\d+/g) ?? []) if (nodes.has(`claim:${c}`)) edge(`claim:${c}`, to, "evidence for"); };
+  for (const j of p.jobs ?? []) { edge(`actor:${j.actor}`, `job:${j.id}`, "pursues"); evidenceIn(`job:${j.id}`, j.source); }
+  for (const c of p.criteria ?? []) { edge(`job:${c.job}`, `criterion:${c.id}`, "judged by"); evidenceIn(`criterion:${c.id}`, `${c.source} ${c.importance} ${c.satisfaction}`); }
+  for (const o of p.opportunities ?? []) {
+    edge(`${o.basisKind}:${o.basis}`, `opportunity:${o.id}`, "exposes"); evidenceIn(`opportunity:${o.id}`, o.source);
+    for (const id of String(o.candidates || "").split(", ").filter(Boolean)) edge(`opportunity:${o.id}`, `proposal:${id}`, "addressed by");
   }
   for (const a of p.artifacts) {
     const ar = `artifact:${a.id}`;
@@ -252,7 +285,9 @@ export function why(W: WorldEnv, ref: string) {
   const g = graphOf(W); const me = g.nodes.get(ref);
   if (!me && r.kind !== "version") return { ok: false as const, message: `${ref} does not exist in this run` };
   const w = worlds(W);
-  const ts = (v: number) => w.settledAt(v);
+  // the run's log first; when it has no entry for a version, the commit that recorded the snapshot (read-only git), labelled as such
+  const gitTime = (v: number) => { if (!inRepo(W.runDir)) return null; const c = v === w.current ? logOf(W.runDir, "product-model.md", { limit: 1 })?.[0] : firstCommit(W.runDir, `history/model-v${v}.md`); return c ? `${c.ts} (git ${c.short})` : null; };
+  const ts = (v: number) => w.settledAt(v) ?? gitTime(v);
   const when = (v: number) => (ts(v) ? `model@${v}, settled ${ts(v)}` : `model@${v} (settlement time ${NOT_RECORDED})`);
   const ans: Answer[] = [];
   const up = (rels?: RegExp) => g.edges.filter((e) => e.to === ref && (!rels || rels.test(e.rel)));
@@ -363,6 +398,37 @@ export function why(W: WorldEnv, ref: string) {
       ans.push(A_("What reads it?", down.filter((e) => e.to.startsWith("artifact:")).map((e) => e.to.slice(9)).join(", ") || "no artifact", "recorded", down.filter((e) => e.to.startsWith("artifact:")).map((e) => e.to)));
       break;
     }
+    case "job": case "criterion": case "opportunity": {
+      const row: any = (r.kind === "job" ? p.jobs : r.kind === "criterion" ? p.criteria : p.opportunities).find((x: any) => x.id === r.id)!;
+      const statement = r.kind === "job" ? row.job : r.kind === "criterion" ? row.statement : row.deficiency;
+      ans.push(A_("What is it?", statement, "recorded"), A_("What is its state?", `${row.grade}, source: ${row.source || "(none)"}`, "recorded"));
+      if (r.kind === "criterion") {
+        ans.push(A_("What does it judge?", `job ${row.job}: how well that progress was made. It is an expectation, not a settlement outcome`, "recorded", [`job:${row.job}`]));
+        ans.push(row.evidence === "measured"
+          ? A_("Is it measured?", `importance ${row.importance}; satisfaction ${row.satisfaction}`, "recorded")
+          : A_("Is it measured?", `importance ${row.importance}; satisfaction ${row.satisfaction}. ${row.evidence === "partial" ? "One side is measured" : "Neither is measured"}, so no opportunity score exists and none is computed`, "unavailable"));
+      }
+      if (r.kind === "opportunity") {
+        ans.push(A_("Which progress shortfall does it recover?", `${row.basisKind} ${row.basis}${row.basisKind === "criterion" ? ` (${p.criteria.find((c: any) => c.id === row.basis)?.statement ?? ""})` : ""}`, "recorded", [`${row.basisKind}:${row.basis}`]));
+        ans.push(A_("What does the actor use today?", row.alternatives || "not recorded", row.alternatives ? "recorded" : "unavailable"));
+        ans.push(A_("Is the evidence enough to size it?", row.evidence === "measured" ? "importance and satisfaction are both measured on its criterion" : `no: ${row.evidence === "partial" ? "only one of importance and satisfaction" : "neither importance nor satisfaction"} is measured, so its size is unknown`, row.evidence === "measured" ? "derived" : "unavailable"));
+        const cand = String(row.candidates || "").split(", ").filter(Boolean);
+        ans.push(cand.length ? A_("What addresses it?", `candidate(s) ${cand.join(", ")}${row.addressed ? " (one is accepted)" : "; none accepted"}. A candidate is one possible transformation, not the opportunity`, "recorded", cand.map((c) => `proposal:${c}`)) : A_("What addresses it?", "no proposal names it yet", "recorded"));
+      }
+      let firstV: number | null = null; for (const v of w.versions) if (w.load(v)?.ents.has(ref)) { firstV = v; break; }
+      ans.push(firstV ? A_("When was it first recorded?", `in ${when(firstV)}`, "recorded", [`version:${firstV}`]) : A_("When was it first recorded?", "no settled snapshot contains it", "unavailable"));
+      if (firstV) { const decs = (w.load(firstV)?.model.decisions ?? []).filter((d: any) => d.version === firstV).map((d: any) => ({ d, p: touches(d, ref) })).filter((x: any) => x.p); if (decs.length) ans.push(A_("Which decision recorded it?", decs.map((x: any) => `${x.d.n}${x.p === "field" ? " (named the whole field)" : ""}: ${short(x.d.decision, 100)}`).join("; "), decs.every((x: any) => x.p === "id") ? "recorded" : "derived", decs.map((x: any) => `decision:${x.d.n}`))); }
+      const sup = up(/evidence for|pursues|judged by|exposes/);
+      ans.push(A_("What supports it?", sup.length ? sup.map((e) => `${e.from} (${e.rel})`).join(", ") : "no recorded evidence file or claim is named in its source", sup.length ? "recorded" : "unavailable", sup.map((e) => e.from)));
+      ans.push(A_("What depends on it?", down.length ? down.map((e) => `${e.to} (${e.rel})`).join(", ") : "nothing is recorded as depending on it", "recorded", down.map((e) => e.to)));
+      break;
+    }
+    case "actor": {
+      const a: any = (p.actors ?? []).find((x: any) => x.id === r.id);
+      ans.push(A_("Who is it?", a ? `${a.actor}: ${a.job}` : r.id, "recorded"), A_("What progress do they pursue?", down.filter((e) => e.rel === "pursues").map((e) => e.to).join(", ") || "no Job row names this actor", "recorded", down.filter((e) => e.rel === "pursues").map((e) => e.to)));
+      ans.push(A_("Is a mindset or type recorded?", "no: situational salience belongs to a Case (a DecisionState), never to the actor", "derived"));
+      break;
+    }
     case "version": {
       const s = w.load(Number(r.id));
       if (!s) return { ok: false as const, message: `no readable snapshot for model@${r.id}; recorded: ${w.versions.join(", ") || "none"}` };
@@ -373,6 +439,11 @@ export function why(W: WorldEnv, ref: string) {
       ans.push(d?.ok ? A_("What changed from the previous version?", `${d.rows.length} difference(s) from model@${prev}${d.same ? "; no semantic change" : ""}`, "recorded") : A_("What changed from the previous version?", prev ? "previous snapshot unreadable" : "this is the first recorded version", "unavailable"));
       break;
     }
+  }
+  // local git, when the run is in a repository: which commits recorded this file (read-only; absent git adds nothing)
+  if ((r.kind === "artifact" || r.kind === "evidence") && inRepo(W.runDir)) {
+    const cs = logOf(W.runDir, `${r.kind === "artifact" ? "artifacts" : "evidence"}/${r.id}`, { limit: 3 });
+    if (cs) ans.push(cs.length ? A_("Which commits recorded it?", cs.map((c) => `${c.short} ${c.ts.slice(0, 10)} ${c.author}: ${short(c.subject, 60)}`).join("; "), "recorded") : A_("Which commits recorded it?", "none: the file is not committed yet", "recorded"));
   }
   if (responses.length) ans.push(A_("Has the owner weighed in?", responses.map((x: any) => `${x.id}: ${x.kind}/${x.outcome ?? ""} via ${x.via === "cockpit" ? "the owner" : "relay (REPORTED)"} (${x.handled ? `handled by ${x.handled.as}` : "waiting on the router"})`).join("; "), "recorded"));
   const downN = walk(g.edges, ref, "down").dist.size;
@@ -389,7 +460,7 @@ export function candidates(W: WorldEnv) {
   }));
 }
 
-export function counterfactual(W: WorldEnv, ref: string, renv: ReachEnv = W.reach ?? hostEnv()) {
+export function counterfactual(W: WorldEnv, ref: string, renv: ReachEnv = W.reach ?? hostEnv(process.env, undefined, path.dirname(W.runDir))) {
   const r = parseRef(ref);
   if (!r || r.kind !== "proposal") return { ok: false as const, message: "a candidate is a proposal ref, like proposal:P3" };
   const p = W.proj; const x: any = p.proposals.find((y: any) => y.id === r.id);
@@ -415,6 +486,12 @@ export function counterfactual(W: WorldEnv, ref: string, renv: ReachEnv = W.reac
   add({ class: "derived", subject: "gate", effect: `accepting any change raises the model version, so the gate built at model@${p.run.modelVersion} would block as gate-stale until release-readiness re-runs`, basis: "computeGate: gate-stale when the gate was built at an older version", refs: ["gate"] });
   const lensesToRerun = [...new Set(readers.map((a) => p.artifacts.find((y) => `artifact:${y.id}` === a)?.lens).filter(Boolean))] as string[];
   for (const l of lensesToRerun) add({ class: "expected", subject: `lens:${l}`, effect: `would need to re-run to rebuild its stale artifact(s)`, basis: "process: stale artifacts are rebuilt by their lens", refs: [`lens:${l}`] });
+  // A candidate that names an opportunity is one possible transformation of it. Accepting it does not size, satisfy, or close the opportunity.
+  for (const o of p.opportunities ?? []) if (new RegExp(`\\b${o.id}\\b`).test(`${x.proposal} ${x.evidence}`)) {
+    add({ class: "known", subject: `opportunity:${o.id}`, effect: `declared as a candidate for ${o.id}: ${short(o.deficiency, 100)}`, basis: "the proposal names it", refs: [`opportunity:${o.id}`] });
+    add({ class: "expected", subject: `opportunity:${o.id}`, effect: `would add a field-${x.field} row; whether the shortfall is actually reduced is observed afterwards, not settled by accepting this`, basis: "an accepted candidate is a change to the model, not evidence that the progress improved", refs: [`opportunity:${o.id}`] });
+    if (o.evidence !== "measured") add({ class: "observation-required", subject: `opportunity:${o.id}`, effect: `${o.id} is not yet measured (${o.evidence}); any claim that this candidate helps needs the importance and satisfaction measured first`, basis: "Success criteria: UNKNOWN stays UNKNOWN", needs: ["market.interview", "market.survey", "behavior.analytics"], via: ["market.interview", "market.survey", "behavior.analytics"].map((c) => { const rr = reachFor(c as Capability, renv); return `${c}: ${rr.best ?? "no provider"} (${rr.providers.find((q) => q.id === rr.best)?.status ?? "none"})`; }).join("; "), refs: [`opportunity:${o.id}`] });
+  }
   const rivals = p.proposals.filter((y: any) => y.id !== r.id && y.status === "open" && y.field === x.field);
   if (rivals.length) add({ class: "derived", subject: ref, effect: `other open candidates touch the same field: ${rivals.map((y: any) => y.id).join(", ")}; the reconciliation must order or reject them`, basis: "proposals.md", refs: rivals.map((y: any) => `proposal:${y.id}`) });
   if (x.kind === "change") for (const c of named) add({ class: "unknown", subject: `claim:${c}`, effect: `the resulting grade and text of ${c} are not declared by the proposal`, basis: "only the reconciliation decides them", refs: [`claim:${c}`] });
@@ -440,7 +517,7 @@ export function counterfactual(W: WorldEnv, ref: string, renv: ReachEnv = W.reac
 const count = (fx: Effect[]) => Object.fromEntries(["known", "derived", "expected", "unknown", "observation-required"].map((k) => [k, fx.filter((e) => e.class === k).length]));
 
 // ---- reach (world level): missing evidence -> required observation -> capability -> providers ------------------------
-export function worldReach(W: WorldEnv, o: { need?: string; ref?: string }, renv: ReachEnv = W.reach ?? hostEnv()) {
+export function worldReach(W: WorldEnv, o: { need?: string; ref?: string }, renv: ReachEnv = W.reach ?? hostEnv(process.env, undefined, path.dirname(W.runDir))) {
   if (o.need) {
     if (!isCapability(o.need)) return { ok: false as const, message: `unknown capability ${o.need}` };
     return { ok: true as const, ...reachFor(o.need, renv), rows: reachFor(o.need, renv).providers };
@@ -450,7 +527,19 @@ export function worldReach(W: WorldEnv, o: { need?: string; ref?: string }, renv
   const p = W.proj; let gap = "", text = "", who = "";
   if (r.kind === "claim") { const c = p.claims.find((y) => y.id === r.id); if (!c) return { ok: false as const, message: `${o.ref} does not exist in this run` }; gap = ["OBSERVED", "VERIFIED"].includes(c.grade) ? "" : `graded ${c.grade}; OBSERVED or VERIFIED evidence would raise it`; text = c.source; }
   else if (r.kind === "unknown") { const u = p.unknowns.find((y) => y.id === r.id); if (!u) return { ok: false as const, message: `${o.ref} does not exist in this run` }; gap = `open: ${short(u.question, 100)}`; text = `${u.question} ${u.who}`; who = u.who; }
-  else return { ok: false as const, message: "reach applies to a claim or an unknown: those are where evidence is missing" };
+  else if (r.kind === "criterion" || r.kind === "opportunity") {
+    // an unmeasured criterion is a missing observation like any other: the routes that can measure it are capabilities, and who provides them is data
+    const c: any = r.kind === "criterion" ? (p.criteria ?? []).find((y: any) => y.id === r.id) : (p.criteria ?? []).find((y: any) => y.id === (p.opportunities ?? []).find((o: any) => o.id === r.id)?.basis);
+    if (r.kind === "opportunity" && !(p.opportunities ?? []).some((o: any) => o.id === r.id)) return { ok: false as const, message: `${o.ref} does not exist in this run` };
+    if (r.kind === "criterion" && !c) return { ok: false as const, message: `${o.ref} does not exist in this run` };
+    gap = !c ? "this opportunity rests on a job, not a success criterion, so there is nothing to measure yet; state how the job is judged first" : c.evidence === "measured" ? "" : `importance ${c.importance} and satisfaction ${c.satisfaction} on ${c.id} (${c.statement}) are not both measured`;
+    if (!gap) return { ok: true as const, ref: o.ref, gap: "none: importance and satisfaction are both measured", needs: [], rows: [] as any[] };
+    const caps: Capability[] = c ? ["market.interview", "market.survey", "behavior.analytics", "support.history"] : [];
+    const needs = caps.map((cap) => ({ capability: cap, basis: "derived: these are the observation routes that can measure an unmeasured importance or satisfaction", ...reachFor(cap, renv) }));
+    const rows = needs.flatMap((n) => n.providers.map((q) => ({ capability: n.capability, provider: q.id, tier: q.tier, status: q.status, available: q.state.available, installed: q.state.installed, configured: q.state.configured, probed: q.state.probed, reachable: q.state.reachable, authorized: q.state.authorized, next: q.next, basis: n.basis })));
+    return { ok: true as const, ref: o.ref, gap, needs, rows, note: needs.length ? undefined : "state how the job is judged (a success criterion) before asking what could measure it" };
+  }
+  else return { ok: false as const, message: "reach applies to a claim, an unknown, a success criterion, or an opportunity: those are where evidence is missing" };
   if (!gap) return { ok: true as const, ref: o.ref, gap: "none: already observed or verified", needs: [], rows: [] as any[] };
   const caps: Capability[] = /owner|you|human/i.test(who) ? ["owner.attest"] : suggestNeeds(text);
   const needs = caps.map((c) => ({ capability: c, basis: c === "owner.attest" ? "recorded: the unknown names the owner as who can resolve it" : "heuristic: the recorded source/question mentions this kind of observation", ...reachFor(c, renv) }));
@@ -469,6 +558,7 @@ export function parsePreds(s: string | null | undefined): Pred[] {
   return String(s ?? "").split(",").filter(Boolean).map((t) => { const [field, op, ...v] = t.split("~"); return { field, op: op || "eq", value: unesc(v.join("~")) }; });
 }
 export const fmtPreds = (ps: Pred[] = []) => ps.map((p) => `${p.field}~${p.op}~${Array.isArray(p.value) ? p.value.map((x) => esc(String(x))).join("%7C") : esc(String(p.value))}`).join(",");
+export const normPreds = (ps: Pred[]) => ps.map((p) => ({ ...p, value: p.op === "in" && typeof p.value === "string" ? p.value.split("|") : p.value }));
 // `rows` and `test` come from the source layer, so a selector can only ever read files the run already exposes.
 export function replay(def: ObserverDef, rows: (source: string, where?: Pred[]) => { error?: string; rows?: Row[] }, test: (row: Row, p: Pred) => boolean) {
   const id = observerId(def);

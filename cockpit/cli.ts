@@ -107,10 +107,19 @@ export async function uiMain(args: string[], opt: Record<string, any>, cwd: stri
     case "tool": return out(await call(cwd, need(args[1], "<name> '<json>'"), args[2] ? JSON.parse(args[2]) : {}));
     case "tools": { const r: any = await call(cwd, "get_workspace", {}); const names = opt.all ? TOOLS.map((t) => t.name) : r.result?.tools ?? r.tools ?? BASE_TOOLS; console.log(names.join("\n")); return 0; }
     case "world": return worldMain(args.slice(1), opt, cwd);
+    case "case": return caseMain(args.slice(1), opt, cwd);
     default:
-      console.error(`usage: actualize ui <status|context|catalog [block]|list <what>|entity <ref>|put <file>|show <ref>|compare <a> <b>|ask '<json>'|arrange '<json>'|annotate <target> <text>|responses|tool <name> '<json>'>\n tools: ${TOOLS.map((t) => t.name).join(", ")}`);
+      console.error(`usage: actualize ui <case [summary|moves|settlement|prior] [ref] [--show]|status|context|catalog [block]|list <what>|entity <ref>|put <file>|show <ref>|compare <a> <b>|ask '<json>'|arrange '<json>'|annotate <target> <text>|responses|tool <name> '<json>'>\n tools: ${TOOLS.map((t) => t.name).join(", ")}`);
       return 2;
   }
+}
+
+// ---- case: where we are trying to go, what stands between, what can be done now. Derived; works with the cockpit closed.
+async function caseMain(args: string[], opt: Record<string, any>, cwd: string): Promise<number> {
+  const part = args[0] && ["summary", "moves", "settlement", "prior"].includes(args[0]) ? args.shift() : undefined;
+  const ref = args[0] && args[0] !== "--" ? args[0] : "run";
+  if (part === "prior" && (!opt.q || opt.q === true)) { console.error("usage: actualize case prior --q \"words about what you are about to investigate\""); return 2; }
+  return out(await call(cwd, "case_get", { ref, ...(part ? { part } : {}), ...(opt.q && opt.q !== true ? { q: opt.q } : {}), ...(opt.decision === true ? { view: "decision" } : {}), show: opt.show === true }));
 }
 
 // ---- world: ask the product world a question. Read-only; works with the cockpit closed (the answer is a function of the run files).
@@ -122,12 +131,12 @@ async function worldMain(args: string[], opt: Record<string, any>, cwd: string):
     case "why": return out(await call(cwd, "world_why", { ref: need(args[1], "<ref> [--show]"), show }));
     case "impact": return out(await call(cwd, "world_impact", { ref: need(args[1], "<ref> [--dir up|down|both] [--depth n] [--kinds claim,artifact] [--gate] [--show]"), ...(opt.dir ? { dir: opt.dir } : {}), ...(opt.depth ? { depth: Number(opt.depth) } : {}), ...(opt.kinds ? { kinds: String(opt.kinds).split(",") } : {}), gate: opt.gate === true, show }));
     case "diff": return out(await call(cwd, "world_diff", { a: need(args[1], "<a> [b|current] [--show]"), ...(args[2] ? { b: args[2] } : {}), show }));
-    case "timeline": return out(await call(cwd, "world_timeline", { ...(args[1] ? { ref: args[1] } : {}), show }));
+    case "timeline": return out(await call(cwd, "world_timeline", { ...(args[1] ? { ref: args[1] } : {}), ...(opt.git === true ? { git: true } : {}), show }));
     case "counterfactual": return out(await call(cwd, "world_counterfactual", { candidate: need(args[1], "<proposal-ref> [--show]"), show }));
     case "reach": return out(await call(cwd, "world_reach", opt.need ? { need: opt.need } : { ref: need(args[1], "<ref> | --need <capability>") }));
     case "replay": return out(await call(cwd, "world_replay", { selects: need(opt.selects, "--selects file:evidence/<lens>/<file>#tableN --expect field~op~value[,...] [--where ...]"), expect: preds(need(opt.expect, "--expect field~op~value")), ...(opt.where ? { where: preds(opt.where) } : {}), show }));
     default:
-      console.error("usage: actualize world <why <ref> | impact <ref> | diff <a> [b] | timeline [ref] | counterfactual <proposal> | reach <ref>|--need <cap> | replay --selects ... --expect ...> [--show]");
+      console.error("usage: actualize world <why <ref> | impact <ref> | diff <a> [b] | timeline [ref] [--git] | counterfactual <proposal> | reach <ref>|--need <cap> | replay --selects ... --expect ...> [--show]");
       return 2;
   }
 }

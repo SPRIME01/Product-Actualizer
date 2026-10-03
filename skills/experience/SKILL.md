@@ -1,7 +1,7 @@
 ---
 name: experience
 description: Design how actors accomplish their jobs: flows, states, information hierarchy, and interaction behavior, for software and physical interfaces. Use when a product has surfaces to design, repair, or complete.
-reads: [actors, capabilities, constraints, form, voice, claims, unknowns]
+reads: [actors, capabilities, constraints, form, voice, claims, unknowns, jobs, criteria]
 needs: [brand]
 executes_with: [impeccable, hallmark]
 ---

@@ -64,3 +64,32 @@ export function cleanup(project: string) { fs.rmSync(project, { recursive: true,
 // Tiny valid PNGs (1x1) for composition tests that need images in the run.
 export const PNG = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR4nGP4z8DwHwAFAAH/q842iQAAAABJRU5ErkJggg==", "base64");
 export function addAsset(run: any, rel: string) { const f = path.join(run.dir, rel); fs.mkdirSync(path.dirname(f), { recursive: true }); fs.writeFileSync(f, PNG); }
+
+// ---- scenario builders: edit a fixture run the way a reconciliation or a lens would have left it -----------------------------------
+import { loadState } from "../../hooks/src/lib/store.mjs";
+export const rewriteModel = (fx: { run: any }, fn: (text: string) => string) => {
+  fs.writeFileSync(fx.run.modelPath, fn(fs.readFileSync(fx.run.modelPath, "utf8")));
+  const st = loadState(fx.run); st.modelHash = modelHash(fx.run); saveState(fx.run, st);
+};
+export const writeRun = (fx: { run: any }, rel: string, text: string) => { const f = path.join(fx.run.dir, rel); fs.mkdirSync(path.dirname(f), { recursive: true }); fs.writeFileSync(f, text); };
+export const patchState = (fx: { run: any }, fn: (s: any) => void) => { const st = loadState(fx.run); fn(st); saveState(fx.run, st); };
+// A Loam run with no contradicted claims: the engine is satisfied, nothing is stale, and the gate is ready.
+export const calm = (fx: { run: any }) => rewriteModel(fx, (t) => t.replace(/\| CONTRADICTED \|/g, "| REPORTED |"));
+// Rebuild the gate and every artifact "at" an older model, so the engine sees them stale.
+export const makeStale = (fx: { run: any }, rel: string) => { const f = path.join(fx.run.artifactsDir, rel); fs.writeFileSync(f, fs.readFileSync(f, "utf8").replace(/^built_from: model@\d+/m, "built_from: model@2")); };
+export const DEMAND = {
+  jobs: "| id | actor | job | grade | source |\n|---|---|---|---|---|\n| J1 | A1 | Know in time that a plant needs water, without checking by hand | REPORTED | evidence/recon-software/interview-1.md |\n",
+  criteria: "| id | job | direction | measure | object | context | importance | satisfaction | grade | source |\n|---|---|---|---|---|---|---|---|---|---|\n| S1 | J1 | minimize | time to notice a dry plant | the owner | away for a week | UNKNOWN | UNKNOWN | REPORTED | evidence/recon-software/interview-1.md |\n",
+  opportunities: "| id | basis | deficiency | alternatives | grade | source |\n|---|---|---|---|---|---|\n| OP1 | S1 | Dry plants are noticed only after they wilt | poking the soil; a phone reminder | REPORTED | evidence/recon-software/interview-1.md |\n",
+};
+export const addDemand = (fx: { run: any }, parts: Partial<Record<keyof typeof DEMAND, string>> = DEMAND) => rewriteModel(fx, (t) => `${t.trimEnd()}\n\n## Jobs\n\n${parts.jobs ?? DEMAND.jobs}\n## Success criteria\n\n${parts.criteria ?? DEMAND.criteria}\n## Opportunities\n\n${parts.opportunities ?? DEMAND.opportunities}`);
+// A decision-state artifact as the marketing lens would write it (stamped, so the engine accepts it).
+export const decisionArtifact = (rows: string[], extraHead = "") => `built_from: model@4\nreads: [actors, jobs]\ncites: []\n\n| case | actor | job | trigger | push | pull | anxiety | habit | grade | evidence |${extraHead}\n|---|---|---|---|---|---|---|---|---|---|${extraHead ? "---|" : ""}\n${rows.join("\n")}\n`;
+// An experiment: a hypothesis with a criterion frozen before the rows. `rows` are the result table (empty = designed, not yet observed).
+import { observerId, parsePreds, normPreds } from "../../cockpit/server/world";
+export function experimentFile(o: { name: string; scope: string; rows?: string[]; frozen?: boolean | string; expect?: string; limitations?: string; hypothesis?: string; case?: string }) {
+  const expect = o.expect ?? "lift~gt~0", rel = `marketing/${o.name}.md`;
+  const id = observerId({ selects: `file:evidence/${rel}#table1`, where: [], expect: normPreds(parsePreds(expect)) });
+  const frozen = o.frozen === false ? "" : `frozen: ${typeof o.frozen === "string" ? o.frozen : id}\n`;
+  return { rel: `evidence/${rel}`, id, text: `experiment: ${o.name}\nhypothesis: ${o.hypothesis ?? "if the message leads with control then qualified signups rise because the owner fears losing control"}\ncase: ${o.case ?? "run"}\nprimary: lift\nguardrail: bounce\nscope: ${o.scope}\nexpect: ${expect}\n${frozen}limitations: ${o.limitations ?? "small sample"}\n\n| variant | lift | bounce |\n|---|---|---|\n${(o.rows ?? []).join("\n")}${o.rows?.length ? "\n" : ""}` };
+}

@@ -260,6 +260,18 @@ Non-fatal warnings, not refusals: `PLACEMENT_IGNORED` when replacing a surface t
 
 `MAX_AGENT_SURFACES = 8`, `MAX_HISTORY = 10` (`workspace.ts:12-13`). At the cap, the least-recent unpinned surface with no open ask is evicted; if every one is pinned or waiting, the action is refused with `CLUTTER_CAP` (`workspace.ts:206-213`).
 
+### Case sources
+
+A Case is derived on every read; these sources are its projections (`CASE_SOURCES`, `spec.ts`), all read-only. `pa:` gains `jobs`, `criteria`, `opportunities`, `decision-states`, `experiments`, `patterns`, and `graph:` gains `case`. Ref kinds gain `job`, `criterion`, `opportunity`, `actor`, and `case` (`case:run`, `case:OP1`, `case:evidence/<lens>/<file>`); the `human.open` template list gains `case`.
+
+| source | rows |
+|---|---|
+| `case:state?ref=` | the seven questions in decision order: destination, now, deviation, next move, cost and authority, how we will know, then reachable, plus settlement |
+| `case:affordances?ref=` | the field: lane (`next move`, `choose`, `alternatives`, `blocked`), move, why, requires, cost, authority, recovery, evidence, then; capped, with a "N more" row |
+| `case:settlement?ref=` | required and optional conditions |
+| `case:prior?q=` | settled patterns and experiments that already bear on `q` |
+| `graph:case?ref=` | the move and what it opens, the blocked moves and what blocks them |
+
 ### Human operations — twelve (`HUMAN_OPS`, `actions.ts:61`)
 
 Arrive only over the authenticated human channel; `applyHuman` is the single entry (`workspace.ts:136`, `serve.ts:5`).
@@ -304,7 +316,7 @@ Four of them are **authority-bearing over the process**: `AUTHORITY_OPS = {human
 
 `"NO_RESPONDER"` is listed at `actions.ts:77` but has **zero uses anywhere in `cockpit/server/`** — a repository-wide search for the string returns that one declaration and nothing else. No code path returns it, so no client can receive it. It is reserved, not live. Do not treat it as part of the protocol's observable surface.
 
-## The tools: twelve always, seven by context
+## The tools: thirteen always, seven by context
 
 One definition, three transports: the local CLI (`actualize ui …`), the loopback MCP endpoint at `/mcp`, and WebMCP in the page (`tools.ts:1-3`; `webmcp.ts`; `serve.ts:83`). Every tool is either a read, or composes the cockpit through the same typed actions an agent sends directly. None of them can answer for the owner, edit the Product Model, or touch the rail — those capabilities do not exist here (`tools.ts:3`).
 
@@ -316,11 +328,12 @@ One definition, three transports: the local CLI (`actualize ui …`), the loopba
 | `list_items` | read | `{ what: claims\|unknowns\|decisions\|proposals\|artifacts\|blockers\|responses\|lenses, filter?: string ≤100, limit?: int 1–50 default 20 }` — compact id + one-line rows; filter like `status=open`, `grade=CONTRADICTED`, `status=stale` |
 | `get_entity` | read | `{ ref: RefSchema }` — one entity in full: fields, related entities, consequence, next affordances |
 | `show_surface` | compose | `{ surface: SurfaceSchema, place?: Placement }` — show or replace; existing surfaces keep the owner's position |
-| `show_ref` | compose | `{ ref, beside?: id 1–48, as?: detail\|document\|lineage\|why\|impact\|diff default "detail" }` (`diff` applies to a `version:` ref) |
+| `show_ref` | compose | `{ ref, beside?: id 1–48, as?: detail\|document\|lineage\|why\|impact\|diff\|case\|decision default "detail" }` (`diff` applies to a `version:` ref) |
 | `compare_refs` | compose | `{ a: RefSchema, b: RefSchema, beside?: id }` — text diff for two artifacts/evidence files, side-by-side for two entities |
 | `ask_human` | compose | `AskBase` + `place?` — `input`: confirm, select, multiselect, text, multiline, search, path. `resolves` names the unknown/proposal/decision it bears on. **You cannot answer it**; read the answer with `read_responses` |
 | `arrange` | compose | `{ action: AgentActionSchema }` — any of the eleven agent ops |
 | `annotate` | compose | `{ target: string ≤80, text: 1–400, tone?: note\|warning\|danger\|ok default "note" }` — pins an agent note, visibly marked as the agent's |
+| `case_get` | read | `{ ref?: "run"\|OP1\|S1\|J1\|C4\|U2\|P7\|evidence/…, part?: summary\|moves\|settlement\|prior, q?, view?: case\|decision, show? }` — the derived [Case](../case-navigation.md): destination, deviation, the one primary move with cost/authority/recovery/evidence, blocked moves with what would reach them, whether settlement is reachable. Never a dump; runs and settles nothing |
 | `read_responses` | read | `{ unhandled?: boolean default true }` — what the owner answered, ruled, confirmed, or annotated. Routing them is the router's job through the process CLI; this tool only reads |
 
 The seven world tools (`WORLD_TOOLS`) are all reads; `show: true` additionally composes the answer through `surface.put`.
@@ -330,7 +343,7 @@ The seven world tools (`WORLD_TOOLS`) are all reads; `show: true` additionally c
 | `world_why` | `{ ref, show? }`: how the ref came to be, each answer with its basis |
 | `world_impact` | `{ ref, dir?: down\|up\|both, depth?: 1–4 default 2, kinds?, gate?, show? }` |
 | `world_diff` | `{ a, b?: default "current", show? }`: worlds are `3`, `model@3`, or `current` |
-| `world_timeline` | `{ ref?, show? }` |
+| `world_timeline` | `{ ref?, git?, show? }`: `git` adds local commits that touched the run (read-only) |
 | `world_counterfactual` | `{ candidate: proposal ref, show? }` |
 | `world_reach` | `{ need?: capability, ref?, show? }`: exactly one of `need`, `ref` |
 | `world_replay` | `{ selects: file:evidence/…#tableN, where?, expect, discriminates?, show? }` |

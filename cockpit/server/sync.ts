@@ -6,8 +6,8 @@ import type { Database } from "bun:sqlite";
 import { project, railOf, type Proj } from "./project";
 import { getMeta, setMeta, pushEvent } from "./db";
 
-const KINDS = ["claim", "unknown", "decision", "proposal", "artifact", "version", "lens", "wave", "blocker", "response", "evidence"] as const;
-const SRC: Record<string, keyof Proj> = { claim: "claims", unknown: "unknowns", decision: "decisions", proposal: "proposals", artifact: "artifacts", version: "versions", lens: "lenses", wave: "waves", blocker: "blockers", response: "responses", evidence: "evidence" };
+const KINDS = ["claim", "unknown", "decision", "proposal", "artifact", "version", "lens", "wave", "blocker", "response", "evidence", "job", "criterion", "opportunity"] as const;
+const SRC: Record<string, keyof Proj> = { claim: "claims", unknown: "unknowns", decision: "decisions", proposal: "proposals", artifact: "artifacts", version: "versions", lens: "lenses", wave: "waves", job: "jobs", criterion: "criteria", opportunity: "opportunities", blocker: "blockers", response: "responses", evidence: "evidence" };
 
 const textOf = (kind: string, r: any): string => {
   switch (kind) {
@@ -18,6 +18,9 @@ const textOf = (kind: string, r: any): string => {
     case "artifact": return `${r.rel} ${r.lens}`;
     case "lens": return `${r.name} ${r.description}`;
     case "evidence": return r.rel;
+    case "job": return `${r.id} ${r.job} ${r.actor} ${r.source}`;
+    case "criterion": return `${r.id} ${r.statement} ${r.job} ${r.source}`;
+    case "opportunity": return `${r.id} ${r.deficiency} ${r.alternatives} ${r.basis} ${r.source}`;
     default: return "";
   }
 };

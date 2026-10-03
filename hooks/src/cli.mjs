@@ -89,11 +89,11 @@ async function main(argv) {
     const m = await import("../install.mjs");
     return m.main(argv.slice(1));
   }
-  if (cmd === "cockpit" || cmd === "ui" || cmd === "inbox" || cmd === "world") {
+  if (cmd === "cockpit" || cmd === "ui" || cmd === "inbox" || cmd === "world" || cmd === "case") {
     const m = await import("../../cockpit/cli.ts");
     const rest = pos.slice(1);
     if (cmd === "inbox") return m.inboxMain(rest, opt, process.cwd());
-    if (cmd === "world") return m.uiMain(["world", ...rest], opt, process.cwd());
+    if (cmd === "world" || cmd === "case") return m.uiMain([cmd, ...rest], opt, process.cwd());
     return cmd === "ui" ? m.uiMain(rest, opt, process.cwd()) : m.cockpitMain(rest, opt, process.cwd());
   }
   const lenses = P.loadLenses();

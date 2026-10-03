@@ -7,16 +7,17 @@ import { parseProposals, parseModel } from "../../hooks/src/lib/md.mjs";
 import { readInbox } from "../../hooks/src/lib/inbox.mjs";
 import * as P from "../../hooks/src/process.mjs";
 import { digestModel } from "./world";
+import { demandOf } from "./demand";
 
 export type Claim = { id: string; text: string; grade: string; source: string };
 export type Proj = {
   run: { dir: string; product: string; goal: string; bar: string; active: boolean; phase: string; modelVersion: number; verdict: string | null; paused: string | null; startedAt: string; next: string; activeLenses: string[]; ready: boolean };
   selection: { lenses: string[]; waves: string[][]; excluded: Record<string, string>; satisfied: string[] } | null;
-  claims: Claim[]; unknowns: any[]; decisions: any[]; proposals: any[]; artifacts: any[]; blockers: any[]; versions: any[]; lenses: any[]; waves: any[]; evidence: any[]; responses: any[];
+  claims: Claim[]; unknowns: any[]; decisions: any[]; actors: any[]; jobs: any[]; criteria: any[]; opportunities: any[]; proposals: any[]; artifacts: any[]; blockers: any[]; versions: any[]; lenses: any[]; waves: any[]; evidence: any[]; responses: any[];
   log: any[];
 };
 
-const empty = (dir: string): Proj => ({ run: { dir, product: "", goal: "", bar: "", active: false, phase: "none", modelVersion: 0, verdict: null, paused: null, startedAt: "", next: "no run", activeLenses: [], ready: false }, selection: null, claims: [], unknowns: [], decisions: [], proposals: [], artifacts: [], blockers: [], versions: [], lenses: [], waves: [], evidence: [], responses: [], log: [] });
+const empty = (dir: string): Proj => ({ run: { dir, product: "", goal: "", bar: "", active: false, phase: "none", modelVersion: 0, verdict: null, paused: null, startedAt: "", next: "no run", activeLenses: [], ready: false }, selection: null, claims: [], unknowns: [], decisions: [], actors: [], jobs: [], criteria: [], opportunities: [], proposals: [], artifacts: [], blockers: [], versions: [], lenses: [], waves: [], evidence: [], responses: [], log: [] });
 
 export function readLog(runLogPath: string): any[] {
   const out: any[] = [];
@@ -46,6 +47,7 @@ export function project(cwd: string): { run: any | null; proj: Proj } {
     proj.decisions = model.decisions.map((d: any) => ({ id: d.n, ...d }));
   }
   proj.proposals = g.props;
+  if (model) Object.assign(proj, demandOf(model, g.props));
   proj.artifacts = g.arts.map((a: any) => ({
     id: a.rel, rel: a.rel, lens: a.lens, built: a.stamp.built, stale: a.stale, errors: a.errors, isGate: a.isGate, public: a.stamp.public,
     reads: a.stamp.reads, cites: a.stamp.cites, verdict: a.stamp.head.verdict ?? null, status: a.errors.length ? "invalid" : a.stale.length && !a.isGate ? "stale" : "current",

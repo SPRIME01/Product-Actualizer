@@ -126,9 +126,20 @@ The entries above are the trail; these are the files that define the relationshi
 - `hooks/src/lib/md.mjs` — model and artifact validation, `touches`, `staleReasons`, `validTouched`
 - `hooks/src/lib/lenses.mjs` — `ROUTER`, `loadLenses`, `lensBody`, `waves`
 - `hooks/src/lib/inbox.mjs` — `readInbox`, `ackInbox`, `unhandled`
-- `cockpit/protocol/spec.ts`, `actions.ts`, `tools.ts`, `world.ts` — the closed vocabulary, the tools (12 base, 7 world), and the world vocabulary shared with the page
+- `cockpit/protocol/spec.ts`, `actions.ts`, `tools.ts`, `world.ts` — the closed vocabulary, the tools (13 base, 7 world), and the world vocabulary shared with the page
 - `cockpit/server/world.ts`, `reach.ts`, `reach.providers.json`, `worldSurfaces.ts` — the world debugger kernel, the reach ladder, and its standard compositions
 - `cockpit/server/{project,sync,workspace,serve,db}.ts` — projection, event derivation, authority, transport
 - `cockpit/cli.ts`, `cockpit/build.ts` — the cockpit verbs and the compiled executable
 - `tests/check.py` — structural verification; `tests/hooks/*.test.mjs` and `tests/cockpit/*.test.ts` — behavioural
 - `package.json`, `justfile` — the runtime pin and the recipe surface
+
+## Outcome-directed navigation
+
+- Optional model sections, validation: `hooks/src/lib/md.mjs` (`OPTIONAL_SECTIONS`, `validateDemand`); `tests/check.py` (`validate_demand`)
+- Demand rows: `cockpit/server/demand.ts`; projected in `project.ts`, synced in `sync.ts`
+- The Case, deviations, the affordance field, settlement: `cockpit/server/case.ts`
+- Decision states, experiments, patterns, prior knowledge: `cockpit/server/learn.ts`
+- Read-only local git: `cockpit/server/git.ts`; `gh` prober and market capabilities: `cockpit/server/reach.ts`, `reach.providers.json`
+- Views: `cockpit/server/caseSurfaces.ts`; sources `case:*`, `graph:case`, `pa:jobs|criteria|opportunities|decision-states|experiments|patterns` in `sources.ts`; the `case_get` tool in `protocol/tools.ts`; `actualize case` in `cockpit/cli.ts`
+- Tests: `tests/cockpit/case.test.ts`, `case.transport.test.ts`, `case.e2e.test.ts`
+- Specification and plan: `.agents/specs/outcome-navigation.md`; residuals: `.agents/DEBT.md`

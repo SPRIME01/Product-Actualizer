@@ -38,6 +38,7 @@ What actually happens, traced end to end against the tests that verify it.
 | [Run a governed run](how-to/run-a-governed-run.md) | execute the enforced sequence with the exact commands, validation, and recovery |
 | [Hooks](hooks.md) | install and operate the enforcement hooks across the five clients |
 | [Cockpit](cockpit.md) | use the cockpit: the rail, surfaces, authority, the inbox, WebMCP |
+| [Case navigation](case-navigation.md) | see where the work is trying to go, what stands between, the one move that answers it, its cost and authority, and whether settling is reachable |
 | [World debugger](world-debugger.md) | ask why something is true, what changed, what depends on it, what a candidate would do, and who could gather missing evidence |
 | [Troubleshooting](troubleshooting.md) | diagnose a symptom; every row is keyed to a real refusal message |
 

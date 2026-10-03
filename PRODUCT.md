@@ -22,6 +22,8 @@ The mechanism is a claims ledger. Every claim a product may make carries an evid
 
 The system is delivered as lenses: each is how a professional in that field represents the problem, expressed as the distinctions they make, the failure modes they know, and the checks they run. The process is described, not merely suggested: hook engines block writes that break the rules and refuse to let a run stop while lenses, reconciliation, stale artifacts, or the gate are outstanding. The cockpit is an optional projection for the owner; the process works with it closed, and it is never a second source of truth or a second decision system.
 
+The product is oriented around the progress an actor is trying to make and how they judge it, not around feature completion. A Case (derived, never stored) lets the owner see where the work is trying to go, what stands between, the one move that answers it, what it costs, who may take it, and whether settling is already reachable. Reaching the minimum bar does not make stopping the right call: that judgment stays with the owner.
+
 Success is an owner who can state what is true about their product, cite where each statement came from, and stop at a verdict they believe, with the blockers named. Success is not a green gate the system produced on its own.
 
 ## Brand Personality
@@ -46,7 +48,8 @@ Familiar patterns over invention: tabs, splits, tables, a command palette, a sta
 2. **Familiar patterns over invention.** Use the interaction the owner already knows. A new pattern has to earn its place against a table or a split or a rail, and the burden of proof runs the other way for anything decorative.
 3. **Authority is visible and never transferable.** Process data is plain; agent-supplied data is marked as agent-supplied; the cockpit shows, it does not decide; an owner's gesture states what it records and what it leaves untouched. The interface must never let it look as though something was applied when it was only recorded.
 4. **Friction in proportion to consequence.** Reading state is instant and quiet. Ruling, confirming a physical action, or passing a gate is deliberately not. Never make a destructive or irreversible-feeling act as easy to trigger as a look.
-5. **Dense is not the same as loud.** Prefer the smaller surface, the closer comparison, the next useful affordance over a menu of every affordance. Respect the expert's attention as a finite resource.
+5. **Make the next consequential distinction cheap.** The destination stays legible, the deviation the evidence names leads, health stays quiet, and one move is marked as guidance and never as authority. A blocked move says what blocks it and, where it can, what would make it reachable. The interface helps the owner steer; it does not make the owner's judgment disappear.
+6. **Dense is not the same as loud.** Prefer the smaller surface, the closer comparison, the next useful affordance over a menu of every affordance. Respect the expert's attention as a finite resource.
 
 ## Accessibility & Inclusion
 

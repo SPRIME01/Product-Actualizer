@@ -114,6 +114,7 @@ Layout is one fixed rail above a docking workspace, and the rail is capped at a 
 - Fixed type scale, no fluid type, tabular numerals everywhere a number can change.
 - Motion is 120 to 150 ms and only ever reports a state change.
 - Light and dark both defined; the system preference wins unless `data-theme` overrides.
+- **The Deviation-Leads Rule.** The cockpit conspires toward the declared desired outcome by making the material deviation and the next affordable corrective move visually dominant, while never suppressing contradicting evidence. The destination stays legible, a contradiction outranks the owner's wish, healthy state recedes, one move is marked and is never a blocked one, and a blocked move states what blocks it in its own row. The reading order is the point, not the furniture: destination, where we are, the deviation, the move, what it costs and who may take it, how we will know, what opens. It is expressed with the existing blocks and tokens.
 
 ## 2. Colors
 
@@ -212,6 +213,8 @@ Uppercase, 600 weight, 11.5px, 0.03em tracking, on a tinted background with a ma
 ### Tables
 12.5px, collapsed borders, sticky uppercase 11px headers on `--line` at 500 weight. Row separators are `--line-soft`; group rows invert to `--panel-2` at 600 weight. Hover tints the row to `--panel-2`, selection to `--accent-soft`, and a highlighted row gets both the `--warn-bg` tint and a leading `▸` marker so the highlight survives greyscale. Numeric cells are mono, right-aligned, 12px, tabular. Wrapping cells cap at 460px rather than running to the viewport.
 
+In a Case view the group rows are lanes: **next move**, **choose**, **alternatives**, **blocked**. Only the next-move lane is set in capitals with an accent rule (one per view); alternatives are muted; blocked is danger text and the reason is in the row. A lane exists only if it has rows, and a view carries a table only if it has something to say.
+
 ### Tree Rows
 12.5px, 2px 4px padding, 3px radius, 14px twisty column, label truncating with an ellipsis, mono duration at the right. Row hover to `--panel-2`, selection to `--accent-soft`. A 4px duration bar in `--accent` at 55% opacity shows relative cost inline.
 
@@ -239,6 +242,7 @@ Rendered documents use 12px/1.5 mono with `pre-wrap` and `overflow-wrap: anywher
 - Use colour only where it carries a grade, status, severity, or verdict. If you cannot name the meaning, delete the colour.
 - Pair every grade and status with its word or glyph. The hue is the shortcut; the text is the fact.
 - Spend screen space on the next useful affordance, not on a menu of every affordance.
+- Let evidence lead. When the destination and the evidence disagree, the evidence is the dominant row, in plain words, with no optimistic framing.
 - Keep the accent scarce: selection, focus, and at most one primary action per view.
 - Use tabular numerals anywhere a value can change under the reader's eye.
 - Cap the rail at a fifth of the viewport and let the workspace take the rest.

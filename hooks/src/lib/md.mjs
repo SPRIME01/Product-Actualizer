@@ -2,9 +2,19 @@
 // Standard library only. This is the single implementation of the SCHEMA.md checklist;
 // hooks, the CLI, and tests/check.mjs all use it.
 
-export const FIELDS = ["purpose", "actors", "capabilities", "constraints", "form", "voice", "positioning", "claims", "unknowns", "decisions"];
+// The ten required sections, then three optional ones that may follow the decision log, in this order and no other. A model without
+// them is valid and unchanged; with them, a job, how it is judged, and the evidenced shortfall become versioned, graded, stale-able rows.
+export const REQUIRED_FIELDS = ["purpose", "actors", "capabilities", "constraints", "form", "voice", "positioning", "claims", "unknowns", "decisions"];
+export const OPTIONAL_FIELDS = ["jobs", "criteria", "opportunities"];
+export const FIELDS = [...REQUIRED_FIELDS, ...OPTIONAL_FIELDS];
 export const SECTIONS = ["Purpose", "Actors", "Capabilities", "Constraints", "Form and interaction", "Voice", "Positioning", "Claims ledger", "Unknowns", "Decision log"];
-export const SECTION_KEY = Object.fromEntries(SECTIONS.map((s, i) => [s, FIELDS[i]]));
+export const OPTIONAL_SECTIONS = ["Jobs", "Success criteria", "Opportunities"];
+export const ALL_SECTIONS = [...SECTIONS, ...OPTIONAL_SECTIONS];
+export const SECTION_KEY = Object.fromEntries(ALL_SECTIONS.map((s, i) => [s, FIELDS[i]]));
+// How a job is judged. A criterion is an expectation about progress; a settlement outcome is a consequence that happened. They never share a word.
+export const DIRECTIONS = new Set(["minimize", "maximize", "increase", "decrease", "avoid", "ensure"]);
+// A measured importance or satisfaction is a number and the source it came from. Anything else is UNKNOWN; nothing is ever scored from prose.
+export const MEASURED = /^-?\d+(\.\d+)?\s*\((.+)\)$/;
 export const GRADES = new Set(["OBSERVED", "VERIFIED", "REPORTED", "INFERRED", "PROPOSED", "UNKNOWN", "CONTRADICTED"]);
 export const PUBLIC_GRADES = new Set(["OBSERVED", "VERIFIED"]);
 export const VERDICTS = new Set(["go", "no-go", "defer", "go-with-exception"]);
@@ -40,10 +50,14 @@ export function parseModel(text) {
   const heads = [...body.matchAll(/^## (.+)$/gm)].map((m) => m[1]);
   const parts = body.split(/^## .+$/m).slice(1);
   const sections = Object.fromEntries(heads.map((h, i) => [h, parts[i] ?? ""]));
-  const model = { fm, heads, sections, version: Number.parseInt(fm.model_version, 10), claims: new Map(), unknowns: new Map(), decisions: [], capabilities: [] };
+  const model = { fm, heads, sections, version: Number.parseInt(fm.model_version, 10), claims: new Map(), unknowns: new Map(), decisions: [], capabilities: [], actors: new Map(), jobs: new Map(), criteria: new Map(), opportunities: new Map() };
   if (sections["Claims ledger"] !== undefined) for (const r of tableRows(sections["Claims ledger"])) model.claims.set(r[0], { id: r[0], text: r[1], grade: r[2], source: r[3] });
   if (sections.Unknowns !== undefined) for (const r of tableRows(sections.Unknowns)) model.unknowns.set(r[0], { id: r[0], question: r[1], blocks: r[2], who: r[3] });
   if (sections["Decision log"] !== undefined) for (const r of tableRows(sections["Decision log"])) model.decisions.push({ n: r[0], decision: r[1], rationale: r[2], touched: r[3], version: Number.parseInt(r[4], 10) });
+  if (sections.Actors !== undefined) for (const r of tableRows(sections.Actors)) model.actors.set(r[0], { id: r[0], actor: r[1], job: r[2] ?? "" });
+  if (sections.Jobs !== undefined) for (const r of tableRows(sections.Jobs)) model.jobs.set(r[0], { id: r[0], actor: r[1], job: r[2], grade: r[3], source: r[4] ?? "" });
+  if (sections["Success criteria"] !== undefined) for (const r of tableRows(sections["Success criteria"])) model.criteria.set(r[0], { id: r[0], job: r[1], direction: r[2], measure: r[3], object: r[4], context: r[5] ?? "", importance: r[6] ?? "UNKNOWN", satisfaction: r[7] ?? "UNKNOWN", grade: r[8], source: r[9] ?? "" });
+  if (sections.Opportunities !== undefined) for (const r of tableRows(sections.Opportunities)) model.opportunities.set(r[0], { id: r[0], basis: r[1], deficiency: r[2], alternatives: r[3] ?? "", grade: r[4], source: r[5] ?? "" });
   if (sections.Capabilities !== undefined) model.capabilities = tableRows(sections.Capabilities).map((r) => ({ id: r[0], capability: r[1], claims: r[2] }));
   return model;
 }
@@ -51,7 +65,9 @@ export function parseModel(text) {
 export function validateModel(m) {
   const e = [];
   if (!m.fm.product || !Number.isInteger(m.version) || m.version < 1) { e.push("front matter needs `product` and integer `model_version` >= 1"); return e; }
-  if (JSON.stringify(m.heads) !== JSON.stringify(SECTIONS)) { e.push(`sections must be exactly, in order: ${SECTIONS.join(" | ")}`); return e; }
+  const extra = m.heads.slice(SECTIONS.length);
+  const orderedExtra = OPTIONAL_SECTIONS.filter((h) => extra.includes(h));
+  if (JSON.stringify(m.heads.slice(0, SECTIONS.length)) !== JSON.stringify(SECTIONS) || JSON.stringify(extra) !== JSON.stringify(orderedExtra)) { e.push(`sections must be exactly, in order: ${SECTIONS.join(" | ")}, optionally followed by ${OPTIONAL_SECTIONS.join(" | ")} (in that order)`); return e; }
   for (const c of m.claims.values()) {
     if (!/^C\d+$/.test(c.id)) e.push(`claim id ${c.id} is not C<number>`);
     if (!GRADES.has(c.grade)) e.push(`${c.id}: grade "${c.grade}" is not one of ${[...GRADES].join(", ")}`);
@@ -66,9 +82,38 @@ export function validateModel(m) {
     if (!Number.isInteger(d.version) || d.version > m.version) e.push(`${d.n}: version ${d.version} exceeds model_version ${m.version}`);
     if (!validTouched(d.touched)) e.push(`${d.n}: touched "${d.touched}" must be field keys, "all", or claims:C<n>[+C<n>]`);
   });
+  validateDemand(m, e);
   if (m.decisions.length && Math.max(...m.decisions.map((d) => d.version)) !== m.version) e.push("max decision version must equal model_version");
   if (!m.decisions.length) e.push("decision log is empty");
   return e;
+}
+
+// Jobs, how they are judged, and the evidenced shortfall. Rules that keep a feature request from passing as an opportunity and a guess from passing as a measure.
+function validateDemand(m, e) {
+  const graded = (id, r) => {
+    if (!GRADES.has(r.grade)) e.push(`${id}: grade "${r.grade}" is not one of ${[...GRADES].join(", ")}`);
+    else if (r.grade !== "UNKNOWN" && !r.source) e.push(`${id}: no source`);
+  };
+  for (const j of m.jobs.values()) {
+    if (!/^J\d+$/.test(j.id)) e.push(`job id ${j.id} is not J<number>`);
+    if (!j.job) e.push(`${j.id}: states no progress sought`);
+    if (m.actors.size && !m.actors.has(j.actor)) e.push(`${j.id}: actor ${j.actor} is not in the Actors table`);
+    graded(j.id, j);
+  }
+  for (const c of m.criteria.values()) {
+    if (!/^S\d+$/.test(c.id)) e.push(`success criterion id ${c.id} is not S<number>`);
+    if (!m.jobs.has(c.job)) e.push(`${c.id}: judges ${c.job || "nothing"}, which is not a job`);
+    if (!DIRECTIONS.has(c.direction)) e.push(`${c.id}: direction "${c.direction}" is not one of ${[...DIRECTIONS].join(", ")}`);
+    if (!c.measure) e.push(`${c.id}: no measure`);
+    for (const k of ["importance", "satisfaction"]) if (c[k] !== "UNKNOWN" && !MEASURED.test(c[k])) e.push(`${c.id}: ${k} must be UNKNOWN or "<number> (<source>)"; a measured value carries the source it came from`);
+    graded(c.id, c);
+  }
+  for (const o of m.opportunities.values()) {
+    if (!/^OP\d+$/.test(o.id)) e.push(`opportunity id ${o.id} is not OP<number>`);
+    if (!m.criteria.has(o.basis) && !m.jobs.has(o.basis)) e.push(`${o.id}: basis ${o.basis || "(none)"} is not a success criterion or a job; an opportunity recovers the progress that is under-served, it is not a request or a solution`);
+    if (!o.deficiency) e.push(`${o.id}: states no deficiency`);
+    graded(o.id, o);
+  }
 }
 
 export function validTouched(touched) {
@@ -82,7 +127,7 @@ export function diffModels(base, next) {
   const changedFields = new Set();
   const changedClaims = new Set();
   if (!base) { FIELDS.forEach((f) => changedFields.add(f)); next.claims.forEach((_, id) => changedClaims.add(id)); return { changedFields, changedClaims }; }
-  for (const s of SECTIONS) {
+  for (const s of ALL_SECTIONS) {
     const key = SECTION_KEY[s];
     if (key === "decisions" || key === "claims") continue;
     if (norm(base.sections[s]) !== norm(next.sections[s])) changedFields.add(key);

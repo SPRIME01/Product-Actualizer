@@ -6,8 +6,10 @@ import { AgentActionSchema } from "./actions";
 import { SurfaceSchema, PlacementSchema, AskBase } from "./spec";
 import { RefSchema } from "./refs";
 import { CAPABILITIES, type WorldMode } from "./world";
+import { caseAnchor } from "./refs";
 
 const idStr = z.string().min(1).max(48);
+const show = z.boolean().default(false).describe("also open the answer as a surface for the owner");
 export type ToolDef = { name: string; description: string; input: z.ZodType; effect: "read" | "compose"; untrusted?: boolean };
 
 export const TOOLS: ToolDef[] = [
@@ -23,8 +25,8 @@ export const TOOLS: ToolDef[] = [
     description: "One entity in full: fields, related entities, consequence, next affordances." },
   { name: "show_surface", effect: "compose", input: z.object({ surface: SurfaceSchema, place: PlacementSchema.optional() }).strict(),
     description: "Show or replace a surface composed from the fixed blocks. Existing surfaces keep the owner's position." },
-  { name: "show_ref", effect: "compose", input: z.object({ ref: RefSchema, beside: idStr.optional(), as: z.enum(["detail", "document", "lineage", "why", "impact", "diff"]).default("detail") }).strict(),
-    description: "Show a claim, unknown, proposal, decision, artifact, evidence file, lens, or the gate using a standard template; as=document opens the file, as=lineage the claim graph, as=why the provenance debugger, as=impact the consequence graph, as=diff (on a version) what changed since it." },
+  { name: "show_ref", effect: "compose", input: z.object({ ref: RefSchema, beside: idStr.optional(), as: z.enum(["detail", "document", "lineage", "why", "impact", "diff", "case", "decision"]).default("detail") }).strict(),
+    description: "Show a claim, unknown, proposal, decision, artifact, evidence file, lens, or the gate using a standard template; as=document opens the file, as=lineage the claim graph, as=why the provenance debugger, as=impact the consequence graph, as=diff (on a version) what changed since it, as=case the Case anchored on it, as=decision the situational DecisionState view." },
   { name: "compare_refs", effect: "compose", input: z.object({ a: RefSchema, b: RefSchema, beside: idStr.optional() }).strict(),
     description: "Compare two artifacts or evidence files (text diff) or two entities side by side." },
   { name: "ask_human", effect: "compose", input: AskBase.extend({ place: PlacementSchema.optional() }).strict(),
@@ -37,10 +39,17 @@ export const TOOLS: ToolDef[] = [
     description: "What the owner answered, ruled, confirmed, or annotated. Routing them (proposals, decisions) is the router's job through the process CLI; this tool only reads." },
 ];
 
+// ---- the Case: where we are trying to go, what stands between, and what can be done now. Derived on every read; nothing is stored. ----
+const caseRef = z.string().max(120).refine((s) => !!caseAnchor(s.replace(/^case:/, "")), { message: "a Case anchor: run, OP<n>, S<n>, J<n>, C<n>, U<n>, P<n>, or evidence/<lens>/<file>" });
+export const CASE_TOOLS: ToolDef[] = [
+  { name: "case_get", effect: "read", untrusted: true, input: z.object({ ref: caseRef.default("run"), part: z.enum(["summary", "moves", "settlement", "prior"]).default("summary"), q: z.string().max(200).optional(), view: z.enum(["case", "decision"]).default("case"), show }).strict(),
+    description: "The Case around a purpose (default: this run). summary: the destination, what is true now, the one material deviation, the one primary move with its cost, authority, recovery, and expected evidence, the blocked moves with what would reach them, and whether settlement is reachable and whether to settle now (always the owner's call). moves: the whole affordance field. settlement: required and optional conditions. prior: settled patterns and experiments that already bear on q. Never a dump: it is built to be read in one glance. Reading it runs nothing and settles nothing." },
+];
+TOOLS.push(...CASE_TOOLS);
+
 // ---- the world debugger: questions about the product world. All read-only; `show` also puts the answer in front of the owner. ----
 const Pred = z.object({ field: z.string().max(40), op: z.enum(["eq", "ne", "contains", "gt", "lt", "in"]).default("eq"), value: z.union([z.string().max(80), z.number(), z.array(z.string().max(40)).max(8)]) }).strict();
 const worldRef = z.string().regex(/^(model@)?\d+$|^current$/, "a world is a model version (3 or model@3) or current");
-const show = z.boolean().default(false).describe("also open the answer as a surface for the owner");
 export const WORLD_TOOLS: ToolDef[] = [
   { name: "world_why", effect: "read", untrusted: true, input: z.object({ ref: RefSchema, show }).strict(),
     description: "Why is this ref what it is? State, when it began, the transition and decision that changed it, who proposed or observed it, evidence for and against, what it depends on and what depends on it. Each answer says whether it was recorded, derived, or is not recorded." },
@@ -48,7 +57,7 @@ export const WORLD_TOOLS: ToolDef[] = [
     description: "What depends on this (down), what it depends on (up), or both, as a small focused graph: direct dependents, transitive count, stale consequences, and the shortest path to the gate." },
   { name: "world_diff", effect: "read", untrusted: true, input: z.object({ a: worldRef, b: worldRef.default("current"), show }).strict(),
     description: "What changed in the Product Model between two settled worlds: added, changed, removed entities with prior values and the decisions that explain them. Read-only; the current world is untouched." },
-  { name: "world_timeline", effect: "read", untrusted: true, input: z.object({ ref: RefSchema.optional(), show }).strict(),
+  { name: "world_timeline", effect: "read", untrusted: true, input: z.object({ ref: RefSchema.optional(), git: z.boolean().default(false).describe("also list local git commits that touched the run directory (read-only)"), show }).strict(),
     description: "The settled transitions of the Product Model, or of one ref: when each version settled, what it added or changed, and its decisions." },
   { name: "world_counterfactual", effect: "read", untrusted: true, input: z.object({ candidate: RefSchema, show }).strict(),
     description: "Preview an open proposal without applying it: known, derived, expected and unknown effects, the observations required before it could settle, and who could gather them. A possibility, never a result." },

@@ -156,3 +156,13 @@ input[type=radio]:checked::before, input[type=checkbox]:checked::before { transf
 .status.derived, .status.changed, .status.expected, .status.unproven, .status.unknown, .status.not-selected { color: var(--warn); border-color: var(--warn); }
 .status.unavailable, .status.removed, .status.no, .status.blocked, .status.observation-required, .status.source-error { color: var(--danger); border-color: var(--danger); }
 .status.na { color: var(--ink-3); border-color: var(--line); }
+
+/* Case navigation: deviation is loud, health is quiet. Colour only ever carries process meaning (evidence contradicts, something is open, a move is blocked). */
+.status.interrupt, .status.not-yet, .status.contested, .status.invalid, .status.changed-after-freeze, .status.results-first, .status.fail { color: var(--danger); border-color: var(--danger); font-weight: 600; }
+.status.salient, .status.weigh, .status.emerging, .status.single-result, .status.unfrozen, .status.inferred, .status.partial, .status.insufficient, .status.designed, .status.same-commit, .status.uncomputed { color: var(--warn); border-color: var(--warn); }
+.status.supported, .status.frozen, .status.measured, .status.frozen-first, .status.observed { color: var(--ok); border-color: var(--ok); }
+.status.quiet, .status.nothing-to-weigh, .status.available, .status.choose, .status.expected, .status.owner, .status.agent, .status.router { color: var(--ink-3); border-color: var(--line); }
+.t tr.group[data-lane="next-move"] td { background: var(--panel-2); color: var(--ink); border-bottom-color: var(--accent); letter-spacing: .04em; text-transform: uppercase; }
+.t tr.group[data-lane="blocked"] td { color: var(--danger); }
+.t tr.group[data-lane="choose"] td { color: var(--ink); }
+.t tr.group[data-lane="alternatives"] td { color: var(--ink-3); font-weight: 500; }

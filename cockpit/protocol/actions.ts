@@ -51,8 +51,8 @@ const HControl = z.object({ op: z.literal("human.control"), surface: sid, block:
 const HLayout = z.object({ op: z.literal("human.layout"), tree: z.any(), moved: z.array(sid).max(24).optional(), minimized: z.array(sid).max(24).optional(), maximized: sid.nullable().optional(), focus: sid.nullable().optional() }).strict();
 const HPin = z.object({ op: z.literal("human.pin"), id: sid, pinned: z.boolean() }).strict();
 const HClose = z.object({ op: z.literal("human.close"), id: sid }).strict();
-export const TEMPLATE_IDS = ["trace", "proposals", "claims", "contradictions", "unknowns", "staleness", "lenses", "gate", "inbox", "events", "ref"] as const;
-const HOpen = z.object({ op: z.literal("human.open"), template: z.enum(TEMPLATE_IDS), ref: RefSchema.optional(), as: z.enum(["detail", "document", "lineage", "why", "impact", "diff"]).optional() }).strict();
+export const TEMPLATE_IDS = ["case", "trace", "proposals", "claims", "contradictions", "unknowns", "staleness", "lenses", "gate", "inbox", "events", "ref"] as const;
+const HOpen = z.object({ op: z.literal("human.open"), template: z.enum(TEMPLATE_IDS), ref: RefSchema.optional(), as: z.enum(["detail", "document", "lineage", "why", "impact", "diff", "case", "decision"]).optional() }).strict();
 const HSize = z.object({ op: z.literal("human.size"), id: sid, state: z.enum(["normal", "minimized", "maximized"]) }).strict();
 const HLayoutOps = z.object({ op: z.literal("human.layout-restore"), name: z.string().max(32).default("previous") }).strict();
 

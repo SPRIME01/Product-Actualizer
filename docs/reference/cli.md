@@ -106,7 +106,19 @@ Read-only questions about the product world, answered from the run's files, so t
 | `world reach <ref>` or `world reach --need <capability>` | providers for the evidence a gap needs, with the six-rung ladder |
 | `world replay --selects file:evidence/<lens>/<file>#tableN --expect field~op~value[,…] [--where …]` | an observation criterion over recorded evidence |
 
-See [the world debugger](../world-debugger.md).
+See [the world debugger](../world-debugger.md). `world timeline [ref] --git` adds the local commits that touched the run (read-only).
+
+## `actualize case`
+
+| command | answers |
+|---|---|
+| `case [ref] [--show]` | the Case: destination, what is true now, the material deviation, the one primary move with cost, authority, recovery and expected evidence, blocked moves, whether settlement is reachable. `ref` defaults to `run`; also `OP1`, `S1`, `J1`, `C4`, `U2`, `P7`, `evidence/<lens>/<file>` |
+| `case moves [ref]` | the whole affordance field |
+| `case settlement [ref]` | required and optional conditions, and `shouldSettleNow` (always the owner's call) |
+| `case prior --q "<words>"` | settled patterns and experiments that already bear on this, before you pay to observe it again |
+| `case <ref> --decision --show` | the decision-state view for that Case |
+
+It works with the cockpit closed (a function of the run files). See [case navigation](../case-navigation.md).
 
 ## `actualize inbox` (`cockpit/cli.ts:115-136`)
 
@@ -137,6 +149,7 @@ Idempotent; backs up any file it changes into `backupDir()` (`ACTUALIZE_BACKUP_D
 | variable | read at | effect |
 |---|---|---|
 | `ACTUALIZE_DIR` | `store.mjs:27` | use this run directory instead of searching for `actualize/` (with `state.json`) upward from cwd |
+| `ACTUALIZE_GH` | `reach.ts` | `1` lets the reach ladder run `gh auth status` once a minute to fill the `gh` provider's probed, reachable, and authorized rungs. Default off: nothing is run or contacted without it |
 | `ACTUALIZE_SKILLS_DIR` | `store.mjs:16` | lens root; default `<repo>/skills` |
 | `ACTUALIZE_MODEL_DIR` | `store.mjs:19` | schema root; default `<repo>/product-model`. `reconcile start` reads `TEMPLATE.md` from here |
 | `ACTUALIZE_BACKUP_DIR` | `adapters/common.mjs:16` | where the installer stores backups |

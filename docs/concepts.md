@@ -12,6 +12,8 @@ skills (hallmark, impeccable, ffmpeg, and others) that do the execution when ins
 purpose · actors and their jobs · capabilities · constraints (technical, physical, legal) · form and interaction ·
 voice · positioning · **claims ledger** · **unknowns** · **decision log**. The full definition is `product-model/SCHEMA.md`.
 
+Three optional sections may follow: **jobs** (the progress an actor seeks), **success criteria** (how they judge it, an expectation and never a settlement outcome), and **opportunities** (evidenced progress that is under-served, never a feature request or a solution). A **Case** is a derived view of the world around one present purpose, never stored; an **affordance** is a move that is visible, reachable, payable, governable, recoverable, and settleable. See [case navigation](case-navigation.md).
+
 ## Claims and evidence grades
 
 Every statement the product may make is a row in the claims ledger with a grade and a source you can re-open.

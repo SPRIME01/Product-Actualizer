@@ -101,7 +101,7 @@ A surface looks at history or a candidate only through its own sources (`pa:clai
 
 The tool definitions are one list (`cockpit/protocol/tools.ts`) feeding the CLI, the loopback MCP endpoint, and WebMCP. What is *offered* follows what the owner is looking at (`activeTools`), to keep the catalogue small. This is discovery, not authorization: every tool stays callable, and none can do more than read the run or compose the cockpit as the agent role.
 
-| context | offered besides the twelve base tools |
+| context | offered besides the thirteen base tools |
 |---|---|
 | normal | nothing |
 | a subject is open or selected, or a non-current world | `world_why`, `world_impact` |
@@ -124,6 +124,10 @@ The tool definitions are one list (`cockpit/protocol/tools.ts`) feeding the CLI,
 | WebMCP is not an owner channel | WebMCP runs under the agent token; no tool answers, rules, confirms, or edits the model |
 | no source escapes the run | the tool schema, `..` checks, and `safeRunFile` including symlinks |
 | malformed requests return structured errors and change nothing | `SCHEMA`, `BAD_REF`, `BAD_SOURCE` with the workspace revision and files unchanged |
+
+## The Case builds on this
+
+Jobs, success criteria, opportunities, and Cases are ordinary refs: `why`, `impact`, `diff`, `timeline`, `counterfactual`, and `reach` answer for them from the same files with no new engine, and say `unavailable` where the run records nothing (an opportunity whose source names no evidence file has no "supports" edge). A candidate that names an opportunity is previewed as one possible transformation, never as evidence the shortfall shrank. `reach` on an unmeasured criterion routes to the measurement capabilities (`market.interview`, `market.survey`, `behavior.analytics`, `support.history`), whose providers are data in `reach.providers.json`. Local git adds commit provenance to `why` (artifacts, evidence, a version's settlement time when the log lacks it) and to `timeline --git`. See [case navigation](case-navigation.md).
 
 ## What it does not do
 

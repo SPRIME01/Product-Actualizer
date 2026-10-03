@@ -13,7 +13,7 @@ The complete verb set is `up`, `serve` (internal, spawned by `up`), `open`, `dow
 see [the CLI reference](reference/cli.md) for flags. For the subsystem as a component see
 [the cockpit subsystem guide](subsystems/cockpit.md); for the exact vocabulary — all 15 blocks, the source grammar,
 the error codes, the tools — see [the cockpit protocol reference](reference/cockpit-protocol.md). For asking the product world
-*why*, *what changed*, *what depends on this*, and *what would follow*, see [the world debugger](world-debugger.md).
+*why*, *what changed*, *what depends on this*, and *what would follow*, see [the world debugger](world-debugger.md). For where the work is trying to go and the one move that answers the deviation, see [case navigation](case-navigation.md).
 
 ## The picture
 

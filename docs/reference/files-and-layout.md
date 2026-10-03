@@ -33,6 +33,8 @@ Located by `findRun` (`hooks/src/lib/store.mjs:25-40`): `ACTUALIZE_DIR` if set, 
 | `run-other` | anything else inside `actualize/` | — |
 | `project` / `outside` | outside `actualize/` but inside the project / outside it | strict mode: product files change only inside a lens run |
 
+Two evidence conventions the Case reads (nothing else is added to the run directory): an **experiment** is an `evidence/<lens>/<file>.md` whose head starts `experiment:` and carries `hypothesis`, `primary`, `guardrail`, `scope`, `expect`, and `frozen`; a **decision state** is a table with the columns `case | actor | job | trigger | push | pull | anxiety | habit | grade | evidence` inside a stamped artifact. See [case navigation](../case-navigation.md).
+
 ## This repository
 
 | path | what it is | who reads it |
@@ -72,6 +74,8 @@ Located by `findRun` (`hooks/src/lib/store.mjs:25-40`): `ACTUALIZE_DIR` if set, 
 | `.gitignore` | notably `actualize/.cockpit/`, `**/.cockpit/`, `*.db`, `.tmp/`, `.serena/` | git |
 
 `.tmp/ref/` holds reference clones during donor work and is deleted after use; `check.py` fails if it still exists.
+
+**`.agents/`** holds bounded developmental work for the agents that build this repository, model-neutral: `specs/` (a specification and plan per change) and `DEBT.md` (real residuals, each with its evidence, consequence, and what would make it reachable). It is not part of a run.
 
 ## Test fixtures and walkthroughs
 

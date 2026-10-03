@@ -1,12 +1,13 @@
 import React, { useMemo, useState } from "react";
 import { send, useSource, type Panel } from "../store";
+import { expandRef } from "../../protocol/refs";
 import { Grade, Status, RefChip, RichText, BlockTitle, fmtDur, fmtTime, toneDot, openRef } from "../ui";
 
 export type BP = { block: any; panel: Panel };
 export const ctrlOf = (p: Panel, b: any) => ({ ...b, ...(p.controls[b.id] ?? {}) });
 const select = (p: Panel, b: any, ref: string | null) => send({ op: "human.select", surface: p.id, block: b.id, ref });
 
-const refKind: Record<string, string> = { claims: "claim", unknowns: "unknown", decisions: "decision", proposals: "proposal", artifacts: "artifact", lenses: "lens", evidence: "evidence", versions: "version" };
+const refKind: Record<string, string> = { claims: "claim", unknowns: "unknown", decisions: "decision", proposals: "proposal", artifacts: "artifact", lenses: "lens", evidence: "evidence", versions: "version", jobs: "job", criteria: "criterion", opportunities: "opportunity" };
 function rowRef(row: any, source?: string): string | null {
   if (row._ref) return row._ref;
   const m = /^pa:([a-z]+)/.exec(source ?? ""); const k = m && refKind[m[1]];
@@ -18,7 +19,7 @@ function Cell({ row, col, source }: { row: any; col: any; source?: string }) {
   switch (col.kind) {
     case "grade": return v ? <Grade g={String(v)} />: null;
     case "status": return v === "" || v == null ? null: <Status s={String(v)} />;
-    case "ref": { const r = rowRef(row, source) ?? (typeof v === "string" && /^[CUPD]\d+$/.test(v) ? v: null); return r ? <RefChip ref_={/^[CUPD]\d+$/.test(r) ? ({ C: "claim", U: "unknown", P: "proposal", D: "decision" } as any)[r[0]] + ":" + r: r} label={String(v)} />: <span className="mono">{String(v ?? "")}</span>; }
+    case "ref": { const r = rowRef(row, source) ?? (typeof v === "string" ? expandRef(v) : null); return r ? <RefChip ref_={expandRef(r) ?? r} label={String(v)} />: <span className="mono">{String(v ?? "")}</span>; }
     case "number": return <>{v === "" || v == null ? "": String(v)}</>;
     default: return <RichText text={String(v ?? "")} />;
   }
@@ -36,7 +37,7 @@ export function TableBlock({ block, panel }: BP) {
   if (!res) return <div className="muted">loading…</div>;
   if (res.kind === "error") return <div className="callout danger">{res.message}</div>;
   const groups: [string, any[]][] = block.group ? Object.entries(rows.reduce((a: any, r) => ((a[String(r[block.group] ?? "")] ??= []).push(r), a), {})): [["", rows]];
-  const tone = (g: string) => (/fail|no-go|stale|invalid|exceed|contradicted|bad/i.test(g) ? "bad": /pass|ok|go|done|current|observed|verified/i.test(g) ? "ok": "");
+  const tone = (g: string) => (/fail|no-go|stale|invalid|exceed|contradicted|bad|blocked/i.test(g) ? "bad": /pass|ok|go|done|current|observed|verified/i.test(g) ? "ok": "");
   return (
     <div>
       <BlockTitle title={block.title ?? `${res.total > rows.length ? `${rows.length} of ${res.total}`: res.total} ${res.total === 1 ? "row": "rows"}`} prov={res.provenance}>
@@ -47,7 +48,7 @@ export function TableBlock({ block, panel }: BP) {
         <tbody>
           {groups.map(([g, rs]) => (
             <React.Fragment key={g}>
-              {block.group ? <tr className="group"><td colSpan={columns.length}><span className={`dotc ${tone(g)}`} style={{ display: "inline-block", marginRight: 6 }} />{g || "(none)"} <span className="muted">· {rs.length}</span></td></tr>: null}
+              {block.group ? <tr className="group" data-lane={g.toLowerCase().replace(/[^a-z0-9]+/g, "-")}><td colSpan={columns.length}><span className={`dotc ${tone(g)}`} style={{ display: "inline-block", marginRight: 6 }} />{g || "(none)"} <span className="muted">· {rs.length}</span></td></tr>: null}
               {rs.map((r, i) => {
                 const ref = rowRef(r, b.source); const rid = ref ?? String(r.id ?? i);
                 const on = block.select !== false && sel === rid;

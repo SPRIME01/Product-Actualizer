@@ -115,7 +115,7 @@ describe("human-only authority", () => {
   test("the tool surface has no verb that answers, rules, confirms, or edits the model", () => {
     expect(TOOL_NAMES).not.toEqual(expect.arrayContaining(["approve_proposal"]));
     for (const n of TOOL_NAMES) expect(n).not.toMatch(/approve|reject|resolve|answer|confirm|submit|accept|edit|write|set_model|reconcile/);
-    expect(BASE_TOOLS.length).toBeLessThanOrEqual(12);   // the always-visible surface stays small; world tools appear by context
+    expect(BASE_TOOLS.length).toBeLessThanOrEqual(13);   // the always-visible surface stays small (twelve plus case_get); world tools appear by context
   });
   test("loopback MCP lists the active tools (a subset of the one definition) and rejects an invented one", async () => {
     const list = await post("/mcp", srv.agentToken, { jsonrpc: "2.0", id: 1, method: "tools/list" });

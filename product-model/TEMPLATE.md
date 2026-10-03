@@ -46,3 +46,5 @@ model_version: 1
 | n | decision | rationale | touched | version |
 |---|---|---|---|---|
 | D1 | Model created from initial evidence | <what evidence was classified> | all | 1 |
+
+<!-- Optional, only when demand evidence exists: after the decision log add the sections `Jobs`, `Success criteria`, `Opportunities` (in that order, as H2 headings), each a table. Columns are in SCHEMA.md "Optional demand sections". Leave them out otherwise. -->

@@ -3,6 +3,7 @@
 import type { Proj } from "./project";
 import type { Surface } from "../protocol/spec";
 import { TEMPLATE_IDS } from "../protocol/actions";
+import { caseSurface } from "./caseSurfaces";
 import fs from "node:fs";
 import path from "node:path";
 
@@ -11,6 +12,7 @@ const table = (id: string, source: string, columns: any[], extra: any = {}) => (
 const follow = (of: string, show: string[]) => ({ type: "entity", id: "detail", follow: of, show });
 
 export const TEMPLATES: Record<Exclude<(typeof TEMPLATE_IDS)[number], "ref">, T> = {
+  case: () => caseSurface("run"),
   trace: () => ({ id: "trace", title: "Run trace", summary: "Nested activity of this run: waves, lenses, reconciliations, with durations.", intent: "monitor", layout: "stack", blocks: [{ type: "progress", id: "run", label: "Run", source: "run" }, { type: "tree", id: "tree", source: "pa:trace", expand: 3, show: ["status", "duration"] }] }),
   proposals: () => ({ id: "proposals", title: "Open proposals", summary: "Lens findings waiting for a reconciliation. Your ruling is recorded for the router; it does not edit the model.", intent: "decide", layout: "stack", blocks: [table("list", "pa:proposals?status=open", [{ field: "id", kind: "ref" }, { field: "lens" }, { field: "field" }, { field: "kind" }, { field: "proposal", kind: "text" }]), follow("list", ["consequence", "actions", "sources"])] as any }),
   claims: () => ({ id: "claims", title: "Claims ledger", summary: "Every claim with its grade. Public copy may cite only OBSERVED or VERIFIED.", intent: "inspect", layout: "stack", blocks: [table("list", "pa:claims", [{ field: "id", kind: "ref" }, { field: "grade", kind: "grade" }, { field: "text" }, { field: "source" }]), follow("list", ["sources", "touches", "consequence", "actions"])] as any }),
@@ -45,5 +47,6 @@ export function hints(p: Proj): { label: string; why: string; template: (typeof 
   if (waiting) out.push({ label: `${waiting} of your response${waiting > 1 ? "s" : ""} not yet routed`, why: "the router has not acknowledged them", template: "inbox" });
   if (p.run.activeLenses.length || p.run.phase !== "idle") out.push({ label: "Follow the run", why: p.run.activeLenses.length ? `running: ${p.run.activeLenses.join(", ")}` : p.run.phase, template: "trace" });
   if (!out.length) out.push({ label: "Lens map", why: "which lenses ran and what is next", template: "lenses" });
+  out.unshift({ label: "Where we are trying to go", why: "the destination, the deviation, and the one move that answers it", template: "case" });
   return out.slice(0, 4);
 }

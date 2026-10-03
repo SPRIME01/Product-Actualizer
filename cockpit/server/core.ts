@@ -7,8 +7,11 @@ import { railOf } from "./project";
 import { resolve, detail, search, safeRunFile, observe, observerOf, type Env } from "./sources";
 import * as K from "./world";
 import * as WS_ from "./worldSurfaces";
+import * as CS from "./caseSurfaces";
+import * as C from "./case";
+import * as L from "./learn";
 import { emptyWS, applyAgent, applyHuman, contextOf, viewingOf, isAuthorityOp, panelsIn, type WS, type Ctx, type Panel } from "./workspace";
-import { parseRef } from "../protocol/refs";
+import { parseRef, caseAnchor } from "../protocol/refs";
 import { TEMPLATES, hints } from "./templates";
 import { fail, issuesOf, type ActionResult } from "../protocol/actions";
 import { TOOLS, activeTools } from "../protocol/tools";
@@ -61,6 +64,8 @@ export class Cockpit {
       case "evidence": return !!entity(this.db, "evidence", r.id);
       case "lens": return !!entity(this.db, "lens", r.id);
       case "version": return !!entity(this.db, "version", r.id);
+      case "actor": return this.last.proj.actors.some((a: any) => a.id === r.id);
+      case "case": return C.caseOf(this.worldEnv(), r.id).ok;
       default: return !!entity(this.db, r.kind, r.id);
     }
   }
@@ -214,6 +219,7 @@ export class Cockpit {
       case "ask_human": { const { place, ...ask } = a; return apply({ op: "surface.put", surface: { id: `ask-${slug(ask.id)}`, title: "Needs your input", summary: ask.why ?? "The agent asked for a judgement it cannot make.", intent: "decide", layout: "stack", blocks: [{ type: "ask", ...ask }] }, place }); }
       case "arrange": return apply(a.action);
       case "annotate": return apply({ op: "note.add", target: a.target, text: a.text, tone: a.tone });
+      case "case_get": return this.caseTool(a);
       case "world_why": case "world_impact": case "world_diff": case "world_timeline": case "world_counterfactual": case "world_reach": case "world_replay":
         return this.worldTool(name, a);
       case "read_responses": {
@@ -224,22 +230,52 @@ export class Cockpit {
     return fail("UNKNOWN_OP", name);
   }
 
+  // ---- the Case: a derived view. Reading it runs nothing; `show` composes it as an ordinary surface under the agent role. --------------------------
+  haveLearning() { const W = this.worldEnv(); const e = L.experiments(W); return { experiments: e.length, patterns: L.patterns(W, e).length }; }
+  private caseTool(a: any): { ok: true; result: any } | ActionResult {
+    const W = this.worldEnv(); const id = String(a.ref).replace(/^case:/, "");
+    if (a.part === "prior") { if (!a.q) return fail("SCHEMA", "case_get part=prior needs q: words about what you are about to investigate"); return { ok: true, result: L.prior(W, a.q) }; }
+    const c = C.caseOf(W, id); if (!c.ok) return fail("BAD_REF", c.message);
+    const brief = (m: C.Affordance) => ({ id: m.id, move: m.label, why: m.why, requires: m.status === "blocked" ? undefined : m.requires.map((r) => `${r.met ? "ok" : "unmet"}: ${r.what}`), because: m.status === "blocked" ? m.blockedBy.map((b) => b.text) : undefined, reach: m.reach ? `${m.reach.provider} (${m.reach.status}): ${m.reach.next}` : undefined, cost: `${m.payment.kind}: ${m.payment.estimate}`, authority: m.authority, recovery: m.recovery, evidence: m.evidence, then: m.enables.slice(0, 3), prior: m.prior.length ? m.prior : undefined, command: m.command });
+    let result: any;
+    if (a.part === "moves") result = { case: c.ref, primary: c.primary, moves: c.field.slice(0, 14).map((m) => ({ lane: m.lane, status: m.status, ...brief(m) })), omitted: Math.max(0, c.field.length - 14) };
+    else if (a.part === "settlement") result = { case: c.ref, settlementReachable: c.settlement.reachable, required: c.settlement.required, optional: c.settlement.optional, optionalCount: c.settlement.optionalCount, shouldSettleNow: c.settlement.shouldSettleNow };
+    else {
+      const prim = c.field.find((m) => m.primary);
+      result = {
+        case: c.ref, derived: true, authoritative: false, world: c.world,
+        destination: { text: c.purpose.text, bar: c.purpose.bar, declaredBy: c.purpose.declaredBy, basis: c.purpose.basis },
+        now: c.now.text,
+        deviation: c.material ? { severity: c.material.severity, text: c.material.text, ref: c.material.ref } : null, otherDeviations: c.deviations.slice(1, 4).map((d) => `${d.severity}: ${d.text}`),
+        primary: prim ? brief(prim) : null,
+        alternatives: c.field.filter((m) => m.status === "available" && !m.primary).slice(0, 4).map((m) => ({ id: m.id, move: m.label, authority: m.authority })),
+        blocked: c.field.filter((m) => m.status === "blocked").slice(0, 4).map((m) => ({ id: m.id, move: m.label, because: m.blockedBy.map((b) => b.text).slice(0, 3), reach: m.reach ? `${m.reach.provider} (${m.reach.status}): ${m.reach.next}` : undefined })),
+        settlement: { settlementReachable: c.settlement.reachable, required: c.settlement.required.length, optional: c.settlement.optionalCount, shouldSettleNow: c.settlement.shouldSettleNow },
+        decisionStates: c.decisionStates.length,
+        note: "A Case is derived from the run files and stores nothing. The primary move is guidance, not authority: nothing here acts, and settling is the owner's call.",
+      };
+    }
+    const surface = a.show ? CS.surfaceFor(id, a.view, this.haveLearning()) : null;
+    const shown = surface ? this.agent({ op: "surface.put", surface }) : null;
+    return { ok: true, result: { ...result, ...(shown ? { shown: shown.ok ? surface!.id : { refused: (shown as any).code } } : {}) } };
+  }
+
   // ---- the world debugger: reads over the run files; `show` composes the answer as a surface through the ordinary agent path -------------
-  worldEnv(): K.WorldEnv { return { proj: this.last.proj, runDir: this.run.dir, reach: this.reachEnv }; }
+  worldEnv(): K.WorldEnv { return { proj: this.last.proj, runDir: this.run.dir, reach: this.reachEnv, observe: (d) => observe(this.env, d) }; }
   reachEnv: import("./reach").ReachEnv | undefined;
   private worldTool(name: string, a: any): { ok: true; result: any } | ActionResult {
     const W = this.worldEnv(); const BAD = (m: string) => fail(/does not exist|not a ref|candidate is a proposal|give need/.test(m) ? "BAD_REF" : "BAD_SOURCE", m);
     const showIt = (s: any) => (a.show && s ? this.agent({ op: "surface.put", surface: s }) : null);
     const out = (result: any, surface?: any) => { const shown = showIt(surface); return { ok: true as const, result: { ...result, ...(shown ? { shown: shown.ok ? surface.id : { refused: (shown as any).code } } : {}) } }; };
     switch (name) {
-      case "world_why": { const r = K.why(W, a.ref); if (!r.ok) return BAD(r.message); return out({ ref: r.ref, kind: r.kind, title: r.title, state: r.state, answers: r.answers, unavailable: r.unavailable, note: "basis: recorded = written in the run; derived = computed from what is written; unavailable = not recorded" }, WS_.whySurface(a.ref)); }
+      case "world_why": { const r = C.caseWhy(W, a.ref); if (!r.ok) return BAD(r.message); return out({ ref: r.ref, kind: r.kind, title: r.title, state: r.state, answers: r.answers, unavailable: r.unavailable, note: "basis: recorded = written in the run; derived = computed from what is written; unavailable = not recorded" }, WS_.whySurface(a.ref)); }
       case "world_impact": { const r = K.impact(W, a.ref, { dir: a.dir, depth: a.depth, kinds: a.kinds, gate: a.gate }); if (!r.ok) return BAD(r.message); return out({ subject: r.subject, direction: r.direction, depth: r.depth, affected: r.affected, direct: r.direct, stale: r.stale, gateRelevant: r.gateRelevant, gatePath: r.gatePath, truncated: r.truncated, nodes: r.rows.map((x) => `${x.ref} [${x.status || x.kind}] ${x.distance} hop(s) via ${x.via}${x.gate ? " (gate)" : ""}`), basis: r.basis }, WS_.impactSurface(a.ref, a)); }
       case "world_diff": {
         const A = parseWorldId(a.a), B = parseWorldId(a.b); if (A === null || B === null) return BAD("a and b must be worlds");
         const d = K.diff(W, A, B); if (!d.ok) return BAD(d.message);
         return out({ a: d.a.id, b: d.b.id, same: d.same, digests: [d.a.digest.value.slice(0, 12), d.b.digest.value.slice(0, 12)], changes: d.rows.slice(0, 40).map((r) => `${r.change} ${r.ref}${r.field ? "." + r.field : ""}${r.before ? `: ${r.before} → ` : ": "}${r.after}${r.because ? `  (${r.because})` : ""}`), total: d.rows.length, coverage: d.coverage, note: d.note }, WS_.diffSurface(W, A, B));
       }
-      case "world_timeline": { const t = K.timeline(W, a.ref); return out({ ref: a.ref ?? null, events: t.slice(-40).map((e) => `model@${e.version} ${e.ts || "(time not recorded)"} ${e.type} ${e.detail}`), total: t.length }, WS_.timelineSurface(a.ref)); }
+      case "world_timeline": { const t = K.timeline(W, a.ref, { git: a.git }); return out({ ref: a.ref ?? null, events: t.slice(-40).map((e) => `model@${e.version} ${e.ts || "(time not recorded)"} ${e.type} ${e.detail}`), total: t.length }, WS_.timelineSurface(a.ref)); }
       case "world_counterfactual": { const r = K.counterfactual(W, a.candidate); if (!r.ok) return BAD(r.message); return out({ candidate: r.candidate, settled: r.settled, counts: r.counts, effects: r.effects.map((e) => `[${e.class}] ${e.subject}: ${e.effect}${e.via ? `  reach: ${e.via}` : ""}`), authority: r.authority, note: "possibility only: the router decides at reconciliation" }, WS_.counterfactualSurface(a.candidate)); }
       case "world_reach": { const r: any = K.worldReach(W, { need: a.need, ref: a.ref }, this.reachEnv); if (!r.ok) return BAD(r.message); return out({ ref: r.ref, gap: r.gap, capability: r.capability, best: r.best, needs: r.needs?.map((n: any) => ({ capability: n.capability, basis: n.basis, best: n.best, providers: n.providers.map((p: any) => `${p.id} ${p.status}${p.blockedAt ? ` at ${p.blockedAt}` : ""}: ${p.next}`) })), providers: r.providers?.map((p: any) => `${p.id} ${p.status}${p.blockedAt ? ` at ${p.blockedAt}` : ""}: ${p.next}`), note: r.note ?? "nothing was run or contacted; probed, reachable and authorized stay unknown until a prober supplies them" }, WS_.reachSurface({ need: a.need, ref: a.ref })); }
       case "world_replay": {
@@ -271,10 +307,12 @@ function compactRow(what: string, r: any) {
   return JSON.stringify(r).slice(0, 140);
 }
 
+const caseIdOfRef = (ref: string) => { const r = parseRef(ref); if (!r) return "run"; return r.kind === "case" ? r.id : r.kind === "gate" ? "run" : r.kind === "evidence" || r.kind === "artifact" ? `${r.kind}/${r.id}` : ["opportunity", "criterion", "job", "claim", "unknown", "proposal"].includes(r.kind) ? r.id : "run"; };
 function templateShow(a: any, c: Cockpit) {
   const r = parseRef(a.ref)!;
   // debugger views are compositions of the same blocks; they carry the same placement rules as any other surface
   const place = a.beside ? { rel: "right", to: a.beside, size: 0.5, focus: true } : undefined;
+  if (a.as === "case" || a.as === "decision") return { op: "surface.put", surface: CS.surfaceFor(caseIdOfRef(a.ref), a.as, c.haveLearning()), place };
   if (a.as === "why") return { op: "surface.put", surface: WS_.whySurface(a.ref), place };
   if (a.as === "impact") return { op: "surface.put", surface: WS_.impactSurface(a.ref), place };
   if (a.as === "diff" && r.kind === "version") { const s = WS_.diffSurface(c.worldEnv(), Number(r.id), "current"); if (s) return { op: "surface.put", surface: s, place }; }

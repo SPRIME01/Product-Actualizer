@@ -9,7 +9,10 @@ import { parseRef, fmtRef } from "../protocol/refs";
 import type { Proj } from "./project";
 import { worldOfSource, parseWorldId, type Viewing } from "../protocol/world";
 import * as K from "./world";
+import * as C from "./case";
+import * as L from "./learn";
 import { frontmatter } from "../../hooks/src/lib/md.mjs";
+import { markdownTables, slug } from "./tables";
 
 export type Col = { field: string; label?: string; kind?: string; unit?: string };
 export type Rows = { world?: Viewing; kind: "rows"; provenance: "process" | "file" | "agent"; columns: Col[]; rows: Record<string, any>[]; total: number; truncated?: boolean; source?: string };
@@ -34,6 +37,9 @@ const PA: Record<string, { kind: string; refKind: string; cols: Col[] }> = {
   blockers: { kind: "blocker", refKind: "", cols: [{ field: "id" }, { field: "text" }, { field: "fix" }] },
   versions: { kind: "version", refKind: "version", cols: [{ field: "version", kind: "ref" }, { field: "world" }, { field: "settled" }, { field: "claims", kind: "number" }, { field: "unknowns", kind: "number" }, { field: "decisions", kind: "number" }, { field: "latest" }, { field: "digest" }] },
   responses: { kind: "response", refKind: "", cols: [{ field: "id" }, { field: "kind" }, { field: "outcome" }, { field: "ref" }, { field: "value" }, { field: "status", kind: "status" }] },
+  jobs: { kind: "job", refKind: "job", cols: [{ field: "id", kind: "ref" }, { field: "actor" }, { field: "job" }, { field: "grade", kind: "grade" }, { field: "criteria", label: "judged by" }, { field: "opportunities" }] },
+  criteria: { kind: "criterion", refKind: "criterion", cols: [{ field: "id", kind: "ref" }, { field: "job" }, { field: "statement", label: "success criterion" }, { field: "importance" }, { field: "satisfaction" }, { field: "evidence", kind: "status" }, { field: "grade", kind: "grade" }, { field: "score", kind: "status" }] },
+  opportunities: { kind: "opportunity", refKind: "opportunity", cols: [{ field: "id", kind: "ref" }, { field: "deficiency" }, { field: "basis", label: "recovers" }, { field: "evidence", kind: "status" }, { field: "alternatives", label: "actor uses today" }, { field: "candidates", label: "candidates" }, { field: "grade", kind: "grade" }] },
   candidates: { kind: "proposal", refKind: "proposal", cols: [{ field: "id", kind: "ref" }, { field: "parent", label: "parent world" }, { field: "intention" }, { field: "producer" }, { field: "delta" }, { field: "status", kind: "status" }, { field: "requires", label: "settles by" }] },
 };
 
@@ -66,19 +72,7 @@ export function applyFilters(rows: any[], filters: Filter[] = [], sort?: Sort) {
 const parseQuery = (q?: string): Record<string, string> => Object.fromEntries(new URLSearchParams(q ?? "").entries());
 
 // ---- markdown tables ------------------------------------------------------------------------------------------
-export function markdownTables(text: string): { head: string[]; rows: string[][]; line: number }[] {
-  const lines = text.split("\n"), out: { head: string[]; rows: string[][]; line: number }[] = [];
-  const cells = (l: string) => l.trim().replace(/^\||\|$/g, "").split("|").map((c) => c.trim());
-  for (let i = 0; i < lines.length - 1; i++) {
-    if (/^\s*\|/.test(lines[i]) && /^\s*\|[\s:|-]+\|\s*$/.test(lines[i + 1])) {
-      const head = cells(lines[i]); const rows: string[][] = []; let j = i + 2;
-      while (j < lines.length && /^\s*\|/.test(lines[j])) { rows.push(cells(lines[j])); j++; }
-      out.push({ head, rows, line: i + 1 }); i = j;
-    }
-  }
-  return out;
-}
-const slug = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_|_$/g, "") || "col";
+export { markdownTables, slug };
 
 // ---- files ----------------------------------------------------------------------------------------------------
 export function safeRunFile(runDir: string, rel: string): string | null {
@@ -231,10 +225,12 @@ function resolveInner(env: Env, source: string | undefined, o: ResolveOpts = {})
     if (o.as === "rows" || m[2]?.startsWith("table")) return fileRows(env, m[1], m[2], o.filter, o.sort, limit);
     return readFile(env, m[1], m[2]);
   }
-  const [, kind, name, qs] = /^(pa|graph|world):([a-z-]+)(\?.*)?$/.exec(source) ?? [];
+  const [, kind, name, qs] = /^(pa|graph|world|case):([a-z-]+)(\?.*)?$/.exec(source) ?? [];
   if (!kind) return { kind: "error", code: "BAD_SOURCE", message: `cannot parse source ${source}` };
   const q = parseQuery(qs?.slice(1));
   if (kind === "world") return worldSource(env, name, q, o, source);
+  if (kind === "case") return caseSource(env, name, q, o, source);
+  if (kind === "graph" && name === "case") { const w = W(env); if (!w) return noProj(); const c = C.caseOf(w, caseIdOf(q)); return c.ok ? { kind: "graph", provenance: "process", ...C.caseGraph(c) } : bad(c.message); }
   if (kind === "graph" && (name === "impact" || name === "why")) return worldGraph(env, name, q);
   if (kind === "graph") return graph(env, name, q);
   if (q.at && q.at !== "current") return historical(env, name, q, o, source);
@@ -242,6 +238,12 @@ function resolveInner(env: Env, source: string | undefined, o: ResolveOpts = {})
   if (o.as === "tree" && name === "artifacts") return treeOfPaths(entities(env.db, "artifact"), (r) => r.id.split("/").pop(), (r) => `artifact:${r.id}`, (r) => r.status);
   if (o.as === "tree" && name === "evidence") return treeOfPaths(entities(env.db, "evidence"), (r) => r.id.split("/").pop(), (r) => `evidence:${r.id}`);
   const def = PA[name];
+  if (["decision-states", "experiments", "patterns"].includes(name)) {
+    const w = W(env); if (!w) return noProj();
+    const { cols, rows } = learnRows(w, name);
+    const all = applyFilters(rows.filter((r) => Object.entries(q).every(([k, v]) => !(k in r) || norm(r[k]).toLowerCase() === v.toLowerCase())), o.filter, o.sort);
+    return { kind: "rows", provenance: "process", columns: cols, rows: all.slice(0, limit), total: all.length, source };
+  }
   if (name === "candidates") {
     if (!env.proj) return noProj();
     const all = applyFilters(K.candidates({ proj: env.proj, runDir: env.runDir }).filter((c) => !q.status || c.status.startsWith(q.status)), o.filter, o.sort);
@@ -270,7 +272,7 @@ function resolveInner(env: Env, source: string | undefined, o: ResolveOpts = {})
 // ---- worlds: history, candidates, and the debugger's questions, all read-only ---------------------------------------
 const noProj = (): Resolved => ({ kind: "error", code: "BAD_SOURCE", message: "world sources need the run projection (this environment has none)" });
 const bad = (message: string): Resolved => ({ kind: "error", code: "BAD_SOURCE", message });
-const W = (env: Env): K.WorldEnv | null => (env.proj ? { proj: env.proj, runDir: env.runDir, reach: env.reach } : null);
+const W = (env: Env): K.WorldEnv | null => (env.proj ? { proj: env.proj, runDir: env.runDir, reach: env.reach, observe: (d) => observe(env, d) } : null);
 const refRow = (r: any, ref = r.ref) => ({ ...r, _ref: ref && parseRef(String(ref)) ? ref : undefined });
 const rowsOut = (columns: Col[], all: any[], o: ResolveOpts, source: string): Rows => {
   const f = applyFilters(all, o.filter, o.sort); const off = o.offset ?? 0;
@@ -298,7 +300,7 @@ function worldSource(env: Env, name: string, q: Record<string, string>, o: Resol
   switch (name) {
     case "why": {
       const ref = refOf(); if (!ref) return bad("world:why needs ?ref=<ref>");
-      const r = K.why(w, ref); if (!r.ok) return bad(r.message);
+      const r = C.caseWhy(w, ref); if (!r.ok) return bad(r.message);
       const cols: Col[] = [{ field: "question" }, { field: "answer" }, statusCol("basis"), { field: "refs", label: "refs" }];
       return rowsOut(cols, r.answers.map((a, i) => ({ id: String(i), question: a.q, answer: a.a, basis: a.basis, refs: (a.refs ?? []).map((x) => `[[${x}]]`).join(" ") })), o, source);
     }
@@ -311,7 +313,7 @@ function worldSource(env: Env, name: string, q: Record<string, string>, o: Resol
     }
     case "timeline": {
       const ref = q.ref ? (refOf() ?? undefined) : undefined; if (q.ref && !ref) return bad(`${q.ref} is not a ref`);
-      return rowsOut([{ field: "seq", kind: "number" }, { field: "ts" }, { field: "type" }, { field: "subject", kind: "ref" }, { field: "detail" }], K.timeline(w, ref).map((e) => ({ ...e, id: String(e.seq) })).reverse(), o, source);
+      return rowsOut([{ field: "seq", kind: "number" }, { field: "ts" }, { field: "type" }, { field: "subject", kind: "ref" }, { field: "detail" }], K.timeline(w, ref, { git: q.git === "1" }).map((e) => ({ ...e, id: String(e.seq) })).reverse(), o, source);
     }
     case "impact": {
       const ref = refOf(); if (!ref) return bad("world:impact needs ?ref=<ref>");
@@ -342,7 +344,7 @@ function worldSource(env: Env, name: string, q: Record<string, string>, o: Resol
   return bad(`unknown world source ${name}`);
 }
 
-const normPreds = (ps: K.Pred[]) => ps.map((p) => ({ ...p, value: p.op === "in" && typeof p.value === "string" ? p.value.split("|") : p.value }));
+const normPreds = K.normPreds;
 export function observerOf(q: Record<string, string>): K.ObserverDef | string {
   const selects = q.selects; if (!selects || !/^file:evidence\/[^?]+#table\d+$/.test(selects) || selects.includes("..")) return "world:replay needs ?selects=file:evidence/<lens>/<file>#tableN, expect=field~op~value[,...] and optionally where=...";
   const expect = K.parsePreds(q.expect); if (!expect.length) return "world:replay needs ?expect=field~op~value";
@@ -449,6 +451,41 @@ export function detail(env: Env, ref: string): Detail {
       const g = arts.find((a) => a.isGate); if (g) base.related.push({ label: g.id, ref: `artifact:${g.id}`, note: g.verdict ?? undefined });
       break;
     }
+    case "job": case "criterion": case "opportunity": {
+      const row = entity<any>(d, r.kind, r.id); if (!row) return { ...base, title: ref, exists: false };
+      base.tone = row.grade === "CONTRADICTED" ? "danger" : ["OBSERVED", "VERIFIED"].includes(row.grade) ? "ok" : "warning";
+      if (r.kind === "job") {
+        base.title = row.job; base.fields = [{ k: "actor", v: row.actor }, { k: "grade", v: row.grade }, { k: "source", v: row.source }];
+        for (const c of entities<any>(d, "criterion").filter((x) => x.job === r.id)) base.related.push({ label: c.id, ref: `criterion:${c.id}`, note: "judges it" });
+      } else if (r.kind === "criterion") {
+        base.title = row.statement; base.tone = row.evidence === "measured" ? "ok" : "unknown";
+        base.fields = [{ k: "job", v: row.job }, { k: "importance", v: row.importance }, { k: "satisfaction", v: row.satisfaction }, { k: "opportunity score", v: "UNCOMPUTED" }, { k: "grade", v: row.grade }, { k: "source", v: row.source }];
+        if (row.evidence !== "measured") base.consequence = "Importance or satisfaction is UNKNOWN, so the shortfall this criterion exposes has no size. No score is computed from prose.";
+        base.related.push({ label: row.job, ref: `job:${row.job}`, note: "the progress it judges" });
+        for (const o of entities<any>(d, "opportunity").filter((x) => x.basis === r.id)) base.related.push({ label: o.id, ref: `opportunity:${o.id}`, note: "exposes" });
+      } else {
+        base.title = row.deficiency; base.tone = row.evidence === "measured" ? "ok" : "unknown";
+        base.fields = [{ k: "recovers", v: `${row.basisKind} ${row.basis}` }, { k: "actor uses today", v: row.alternatives || "not recorded" }, { k: "evidence", v: row.evidence }, { k: "candidates", v: row.candidates || "none yet" }, { k: "grade", v: row.grade }, { k: "source", v: row.source }];
+        base.related.push({ label: row.basis, ref: `${row.basisKind}:${row.basis}`, note: "the progress it recovers" });
+        for (const id of String(row.candidates || "").split(", ").filter(Boolean)) base.related.push({ label: id, ref: `proposal:${id}`, note: "one possible transformation" });
+        if (row.evidence !== "measured") base.consequence = "The shortfall is not yet measured. A candidate is not evidence that it helps.";
+      }
+      base.next = [{ label: "open as a Case", action: "case", ref }, { label: "see why", action: "why", ref }];
+      break;
+    }
+    case "actor": {
+      const a = env.proj?.actors.find((x: any) => x.id === r.id); if (!a) return { ...base, title: ref, exists: false };
+      base.title = a.actor; base.fields = [{ k: "job they hire the product for", v: a.job }];
+      for (const j of entities<any>(d, "job").filter((x) => x.actor === r.id)) base.related.push({ label: j.id, ref: `job:${j.id}`, note: "pursues" });
+      break;
+    }
+    case "case": {
+      const w = W(env); if (!w) return { ...base, title: ref, exists: false };
+      const c = C.caseOf(w, r.id); if (!c.ok) return { ...base, title: ref, exists: false };
+      base.title = c.purpose.text; base.tone = c.material?.severity === "interrupt" ? "danger" : c.material ? "warning" : "neutral";
+      base.fields = [{ k: "now", v: c.now.text }, { k: "deviation", v: c.material?.text ?? "none" }, { k: "settlement", v: `${c.settlement.reachable ? "reachable" : "not reachable"}; ${c.settlement.shouldSettleNow.why}` }];
+      break;
+    }
     case "field": {
       base.title = r.id;
       const cnt: Record<string, number> = { claims: claims.length, unknowns: entities(d, "unknown").length, decisions: decisions.length };
@@ -467,3 +504,26 @@ export function detail(env: Env, ref: string): Detail {
 }
 
 export const search = (env: Env, q: string, limit = 12) => searchEntities(env.db, q, limit).map((h) => ({ ...h, ref: `${h.kind}:${h.id}` }));
+
+// ---- the Case and what the run has learned, as rows -----------------------------------------------------------------------------------------
+const caseIdOf = (q: Record<string, string>) => q.ref || "run";
+function caseSource(env: Env, name: string, q: Record<string, string>, o: ResolveOpts, source: string): Resolved {
+  const w = W(env); if (!w) return noProj();
+  if (name === "prior") { if (!q.q) return bad("case:prior needs ?q=<words about what you are about to investigate>"); const r = L.prior(w, q.q); return rowsOut([{ field: "ref", kind: "ref" }, { field: "kind" }, { field: "status", kind: "status" }, { field: "text" }, { field: "summary" }], r.hits.map((h) => refRow({ ...h, id: h.ref })), o, source); }
+  const c = C.caseOf(w, caseIdOf(q)); if (!c.ok) return bad(c.message);
+  if (name === "state") return rowsOut([{ field: "part", label: "question" }, { field: "answer" }, { field: "signal", kind: "status" }], C.caseStateRows(c).map((r) => refRow(r, r._ref)), o, source);
+  if (name === "affordances") return rowsOut([{ field: "label", label: "move" }, { field: "why" }, { field: "needs", label: "requires" }, { field: "cost" }, { field: "authority" }, { field: "recovery" }, { field: "evidence", label: "how we will know" }, { field: "then", label: "then reachable" }], C.caseMoveRows(c).map((r) => refRow(r, r._ref)), o, source);
+  return rowsOut([{ field: "condition" }, { field: "type" }, { field: "status", kind: "status" }], C.caseSettlementRows(c).map((r) => refRow(r, r._ref)), o, source);
+}
+function learnRows(w: K.WorldEnv, name: string): { cols: Col[]; rows: any[] } {
+  if (name === "decision-states") {
+    const ds = L.decisionStates(w);
+    return { cols: [{ field: "case" }, { field: "actor", kind: "ref" }, { field: "job", kind: "ref" }, { field: "trigger" }, { field: "push" }, { field: "pull" }, { field: "anxiety" }, { field: "habit" }, { field: "grade", kind: "grade" }, { field: "kind", label: "marked", kind: "status" }, { field: "evidence" }],
+      rows: ds.rows.map((r) => ({ ...r, kind: r.issues.length ? "invalid" : r.inferred ? "inferred" : "direct", _ref: undefined })) };
+  }
+  if (name === "experiments") return { cols: [{ field: "id", label: "experiment", kind: "ref" }, { field: "hypothesis" }, { field: "state", kind: "status" }, { field: "frozen", kind: "status" }, { field: "result", kind: "status" }, { field: "ordering", label: "git order", kind: "status" }, { field: "scope" }, { field: "issues" }],
+    rows: L.experiments(w).map((e) => ({ ...e, issues: e.issues.join("; "), _ref: e.ref })) };
+  const exps = L.experiments(w);
+  return { cols: [{ field: "id", label: "claim", kind: "ref" }, { field: "claim" }, { field: "status", kind: "status" }, { field: "supports", kind: "number" }, { field: "contradicts", kind: "number" }, { field: "settings" }, { field: "summary" }],
+    rows: L.patterns(w, exps).map((p) => ({ ...p, supports: p.supporting.length, contradicts: p.contradicting.length, settings: p.variationCovered.join(", "), _ref: p.ref })) };
+}

@@ -10,7 +10,7 @@ export const WORLD_OPS = ["why", "diff", "timeline", "impact", "counterfactual",
 export type WorldOp = (typeof WORLD_OPS)[number];
 
 // Observation capabilities the world can ask the outside for (providers live in server/reach.providers.json, not here).
-export const CAPABILITIES = ["web.search", "github.search", "reddit.read", "youtube.transcript", "repo.inspect", "browser.inspect", "trace.query", "device.serial", "hardware.measure", "cad.inspect", "owner.attest"] as const;
+export const CAPABILITIES = ["web.search", "github.search", "reddit.read", "youtube.transcript", "repo.inspect", "browser.inspect", "trace.query", "device.serial", "hardware.measure", "cad.inspect", "owner.attest", "market.interview", "market.survey", "behavior.analytics", "support.history"] as const;
 export type Capability = (typeof CAPABILITIES)[number];
 
 // The ladder a capability climbs before it can produce evidence. Each rung is separate on purpose: `which` finding a binary is

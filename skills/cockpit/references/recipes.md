@@ -20,6 +20,10 @@ Each is data you send with `actualize ui put`; the schemas live in code and `act
 | What changed since version N | compare | `world diff N --show` (table `world:diff` grouped by change → graph of the first changed claim → compare diff of the two model files) |
 | What if we accepted this | verify | `world counterfactual proposal:P<n> --show` (entity → table `world:counterfactual` grouped by class → graph); then `ask` the owner only about what only they can decide |
 | What would settle this unknown | verify | `world reach unknown:U<n>`, then `ask_human` if the best provider is the owner; the answer comes back as a recorded response |
+| Where are we trying to go, and what next | monitor | `actualize case --show` (state table, moves grouped next move / choose / alternatives / blocked, settlement conditions, a small graph of the move and what it opens) |
+| Is this opportunity evidenced | inspect | `actualize case OP1 --show` (progress sought and shortfall, success criteria with UNKNOWN kept, what could measure it, moves) |
+| What was the person's situation | inspect | `actualize case OP1 --decision --show` (decision states for that Case only, marked inferred where they are) |
+| Have we learned this already | verify | `actualize case prior --q "<words>"` before designing an experiment; patterns with contradicting evidence say `contested` |
 | Is this measurement still true | verify | `world replay --selects file:evidence/<lens>/<file>#table1 --expect margin_a~gt~0`; a failing row is evidence for a proposal, not a regrade |
 
 Layout moves: `place: {rel: right|below|within, to: <surface id>, size: 0.4}`. Open evidence beside what the owner is reading (`rel: right, to: <their surface>`), not over it. Minimize a surface you are done with (`view.size minimized`) instead of closing the owner's work.

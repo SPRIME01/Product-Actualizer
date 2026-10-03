@@ -15,7 +15,7 @@ model_version: 1
 
 `product` is required; `model_version` must be an integer ≥ 1 (`md.mjs:53`, `SCHEMA.md:18`). `parseModel` reads only those two keys (`md.mjs:43`).
 
-## The ten sections
+## The ten sections (and three optional ones)
 
 Exact titles, exact order. `validateModel` compares the heading array to the constant and returns immediately on mismatch (`md.mjs:54`; `SECTIONS`, `md.mjs:6`).
 
@@ -35,6 +35,16 @@ Exact titles, exact order. `validateModel` compares the heading array to the con
 Field keys are the names used in an artifact's `reads` and a decision's `touched`. The key ↔ section mapping is `SECTION_KEY` (`md.mjs:7`), computed positionally from `SECTIONS` and `FIELDS` (`md.mjs:5`).
 
 `TEMPLATE.md` supplies the exact table headers, an empty Constraints block with the three subheadings, and one seeded row `| D1 | Model created from initial evidence | <what evidence was classified> | all | 1 |`.
+
+### Optional demand sections
+
+Three more sections may follow `Decision log`, in this order and only if used (`OPTIONAL_SECTIONS`, `md.mjs`; `validateDemand`). A model without them is valid and its world digest is unchanged. Their field keys (`jobs`, `criteria`, `opportunities`) are valid in `reads`, `touched`, and `proposals.md`, so a reader of them goes stale correctly. The semantics are in [case navigation](../case-navigation.md).
+
+| # | section title | field key | shape | rules `validateModel` enforces |
+|---|---|---|---|---|
+| 11 | `Jobs` | `jobs` | table `id \| actor \| job \| grade \| source` | id `J<n>`; actor is an Actors id; a source unless `UNKNOWN` |
+| 12 | `Success criteria` | `criteria` | table `id \| job \| direction \| measure \| object \| context \| importance \| satisfaction \| grade \| source` | id `S<n>`; job is a Job id; direction in `minimize maximize increase decrease avoid ensure`; `importance` and `satisfaction` are `UNKNOWN` or `<number> (<source>)` |
+| 13 | `Opportunities` | `opportunities` | table `id \| basis \| deficiency \| alternatives \| grade \| source` | id `OP<n>`; `basis` is an existing S or J id; a deficiency is stated |
 
 ## Claims ledger rules
 
@@ -204,7 +214,7 @@ The result is the list of decision numbers that staled the artifact, in decision
 `SCHEMA.md:77-88` — the eight items the fixture must pass all:
 
 1. Front matter has `product` and integer `model_version` ≥ 1.
-2. All ten sections exist, in order, titled as above.
+2. All ten sections exist, in order, titled as above; the optional three, if present, follow in their order (`md.mjs` `validateModel`; `tests/check.py` `validate_demand`).
 3. Every claim id is unique, has a grade from the list, and a source (except `UNKNOWN`).
 4. Every `INFERRED` source cites existing claim ids; every `CONTRADICTED` cites two sources.
 5. Every capability cites existing claim ids.

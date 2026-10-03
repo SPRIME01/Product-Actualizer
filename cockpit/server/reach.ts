@@ -4,6 +4,7 @@
 //   installed  a binary is on PATH            configured  the credential or config is present (presence only)
 //   probed     a health probe was actually run   reachable  the probe got an answer      authorized  the answer accepted the credential
 import fs from "node:fs";
+import path from "node:path";
 import os from "node:os";
 import providers from "./reach.providers.json";
 import { CAPABILITIES, REACH_DIMENSIONS, type Capability, type ReachDimension, type Tri } from "../protocol/world";
@@ -12,7 +13,23 @@ export type Provider = { id: string; label: string; capabilities: string[]; tier
 export type ProbeRecord = { at: string; reachable?: boolean; authorized?: boolean };
 // Everything the ladder is allowed to look at, injectable so tests can stage a provider at any rung without touching the machine.
 export type ReachEnv = { which: (bin: string) => string | null; env: Record<string, string | undefined>; exists: (path: string) => boolean; platform: string; probes: Record<string, ProbeRecord> };
-export const hostEnv = (): ReachEnv => ({ which: (b) => Bun.which(b), env: process.env, exists: (p) => fs.existsSync(p.replace(/^~/, os.homedir())), platform: process.platform, probes: {} });
+// The one place a probe can run, and it is off unless the operator opts in. `gh auth status` asks GitHub whether the stored token still works,
+// so it contacts the network; that is why it needs ACTUALIZE_GH=1. Without the variable nothing is run and nothing is contacted.
+export type GhRunner = (cmd: string[]) => { code: number | null };
+const ghRun: GhRunner = (cmd) => { try { const r = Bun.spawnSync(cmd, { stdout: "ignore", stderr: "ignore", timeout: 6000 }); return { code: r.exitCode }; } catch { return { code: null }; } };
+export function probesFor(env: Record<string, string | undefined>, which: (b: string) => string | null, run: GhRunner = ghRun, now = () => new Date().toISOString()): Record<string, ProbeRecord> {
+  if (env.ACTUALIZE_GH !== "1" || !which("gh")) return {};
+  const r = run(["gh", "auth", "status"]);
+  return r.code === null ? {} : { gh: { at: now(), reachable: r.code === 0 ? true : undefined, authorized: r.code === 0 } };
+}
+let probed: { at: number; probes: Record<string, ProbeRecord> } | null = null;   // one probe per minute, not one per question
+// `base` is the project directory: a relative path in a provider's config means "in this project", so the same question has the same answer from any process.
+export const hostEnv = (env: Record<string, string | undefined> = process.env, run?: GhRunner, base: string = process.cwd()): ReachEnv => {
+  const which = (b: string) => Bun.which(b);
+  let probes: Record<string, ProbeRecord> = {};
+  if (env.ACTUALIZE_GH === "1") { if (run || !probed || Date.now() - probed.at > 60_000) { probes = probesFor(env, which, run); if (!run) probed = { at: Date.now(), probes }; } else probes = probed.probes; }
+  return { which, env, exists: (p) => fs.existsSync(p.startsWith("~") ? p.replace(/^~/, os.homedir()) : path.resolve(base, p)), platform: process.platform, probes };
+};
 
 export type ProviderState = {
   id: string; label: string; tier: number; route: "owner" | "tool"; state: Record<ReachDimension, Tri>;

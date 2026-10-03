@@ -1,6 +1,7 @@
 // Shared primitives: ref chips, grades, statuses, rich text with [[refs]], a small markdown renderer.
 import React from "react";
 import { send, useDetail } from "./store";
+import { expandRef } from "../protocol/refs";
 
 export const GRADES = ["OBSERVED", "VERIFIED", "REPORTED", "INFERRED", "PROPOSED", "UNKNOWN", "CONTRADICTED"];
 export const Grade = ({ g }: { g: string }) => <span className={`grade g-${g}`} title={`claim grade: ${g}`}>{g}</span>;
@@ -9,11 +10,7 @@ export const toneDot = (t?: string) => (t === "ok" || t === "done" ? "ok" : t ==
 
 export const openRef = (ref: string) => send({ op: "human.open", template: "ref", ref });
 
-const KIND_OF: Record<string, string> = { C: "claim", U: "unknown", P: "proposal", D: "decision" };
-export const refOf = (token: string): string | null => {
-  if (/^(claim|unknown|proposal|decision|artifact|evidence|lens|field|version):/.test(token) || token === "gate") return token;
-  const m = /^([CUPD])(\d+)$/.exec(token); return m ? `${KIND_OF[m[1]]}:${token}` : null;
-};
+export const refOf = (token: string): string | null => expandRef(token);
 
 export function RefChip({ ref_, label }: { ref_: string; label?: string }) {
   const d = useDetail(ref_);

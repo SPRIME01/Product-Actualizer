@@ -32,6 +32,20 @@ and `touched`) are in backticks.
 | Unknowns | `unknowns` | Table: id (U1…), question, what it blocks (artifact or lens), who can answer. |
 | Decision log | `decisions` | Table: n (D1…), decision, rationale, touched (field keys), model version created. |
 
+### Optional demand sections
+
+Three more sections may follow the decision log, in this order and only if used. A model without them is valid. They are
+rows like any other: graded, sourced, versioned, and stale-able. Their field keys (`jobs`, `criteria`, `opportunities`) work in `reads`, `touched`, and `proposals.md`.
+
+| Section | Key | Content |
+|---|---|---|
+| Jobs | `jobs` | Table: id (J1…), actor (an Actors id), job (the progress sought: not a feature, a workflow, or a solution), grade, source. |
+| Success criteria | `criteria` | Table: id (S1…), job (J id), direction (`minimize`, `maximize`, `increase`, `decrease`, `avoid`, `ensure`), measure, object, context, importance, satisfaction, grade, source. How the actor judges the progress. An expectation, never a settlement outcome. `importance` and `satisfaction` are `UNKNOWN` or `<number> (<source>)`. |
+| Opportunities | `opportunities` | Table: id (OP1…), basis (an S or J id: the progress it recovers), deficiency (the shortfall, not a solution), alternatives (what the actor uses today), grade, source. Never a feature request. |
+
+An unmeasured criterion stays `UNKNOWN`; no opportunity score is ever computed from prose. Situational salience (a decision state) is not a model
+section: it is a table in a stamped artifact, bound to a Case, and never attached to an actor.
+
 ## Evidence grades
 
 | Grade | Meaning |
@@ -86,3 +100,4 @@ Proposals must name the field they would change and include evidence in the Sour
 7. Every `UNKNOWN`-grade claim has a matching Unknowns row.
 8. Every id in an artifact's `cites` and inline `[C…]` citations exists, the two lists agree, and
    the grade is `OBSERVED` or `VERIFIED` if the artifact is public-facing.
+9. If present, the optional sections follow the decision log in the order Jobs, Success criteria, Opportunities. Each job names an Actors id; each criterion names a job, a direction from the list, and a measure; a measured importance or satisfaction carries its source in parentheses; each opportunity names an existing criterion or job; every row has a valid grade and, unless `UNKNOWN`, a source.

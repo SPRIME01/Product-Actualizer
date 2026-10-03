@@ -3,9 +3,12 @@
 import glob, os, re, subprocess, sys, tempfile
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-FIELDS = ["purpose", "actors", "capabilities", "constraints", "form", "voice", "positioning", "claims", "unknowns", "decisions"]
+FIELDS = ["purpose", "actors", "capabilities", "constraints", "form", "voice", "positioning", "claims", "unknowns", "decisions",
+          "jobs", "criteria", "opportunities"]
 SECTIONS = ["Purpose", "Actors", "Capabilities", "Constraints", "Form and interaction", "Voice", "Positioning",
             "Claims ledger", "Unknowns", "Decision log"]
+OPTIONAL_SECTIONS = ["Jobs", "Success criteria", "Opportunities"]   # may follow the decision log, in this order, only if used
+DIRECTIONS = {"minimize", "maximize", "increase", "decrease", "avoid", "ensure"}
 GRADES = {"OBSERVED", "VERIFIED", "REPORTED", "INFERRED", "PROPOSED", "UNKNOWN", "CONTRADICTED"}
 PUBLIC = {"OBSERVED", "VERIFIED"}
 errors = []
@@ -116,6 +119,31 @@ def parse_model(path):
     return fm, heads, dict(zip(heads, parts))
 
 
+def validate_demand(tag, sec):
+    """Jobs, success criteria, opportunities: the same rules md.mjs enforces (the TypeScript side is authoritative at run time)."""
+    measured = re.compile(r"^-?\d+(\.\d+)?\s*\((.+)\)$")
+    actors = {r[0] for r in table(sec.get("Actors", ""))}
+    jobs = {r[0]: r for r in table(sec.get("Jobs", ""))}
+    crit = {r[0]: r for r in table(sec.get("Success criteria", ""))}
+    for jid, r in jobs.items():
+        if not re.fullmatch(r"J\d+", jid): err(f"{tag}: job id {jid} is not J<number>")
+        if actors and r[1] not in actors: err(f"{tag}: {jid} names actor {r[1]}, not in Actors")
+        if r[3] not in GRADES: err(f"{tag}: {jid} bad grade {r[3]}")
+        elif r[3] != "UNKNOWN" and not r[4]: err(f"{tag}: {jid} no source")
+    for cid, r in crit.items():
+        if not re.fullmatch(r"S\d+", cid): err(f"{tag}: criterion id {cid} is not S<number>")
+        if r[1] not in jobs: err(f"{tag}: {cid} judges {r[1]!r}, which is not a job")
+        if r[2] not in DIRECTIONS: err(f"{tag}: {cid} direction {r[2]!r}")
+        for name, v in (("importance", r[6]), ("satisfaction", r[7])):
+            if v != "UNKNOWN" and not measured.match(v): err(f"{tag}: {cid} {name} must be UNKNOWN or '<number> (<source>)'")
+        if r[8] not in GRADES: err(f"{tag}: {cid} bad grade {r[8]}")
+    for oid, r in {r[0]: r for r in table(sec.get("Opportunities", ""))}.items():
+        if not re.fullmatch(r"OP\d+", oid): err(f"{tag}: opportunity id {oid} is not OP<number>")
+        if r[1] not in crit and r[1] not in jobs: err(f"{tag}: {oid} basis {r[1]!r} is not a criterion or a job (an opportunity is not a request or a solution)")
+        if r[4] not in GRADES: err(f"{tag}: {oid} bad grade {r[4]}")
+        elif r[4] != "UNKNOWN" and not r[5]: err(f"{tag}: {oid} no source")
+
+
 def validate_model(path):
     tag = os.path.relpath(path, ROOT)
     fm, heads, sec = parse_model(path)
@@ -124,9 +152,11 @@ def validate_model(path):
         err(f"{tag}: bad front matter")
         return None
     mv = int(mv)
-    if heads != SECTIONS:
-        err(f"{tag}: sections {heads} != {SECTIONS}")
+    extra = heads[len(SECTIONS):]
+    if heads[:len(SECTIONS)] != SECTIONS or extra != [h for h in OPTIONAL_SECTIONS if h in extra]:
+        err(f"{tag}: sections {heads} != {SECTIONS} (+ optional {OPTIONAL_SECTIONS} in order)")
         return None
+    validate_demand(tag, sec)
     claims = {}
     for r in table(sec["Claims ledger"]):
         cid, text, grade, src = r
@@ -676,6 +706,45 @@ def check_world_debugger_and_dependencies():
             err(f"PROVENANCE.md does not name dependency {dep}")
 
 
+def check_case_navigation():
+    """The Case is derived and documented, its donors are recorded, its residuals are well formed, and nothing vendor-specific entered the repository."""
+    for f in ("cockpit/server/case.ts", "cockpit/server/learn.ts", "cockpit/server/demand.ts", "cockpit/server/git.ts", "cockpit/server/caseSurfaces.ts", "docs/case-navigation.md", ".agents/DEBT.md", ".agents/specs/outcome-navigation.md"):
+        if not os.path.exists(f"{ROOT}/{f}"):
+            err(f"{f} missing")
+    prov = open(f"{ROOT}/PROVENANCE.md", encoding="utf-8").read()
+    if "## Outcome-navigation donors" not in prov:
+        err("PROVENANCE.md has no Outcome-navigation donors section")
+    else:
+        sec = prov.split("## Outcome-navigation donors")[1].split("\n## ")[0]
+        for donor in ("savvides/jtbd", "growthbook/skills", "flowable/flowable-engine", "phuryn/pm-skills"):
+            row = next((l for l in sec.split("\n") if l.startswith("|") and donor in l), None)
+            if not row:
+                err(f"PROVENANCE.md does not record donor {donor}"); continue
+            if not re.search(r"\((MIT|Apache-2\.0), [0-9a-f]{12}, \d{4}-\d\d-\d\d\)", row):
+                err(f"PROVENANCE.md row for {donor} needs (license, 12-char revision, date)")
+    debt = open(f"{ROOT}/.agents/DEBT.md", encoding="utf-8").read() if os.path.exists(f"{ROOT}/.agents/DEBT.md") else ""
+    for block in re.split(r"^## ", debt, flags=re.M)[1:]:
+        title = block.split("\n")[0]
+        for field in ("Observed", "Evidence", "Consequence", "Why not now", "Reachable when"):
+            if f"**{field}:**" not in block:
+                err(f".agents/DEBT.md: {title!r} has no {field}")
+    skill = open(f"{ROOT}/skills/cockpit/SKILL.md", encoding="utf-8").read()
+    if "actualize case" not in skill:
+        err("cockpit skill does not mention actualize case")
+    for forbidden in ("CLAUDE.md", ".claude"):
+        if os.path.exists(f"{ROOT}/{forbidden}"):
+            err(f"{forbidden} exists: the agent substrate is model-neutral (AGENTS.md, .agents/, docs/)")
+    case = open(f"{ROOT}/cockpit/server/case.ts", encoding="utf-8").read()
+    if re.search(r"writeFileSync|appendFileSync|\.run\(|INSERT|UPDATE |DELETE ", case):
+        err("cockpit/server/case.ts writes: a Case is derived and never stored")
+    for f in ("cockpit/server/case.ts", "cockpit/server/learn.ts", "cockpit/server/demand.ts", "cockpit/server/git.ts"):
+        src = open(f"{ROOT}/{f}", encoding="utf-8").read()
+        if re.search(r"\b(claude|anthropic|openai|codex|opencode|cline)\b", src, re.I):
+            err(f"{f} names a vendor: executors are replaceable and the semantics are model-neutral")
+        if re.search(r'"(commit|push|pull|fetch|reset|checkout|clean|rebase|merge)"', src) and f.endswith("git.ts"):
+            err("cockpit/server/git.ts runs a git command that is not read-only")
+
+
 def check_cleanup():
     if os.path.exists(f"{ROOT}/.tmp/ref"):
         err(".tmp/ref still exists")
@@ -699,6 +768,7 @@ if __name__ == "__main__":
                 err(f"{name}/{a}: expected staleness {w}, got {stale.get(a)}")
     check_cockpit_and_runtime()
     check_world_debugger_and_dependencies()
+    check_case_navigation()
     check_cleanup()
     if errors:
         print("\nFAIL")
