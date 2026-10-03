@@ -108,6 +108,7 @@ export type PatternStatus = "single-result" | "emerging" | "supported" | "contes
 export type Pattern = {
   id: string; ref: string; claim: string; grade: string; status: PatternStatus; supporting: string[]; contradicting: string[]; cited: string[];
   variationCovered: string[]; limitations: string[]; summary: string; issues: string[];
+  contract: { supporting: number; scopes: number }; reusedBy: string[];
 };
 export function patterns(W: WorldEnv, exps: Experiment[] = experiments(W)): Pattern[] {
   const out: Pattern[] = [];
@@ -125,13 +126,19 @@ export function patterns(W: WorldEnv, exps: Experiment[] = experiments(W)): Patt
     }
     if (!sup.length && !con.length && !cited.length) continue;
     const scopes = [...new Set(sup.map((e) => e.scope).filter(Boolean))];
-    const status: PatternStatus = con.length ? "contested" : sup.length >= PATTERN_CONTRACT.supporting && scopes.length >= PATTERN_CONTRACT.scopes ? "supported" : sup.length >= PATTERN_CONTRACT.supporting ? "emerging" : "single-result";
+    // A claim may demand more than the default by writing `[contract supporting=3 scopes=2]` in its source (high stakes, noisy domain). It can never demand less.
+    const ask = /\[contract\s+([^\]]*)\]/.exec(String(c.source))?.[1] ?? "";
+    const num = (k: string, d: number) => Math.max(d, Number(new RegExp(`${k}=(\\d+)`).exec(ask)?.[1] ?? d));
+    const contract = { supporting: num("supporting", PATTERN_CONTRACT.supporting), scopes: num("scopes", PATTERN_CONTRACT.scopes) };
+    const status: PatternStatus = con.length ? "contested" : sup.length >= contract.supporting && scopes.length >= contract.scopes ? "supported" : sup.length >= PATTERN_CONTRACT.supporting ? "emerging" : "single-result";
+    // Where the pattern was used afterwards: the data a later calibration needs (did patterns that reached `supported` hold when reused?)
+    const reusedBy = [...W.proj.artifacts.filter((a: any) => (a.cites ?? []).includes(c.id)).map((a: any) => `artifact:${a.id}`), ...W.proj.proposals.filter((x: any) => new RegExp(`\\b${c.id}\\b`).test(`${x.proposal}`)).map((x: any) => `proposal:${x.id}`)];
     const summary = status === "contested" ? `${sup.length} supporting and ${con.length} contradicting experiment(s): kept side by side, not averaged`
       : status === "supported" ? `${sup.length} experiments over ${scopes.length} settings, none contradicting`
       : status === "emerging" ? `${sup.length} experiments but ${scopes.length} setting(s): it has not yet been seen to hold elsewhere`
       : sup.length === 1 ? "one experiment result: an outcome, not a durable learning" : `${cited.length} cited experiment(s) with no passing frozen criterion`;
     for (const e of cited) if (e.frozen !== "frozen" && e.direction === "supports") issues.push(`${e.id} passed but its criterion was not frozen before the result, so it does not count as support`);
-    out.push({ id: c.id, ref: `claim:${c.id}`, claim: c.text, grade: c.grade, status, supporting: sup.map((e) => e.ref), contradicting: con.map((e) => e.ref), cited: cited.map((e) => e.ref), variationCovered: scopes, limitations: [...new Set([...sup, ...con].map((e) => e.limitations).filter(Boolean))], summary, issues });
+    out.push({ id: c.id, ref: `claim:${c.id}`, claim: c.text, grade: c.grade, status, supporting: sup.map((e) => e.ref), contradicting: con.map((e) => e.ref), cited: cited.map((e) => e.ref), variationCovered: scopes, limitations: [...new Set([...sup, ...con].map((e) => e.limitations).filter(Boolean))], summary, issues, contract, reusedBy });
   }
   return out;
 }

@@ -484,6 +484,7 @@ export function detail(env: Env, ref: string): Detail {
       const c = C.caseOf(w, r.id); if (!c.ok) return { ...base, title: ref, exists: false };
       base.title = c.purpose.text; base.tone = c.material?.severity === "interrupt" ? "danger" : c.material ? "warning" : "neutral";
       base.fields = [{ k: "now", v: c.now.text }, { k: "deviation", v: c.material?.text ?? "none" }, { k: "settlement", v: `${c.settlement.reachable ? "reachable" : "not reachable"}; ${c.settlement.shouldSettleNow.why}` }];
+      base.next = [{ label: "state a direction", action: "annotate", ref }];
       break;
     }
     case "field": {
@@ -524,6 +525,6 @@ function learnRows(w: K.WorldEnv, name: string): { cols: Col[]; rows: any[] } {
   if (name === "experiments") return { cols: [{ field: "id", label: "experiment", kind: "ref" }, { field: "hypothesis" }, { field: "state", kind: "status" }, { field: "frozen", kind: "status" }, { field: "result", kind: "status" }, { field: "ordering", label: "git order", kind: "status" }, { field: "scope" }, { field: "issues" }],
     rows: L.experiments(w).map((e) => ({ ...e, issues: e.issues.join("; "), _ref: e.ref })) };
   const exps = L.experiments(w);
-  return { cols: [{ field: "id", label: "claim", kind: "ref" }, { field: "claim" }, { field: "status", kind: "status" }, { field: "supports", kind: "number" }, { field: "contradicts", kind: "number" }, { field: "settings" }, { field: "summary" }],
-    rows: L.patterns(w, exps).map((p) => ({ ...p, supports: p.supporting.length, contradicts: p.contradicting.length, settings: p.variationCovered.join(", "), _ref: p.ref })) };
+  return { cols: [{ field: "id", label: "claim", kind: "ref" }, { field: "claim" }, { field: "status", kind: "status" }, { field: "supports", kind: "number" }, { field: "contradicts", kind: "number" }, { field: "settings" }, { field: "needs", label: "contract" }, { field: "reuse", label: "reused by", kind: "number" }, { field: "summary" }],
+    rows: L.patterns(w, exps).map((p) => ({ ...p, supports: p.supporting.length, contradicts: p.contradicting.length, settings: p.variationCovered.join(", "), needs: `${p.contract.supporting} experiments, ${p.contract.scopes} settings`, reuse: p.reusedBy.length, _ref: p.ref })) };
 }

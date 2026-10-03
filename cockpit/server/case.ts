@@ -43,6 +43,20 @@ function typicalMinutes(log: any[], lens: string): string | null {
   const med = ok[Math.floor(ok.length / 2)] / 60000;
   return `${med < 1 ? "under a minute" : `~${Math.round(med)} min`} (median of ${ok.length} earlier run${ok.length > 1 ? "s" : ""})`;
 }
+// Elapsed times the run already records, in minutes: reconcile_start to reconcile_done (the router's step), and each pause to the next owner response
+// (how long the process waited on the owner). Measured from authoritative files only; with no history the answer stays "unknown".
+function medianOf(spans: number[], what: string): string | null {
+  const ok = spans.filter((x) => Number.isFinite(x) && x >= 0).sort((a, b) => a - b); if (!ok.length) return null;
+  const med = ok[Math.floor(ok.length / 2)] / 60000;
+  return `${med < 1 ? "under a minute" : `~${Math.round(med)} min`} (median of ${ok.length} earlier ${what}${ok.length > 1 ? "s" : ""})`;
+}
+function reconcileSpans(log: any[]) { const out: number[] = []; let t0: number | null = null; for (const e of log) { if (e.type === "reconcile_start") t0 = Date.parse(e.ts); else if (e.type === "reconcile_done" && t0 !== null) { out.push(Date.parse(e.ts) - t0); t0 = null; } } return out; }
+function ownerWaits(log: any[], responses: any[]) { const rs = responses.map((r) => Date.parse(r.ts)).filter(Number.isFinite).sort((a, b) => a - b); return log.filter((e) => e.type === "pause").map((e) => { const t = Date.parse(e.ts); const next = rs.find((x) => x > t); return next === undefined ? NaN : next - t; }); }
+function refinePayment(p: any, m: Affordance) {
+  if (m.payment.basis !== "unknown") return;
+  const est = m.op.startsWith("reconcile") ? medianOf(reconcileSpans(p.log), "reconciliation") : m.authority === "owner" ? medianOf(ownerWaits(p.log, p.responses), "wait on the owner") : null;
+  if (est) m.payment = { kind: m.authority === "owner" ? "owner attention" : "reconciliation", estimate: est, basis: "derived" };
+}
 const PAY_UNKNOWN = (kind: string) => ({ kind, estimate: "unknown", basis: "unknown" as const });
 
 // ---- what a Case is anchored on, and what it is for ------------------------------------------------------------------------------
@@ -298,6 +312,7 @@ export function caseOf(W: WorldEnv, id = "run") {
   else if (["opportunity", "criterion", "job"].includes(a.kind)) part = demandCase(W, a);
   else if (a.kind === "evidence") part = experimentCase(W, a);
   else part = singleCase(W, a);
+  for (const m of part.moves) refinePayment(p, m);
   const devs = [...part.devs].sort((x, y) => SEV[x.severity] - SEV[y.severity]);   // stable: the engine's own order survives within a class
   const material = devs[0] ?? null;
   const reachable = part.reachable ?? part.required.length === 0;
@@ -326,9 +341,12 @@ export function caseOf(W: WorldEnv, id = "run") {
         : [part.destination?.verdict ? `It would record ${part.destination.verdict}` : "", part.destination?.attained === false ? "the destination is not attained" : "", material?.severity === "interrupt" ? "evidence the build rests on is contradicted" : "", part.optional.length ? `${part.optional.length} optional move(s) remain that settling forgoes` : ""].filter(Boolean).join("; ").replace(/^./, (c) => c.toUpperCase()) + ". Whether to settle now is your judgment" },
   };
   const ds = decisionStates(W).forCase(caseId(a.ref));
+  // What the owner has said about this Case through the existing annotation gesture. It is an inbox entry (authoritative, append-only), shown
+  // beside the destination and marked unrouted until the router has put it where it belongs. Nothing is stored for the Case itself.
+  const stated = p.responses.filter((r: any) => r.kind === "annotation" && r.target === `case:${caseId(a.ref)}`).map((r: any) => ({ id: r.id, note: String(r.note ?? ""), by: r.via === "cockpit" ? "the owner" : "relayed to the agent (REPORTED)", routed: r.handled ? r.handled.as : null }));
   return {
     ok: true as const, ref: `case:${caseId(a.ref)}`, id: caseId(a.ref), authoritative: false as const, derivedFrom: ["state.json (goal, bar)", "product-model.md", "proposals.md", "evidence/", "artifacts/", "inbox.jsonl", "run log"], world: worldId(p.run.modelVersion),
-    anchor: a, purpose: purposeOf(W, a),
+    anchor: a, purpose: purposeOf(W, a), stated,
     now: nowOf(W, a),
     deviations: devs, material, field, primary: primary?.id ?? null, settlement,
     decisionStates: ds, counts: { available: field.filter((m) => m.status === "available").length, blocked: field.filter((m) => m.status === "blocked").length },
@@ -380,6 +398,7 @@ export function caseStateRows(c: CaseOk) {
   const prim = c.field.find((m) => m.primary);
   const rows: { id: string; part: string; answer: string; signal: string; _ref?: string }[] = [];
   rows.push({ id: "destination", part: "Destination", answer: `${c.purpose.text}${c.purpose.bar ? `. Bar: ${c.purpose.bar}` : ""}`, signal: c.purpose.basis, _ref: c.anchor.ref ?? undefined });
+  for (const x of c.stated.slice(-2)) rows.push({ id: `stated-${x.id}`, part: "Owner's note", answer: `${x.note} (${x.by}; ${x.routed ? `routed: ${x.routed}` : "not yet routed to the model"})`, signal: x.routed ? "recorded" : "unrouted" });
   rows.push({ id: "now", part: "Now", answer: c.now.text, signal: c.now.basis });
   rows.push({ id: "deviation", part: "Deviation", answer: c.material ? c.material.text : "none: nothing material separates now from the destination", signal: c.material?.severity ?? "quiet", _ref: c.material?.ref });
   if (prim) {

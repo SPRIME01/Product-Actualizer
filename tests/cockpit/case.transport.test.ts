@@ -111,6 +111,16 @@ describe("gh is an opt-in prober: nothing runs unless ACTUALIZE_GH=1", () => {
     expect(probesFor({}, which, run)).toEqual({}); expect(probesFor({ ACTUALIZE_GH: "0" }, which, run)).toEqual({}); expect(probesFor({ ACTUALIZE_GH: "true" }, which, run)).toEqual({}); expect(ran).toBe(0);
     expect(hostEnv({}, run).probes).toEqual({}); expect(ran).toBe(0);
   });
+  test("ACTUALIZE_PROBE=local probes only providers that stay on the machine; a named provider is probed even if remote; the probe is the catalogue's own", () => {
+    const has = new Set(["git", "rg", "gh"]); const w = (b: string) => (has.has(b) ? `/usr/bin/${b}` : null); const seen: string[][] = [];
+    const run = (c: string[]) => { seen.push(c); return { code: 0 }; };
+    const local = probesFor({ ACTUALIZE_PROBE: "local" }, w, run); expect(Object.keys(local).sort()).toEqual(["git", "ripgrep"]); expect(seen.some((c) => c[0] === "gh")).toBe(false);
+    expect(Object.keys(probesFor({ ACTUALIZE_PROBE: "local,gh" }, w, run)).sort()).toEqual(["gh", "git", "ripgrep"]);
+    expect(Object.keys(probesFor({ ACTUALIZE_PROBE: "gh" }, w, run))).toEqual(["gh"]);
+    const base = { which: w, env: {}, exists: () => false, platform: "linux" };
+    const g = (K.worldReach({ proj: srvProj(), runDir: fx.run.dir }, { need: "repo.inspect" }, { ...base, probes: local }) as any).providers.find((p: any) => p.id === "git");
+    expect(g.state.probed).toBe("yes"); expect(g.status).toBe("usable");
+  });
   test("opted in, a signed-in gh climbs the ladder; a failing one records authorization as refused; a missing gh records nothing", () => {
     const now = () => "2026-10-02T00:00:00.000Z";
     expect(probesFor({ ACTUALIZE_GH: "1" }, which, () => ({ code: 0 }), now)).toEqual({ gh: { at: now(), reachable: true, authorized: true } });

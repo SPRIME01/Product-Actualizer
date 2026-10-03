@@ -53,7 +53,7 @@ A Case is anchored on a ref that already has an authoritative home. The anchor d
 | `U2`, `P7` | answer the question; decide the candidate | the Unknowns table; proposals.md |
 | `evidence/<lens>/<file>` | learn whether the hypothesis holds | the experiment's head |
 
-**Why a Case is not stored.** A stored Case could only drift from the files that hold its facts. The one thing it would add is a purpose, and the run's goal and bar, or a model row, already carry one. A purpose with no row has no home yet: that is recorded in `.agents/DEBT.md` (D2), not papered over.
+**Why a Case is not stored.** A stored Case could only drift from the files that hold its facts. The one thing it would add is a purpose, and the run's goal and bar, or a model row, already carry one. An owner who wants a direction no row carries annotates the Case (the existing annotation gesture, target `case:<id>`): it appears beside the destination as an owner's note, marked *not yet routed to the model* until the router routes it and acknowledges it. The inbox is the only place it is stored.
 
 ### The material deviation: evidence wins salience
 
@@ -116,7 +116,7 @@ A **pattern** is a claim whose source cites experiment files. The side an experi
 | `supported` | at least two with a frozen criterion, in at least two settings, none contradicting |
 | `contested` | at least one contradicts. Both sides stay listed; nothing is averaged |
 
-The thresholds are this repository's default evidence contract (`PATTERN_CONTRACT`), not a statistical convention (`.agents/DEBT.md`, D4). An experiment whose criterion was not frozen before its result cannot count as support. **Before paying to observe something again**, `actualize case prior --q "<words>"` finds the patterns and experiments that already bear on it, and an empty answer says "nothing is recorded here", never "nothing is known".
+The thresholds are this repository's default evidence contract (`PATTERN_CONTRACT`), not a statistical convention. A claim may demand more with `[contract supporting=3 scopes=2]` in its source, never less, and each pattern lists where it was reused afterwards (`.agents/DEBT.md`, D4). An experiment whose criterion was not frozen before its result cannot count as support. **Before paying to observe something again**, `actualize case prior --q "<words>"` finds the patterns and experiments that already bear on it, and an empty answer says "nothing is recorded here", never "nothing is known".
 
 ## How the owner sees it
 
@@ -135,14 +135,15 @@ Rules the surface keeps, tested in a real browser: no percentage-complete anywhe
 
 Local git is a **read-only timeline** (`cockpit/server/git.ts`; only `rev-parse`, `log`, `show` run). It supplies a model version's settlement time when the log lacks one, the commits that recorded an artifact or evidence file (`world why`), the commit timeline (`world timeline --git`), and the freeze-before-result order of an experiment. With no repository every question answers "not recorded" and nothing is guessed. Nothing is ever fetched, pulled, committed, or written.
 
-`gh` is an **opt-in prober** for the reach ladder. With `ACTUALIZE_GH=1` (default off) and `gh` on the PATH, `gh auth status` fills the probed, reachable, and authorized rungs of the `gh` provider, so a GitHub-backed evidence route (issues and discussions are support history) can be `usable` instead of `unproven`. That call contacts GitHub, which is why it is off by default; it is cached for a minute.
+Probing is **opt-in**, default off. `ACTUALIZE_PROBE` is a comma list: `local` runs each provider's own declared probe (a `--version` style call) for providers that stay on the machine, and a provider id (`gh`) also probes one that contacts the network. `ACTUALIZE_GH=1` is the older spelling of `gh`. A probe fills the probed, reachable, and authorized rungs so a route can be `usable` instead of `unproven`; results are cached for a minute.
 
 ## What it does not do
 
 - It does not store a Case, a purpose, a score, or a decision state, and it does not pick for the owner.
 - It does not run a move. Even the primary move is a description.
 - It does not size an opportunity or compute a priority.
-- A purpose with no model row has no home yet (`.agents/DEBT.md`, D2); payment is measured only for lens runs (D3); only `gh` can climb past `configured` (D5).
+- Payment is measured only where the log records it (lens runs, reconciliations, an owner's wait after a pause); everything else says `unknown`.
+- A provider climbs past `configured` only when its probe was opted into with `ACTUALIZE_PROBE`.
 
 ### Source trail
 

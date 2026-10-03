@@ -399,3 +399,42 @@ describe("the views are compositions of the existing fifteen blocks", () => {
     expect(readInbox(fx.run)).toEqual([]);   // opening a view is layout, not authority
   });
 });
+
+// ---- residuals closed ------------------------------------------------------------------------------------------------------------------------------
+describe("an owner's stated direction, measured payment, stricter contracts", () => {
+  test("the owner annotates a Case; it shows as an unrouted note beside the destination, and stores nothing on the Case", () => {
+    const fx = fixtureRun("loam"); calm(fx); const k = open(fx);
+    expect(k.human({ op: "human.annotate", target: "case:run", text: "Be demo-ready by Friday", kind: "comment" } as any).ok).toBe(true);
+    k.refresh(); const row = () => C.caseStateRows(caseOf(k)).find((r) => r.part === "Owner's note")!;
+    expect(row().answer).toMatch(/Be demo-ready by Friday \(the owner; not yet routed to the model\)/); expect(row().signal).toBe("unrouted");
+    expect(caseOf(k).purpose.text).toBe("closed-beta signup page, text only");   // the destination is still the recorded one
+    const id = readInbox(fx.run)[0].id; require("../../hooks/src/lib/inbox.mjs").ackInbox(fx.run, id, "decision at next reconciliation"); k.refresh();
+    expect(row().answer).toMatch(/routed: decision at next reconciliation/);
+  });
+  test("a reconciliation's cost comes from earlier reconciliations in the log, and unknown stays unknown without them", () => {
+    const fx = fixtureRun("mote", { stale: true, openProposals: ["P12"] }); const k = open(fx);
+    const m = caseOf(k).field.find((x) => x.op === "reconcile.start")!; expect(m.payment.basis).toBe("derived"); expect(m.payment.estimate).toMatch(/earlier reconciliation/);
+    fs.writeFileSync(fx.run.logPath, ""); k.refresh(); expect(caseOf(k).field.find((x) => x.op === "reconcile.start")!.payment.estimate).toBe("unknown");
+  });
+  test("owner attention is the measured wait between a pause and the owner's next response", () => {
+    const fx = fixtureRun("loam"); calm(fx); const t = Date.now();
+    fs.appendFileSync(fx.run.logPath, JSON.stringify({ ts: new Date(t - 600000).toISOString(), type: "pause", reason: "x" }) + "\n");
+    fs.appendFileSync(path.join(fx.run.dir, "inbox.jsonl"), JSON.stringify({ id: "H1", ts: new Date(t - 300000).toISOString(), kind: "answer", via: "cockpit" }) + "\n");
+    const k = open(fx); const m = caseOf(k).field.find((x) => x.authority === "owner" && x.op.startsWith("observe"))!;
+    expect(m.payment.basis).toBe("derived"); expect(m.payment.estimate).toMatch(/~5 min \(median of 1 earlier wait on the owner\)/);
+  });
+  test("a claim can demand a stricter pattern contract, never a weaker one", () => {
+    const pass = ["| c | 4.0 | 1 |"], [a, b] = [experimentFile({ name: "q-a", scope: "smb", rows: pass }), experimentFile({ name: "q-b", scope: "enterprise", rows: pass })];
+    const mk = (src: string) => { const fx = fixtureRun("loam"); calm(fx); for (const e of [a, b]) writeRun(fx, e.rel, e.text); rewriteModel(fx, (t) => t.replace(/^\| C10 \|.*$/m, `| C10 | Control raises signups | REPORTED | ${src} |`)); return open(fx); };
+    const base = `${a.rel} (supports); ${b.rel} (supports)`;
+    expect(L.patterns(mk(base).worldEnv()).find((p) => p.id === "C10")!.status).toBe("supported");
+    const strict = L.patterns(mk(`${base} [contract supporting=3]`).worldEnv()).find((p) => p.id === "C10")!; expect(strict.status).toBe("emerging"); expect(strict.contract).toEqual({ supporting: 3, scopes: 2 });
+    expect(L.patterns(mk(`${base} [contract supporting=1 scopes=1]`).worldEnv()).find((p) => p.id === "C10")!.contract).toEqual({ supporting: 2, scopes: 2 });
+  });
+  test("a pattern records where it was reused afterwards", () => {
+    const fx = fixtureRun("loam"); calm(fx); rewriteModel(fx, (t) => t.replace(/^\| C10 \|.*$/m, "| C10 | Control raises signups | REPORTED | marketing/q-a.md (supports) |"));
+    const e = experimentFile({ name: "q-a", scope: "smb", rows: ["| c | 4.0 | 1 |"] }); writeRun(fx, e.rel, e.text);
+    fs.appendFileSync(fx.run.proposalsPath, "| P98 | marketing | positioning | change | Lead with control per C10 | evidence/marketing/q-a.md | open |  |\n");
+    const p = L.patterns(open(fx).worldEnv()).find((x) => x.id === "C10")!; expect(p.reusedBy).toContain("proposal:P98");
+  });
+});

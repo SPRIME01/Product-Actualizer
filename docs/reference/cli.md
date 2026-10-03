@@ -149,7 +149,7 @@ Idempotent; backs up any file it changes into `backupDir()` (`ACTUALIZE_BACKUP_D
 | variable | read at | effect |
 |---|---|---|
 | `ACTUALIZE_DIR` | `store.mjs:27` | use this run directory instead of searching for `actualize/` (with `state.json`) upward from cwd |
-| `ACTUALIZE_GH` | `reach.ts` | `1` lets the reach ladder run `gh auth status` once a minute to fill the `gh` provider's probed, reachable, and authorized rungs. Default off: nothing is run or contacted without it |
+| `ACTUALIZE_PROBE` | `reach.ts` | comma list: `local` runs the declared probe of providers that stay on the machine; a provider id (`gh`) also probes a networked one. Cached a minute. Default off: nothing is run or contacted without it. `ACTUALIZE_GH=1` is an alias for `gh` |
 | `ACTUALIZE_SKILLS_DIR` | `store.mjs:16` | lens root; default `<repo>/skills` |
 | `ACTUALIZE_MODEL_DIR` | `store.mjs:19` | schema root; default `<repo>/product-model`. `reconcile start` reads `TEMPLATE.md` from here |
 | `ACTUALIZE_BACKUP_DIR` | `adapters/common.mjs:16` | where the installer stores backups |

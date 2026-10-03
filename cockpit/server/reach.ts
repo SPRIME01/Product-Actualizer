@@ -17,17 +17,26 @@ export type ReachEnv = { which: (bin: string) => string | null; env: Record<stri
 // so it contacts the network; that is why it needs ACTUALIZE_GH=1. Without the variable nothing is run and nothing is contacted.
 export type GhRunner = (cmd: string[]) => { code: number | null };
 const ghRun: GhRunner = (cmd) => { try { const r = Bun.spawnSync(cmd, { stdout: "ignore", stderr: "ignore", timeout: 6000 }); return { code: r.exitCode }; } catch { return { code: null }; } };
+// ACTUALIZE_PROBE is a comma list: `local` runs the declared probe of every provider that does not leave the machine (a `--version` style call), and a
+// provider id runs that provider's probe even if it contacts the network. ACTUALIZE_GH=1 is the older spelling of `gh`. Default: nothing runs.
 export function probesFor(env: Record<string, string | undefined>, which: (b: string) => string | null, run: GhRunner = ghRun, now = () => new Date().toISOString()): Record<string, ProbeRecord> {
-  if (env.ACTUALIZE_GH !== "1" || !which("gh")) return {};
-  const r = run(["gh", "auth", "status"]);
-  return r.code === null ? {} : { gh: { at: now(), reachable: r.code === 0 ? true : undefined, authorized: r.code === 0 } };
+  const want = new Set((env.ACTUALIZE_PROBE ?? "").split(",").map((x) => x.trim()).filter(Boolean)); if (env.ACTUALIZE_GH === "1") want.add("gh");
+  const out: Record<string, ProbeRecord> = {};
+  for (const p of PROVIDERS) {
+    if (!p.probe || !(want.has(p.id) || (want.has("local") && !p.remote))) continue;
+    if (!p.binaries?.some((b) => which(b))) continue;
+    const r = run(p.probe); if (r.code === null) continue;
+    out[p.id] = p.remote ? { at: now(), reachable: r.code === 0 ? true : undefined, authorized: r.code === 0 } : { at: now() };
+  }
+  return out;
 }
+
 let probed: { at: number; probes: Record<string, ProbeRecord> } | null = null;   // one probe per minute, not one per question
 // `base` is the project directory: a relative path in a provider's config means "in this project", so the same question has the same answer from any process.
 export const hostEnv = (env: Record<string, string | undefined> = process.env, run?: GhRunner, base: string = process.cwd()): ReachEnv => {
   const which = (b: string) => Bun.which(b);
   let probes: Record<string, ProbeRecord> = {};
-  if (env.ACTUALIZE_GH === "1") { if (run || !probed || Date.now() - probed.at > 60_000) { probes = probesFor(env, which, run); if (!run) probed = { at: Date.now(), probes }; } else probes = probed.probes; }
+  if (env.ACTUALIZE_GH === "1" || env.ACTUALIZE_PROBE) { if (run || !probed || Date.now() - probed.at > 60_000) { probes = probesFor(env, which, run); if (!run) probed = { at: Date.now(), probes }; } else probes = probed.probes; }
   return { which, env, exists: (p) => fs.existsSync(p.startsWith("~") ? p.replace(/^~/, os.homedir()) : path.resolve(base, p)), platform: process.platform, probes };
 };
 
