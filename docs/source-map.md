@@ -100,7 +100,7 @@ the repository root; `Symbol` names a function, class, or constant that carries 
 - **SQLite is not authority.** `cockpit/server/db.ts` (module comment) and `cockpit/server/sync.ts:Syncer.rebuild`
   delete and regenerate it; the run directory, `inbox.jsonl`, and `.log.jsonl` stay authoritative.
 - **`layout: "columns"` is advertised but renders as an auto-fit grid.** The schema documents "two equal columns,
-  blocks alternate" (`cockpit/protocol/spec.ts:172`); the renderer emits one class (`cockpit/web/Surface.tsx:31`) and
+  blocks alternate" (`cockpit/protocol/spec.ts:182`); the renderer emits one class (`cockpit/web/Surface.tsx:36`) and
   the stylesheet uses `repeat(auto-fit, minmax(300px, 1fr))` (`cockpit/web/styles.css:74`).
 - **No code applies an owner's answer to the model.** The inbox appends and acks (`hooks/src/lib/inbox.mjs`); turning an
   answer into a proposal, decision, or unknown is the router's prose work — which is why `ackInbox` demands a stated
@@ -112,7 +112,7 @@ the repository root; `Symbol` names a function, class, or constant that carries 
 | a stale rebuild | a decision touches what an artifact reads or cites | `process.mjs:reconcileDone` returns `stale[]` → `readyLenses` puts the owner back at `lens start` | `physical.test.mjs` "stale rebuild: … record model@5 and the confirmed revision" |
 | the release gate | `lens start release-readiness` | `process.mjs:readyLenses` (gate lens runs last), the extra checks in `lensStart`, then `finish` | `tests/walkthrough-mote/artifacts/release-readiness/gate.md`; `tests/check.py:check_gate`, `gate_errors` |
 | ref / entity | `docs/reference/cockpit-protocol.md` | `refs.ts:parseRef`, `expandRef`, `REF_TOKEN`; resolution `cockpit/server/sources.ts:detail` | `claim:C1`, `unknown:U1`, `proposal:P1`, `decision:D1`, `artifact:`, `evidence:`, `lens:`, `field:`, `version:n`, `gate`. |
-| source binding | `docs/reference/cockpit-protocol.md` | `spec.ts:SourceSchema` (`pa:`/`graph:`/`file:`), `sources.ts:resolve`, `safeRunFile` | `file:` is restricted to `artifacts\|evidence\|history` and rejects `..`. |
+| source binding | `docs/reference/cockpit-protocol.md` | `spec.ts:SourceSchema` (`pa:`/`graph:`/`case:`/`work:`/`world:`/`file:`), `sources.ts:resolve`, `safeRunFile` | `file:` is restricted to `artifacts\|evidence\|history` and rejects `..`. |
 | authority tier | `docs/explanation/why-authority-is-never-transferred.md` | `cockpit/server/workspace.ts:applyAgent`/`applyHuman`, `cockpit/protocol/actions.ts:AUTHORITY_OPS`, `cockpit/server/serve.ts:roleOf` | system (rail, absent from workspace state) / agent / human. Two random tokens per start; loopback + Origin guard. |
 | projection | `docs/subsystems/cockpit.md` | `cockpit/server/project.ts:project`, `railOf`; `sync.ts:Syncer`; `db.ts:openDb` | Pure function of the run directory; `project.ts` calls `process.mjs:computeGate`, so the rail cannot disagree with the gate. |
 

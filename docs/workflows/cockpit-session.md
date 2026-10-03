@@ -113,7 +113,7 @@ which are the router's judgement, and the `human.select` / `human.control` in-bl
    `diffEvents` (`sync.ts:1-4,47-94`).
 5. **Agent composes.** `actualize ui put` → `SurfaceSchema` locally → `POST /api/agent/tool` → `Cockpit.tool` →
    `applyAgent`. `applyAgent` is `(state, action, actor, ctx) → state'` with no I/O, no DOM, and no clock beyond
-   `ctx.now` (`workspace.ts:1`). Twelve agent ops exist (`protocol/actions.ts:32-34`). An existing surface is replaced
+   `ctx.now` (`workspace.ts:1`). Eleven agent ops exist (`protocol/actions.ts:33-35`). An existing surface is replaced
    in place, keeping the owner's position, with a `PLACEMENT_IGNORED` warning (`workspace.ts:196-206`; asserted
    `tests/cockpit/live.test.ts:118-130`). Cap: 8 surfaces, evicting the least-recent unpinned one, never one waiting on
    an answer (`workspace.ts:12,207-213`; `live.test.ts:142-150`).
@@ -198,13 +198,13 @@ rebuilds the projection tables rather than migrating (`db.ts:17-21`).
 
 ### Source trail
 
-- Start: `justfile:19-21`; `cockpit/cli.ts:14-23,25-70`; `cockpit/server/main.ts:1-16`.
+- Start: `justfile:19-21`; `cockpit/cli.ts:14-23,25-70`; `cockpit/server/main.ts:1-15`.
 - Server and transport: `cockpit/server/serve.ts:15-28,30-41,51-103,105-123,132-147`.
 - Core: `cockpit/server/core.ts:24-36,68-82,84-92,93-100,126-133,135-157,168-173,178-215`.
 - Reducer: `cockpit/server/workspace.ts:1-13,24-36,175-215,250-252,273-285,332-375,429-447`.
 - Projection and rail: `cockpit/server/project.ts:26-73,76-92`; `cockpit/server/sync.ts:25-42,47-94,96-127`;
   `cockpit/server/db.ts:10-49`.
-- Vocabulary: `cockpit/protocol/actions.ts:10-34,36-63,66-93`; `cockpit/protocol/tools.ts:12-41`;
+- Vocabulary: `cockpit/protocol/actions.ts:11-35,39-58,67-79,87-93`; `cockpit/protocol/tools.ts:16-81,87-97`;
   `cockpit/protocol/spec.ts`; `cockpit/protocol/refs.ts`.
 - Inbox: `hooks/src/lib/inbox.mjs:8-50`; gate blocker `hooks/src/process.mjs:77`.
 - Agent-facing skill: `skills/cockpit/SKILL.md:13-30`.

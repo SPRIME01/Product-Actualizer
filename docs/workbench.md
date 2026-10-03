@@ -89,7 +89,7 @@ CLI: `actualize work [requests [R3]|workflow|capabilities [lens]|contract [stage
 
 The owner's control operations (`human.terminal`, `human.review`, `human.cancel`, `human.bind`, `human.contract`, `human.executor`) arrive only over the authenticated human socket. An agent that sends one gets `AUTHORITY_HUMAN`.
 
-## Where it lives
+### Source trail
 
 | concern | file |
 |---|---|

@@ -84,11 +84,11 @@ trusted designer. The mitigation is structural rather than advisory.
   as data and never writes UI code. 15 blocks, each with a distinct interaction or distinction a human relies
   on. `.strict()` everywhere: an unknown property is an error, not a silent no-op, so the agent gets
   machine-readable feedback instead of a broken view."
-- Everything is `.strict()`: `SurfaceSchema` (`spec.ts:168-183`), each block schema, `PlacementSchema`
-  (`spec.ts:189-194`). An unrecognised key fails validation rather than being dropped.
-- Sources are a closed grammar: `pa:` over thirteen named projections, `graph:` over four, and `file:`
-  restricted to `artifacts|evidence|history` with no `..` (`spec.ts:16-22`). A surface cannot be pointed at an
-  arbitrary path.
+- Everything is `.strict()`: `SurfaceSchema` (`spec.ts:178-193`), each block schema, `PlacementSchema`
+  (`spec.ts:199-204`). An unrecognised key fails validation rather than being dropped.
+- Sources are a closed grammar of six forms: `pa:` over 20 named projections, `graph:` over 8, plus `case:`,
+  `work:`, `world:`, and `file:` restricted to `artifacts|evidence|history` with no `..` (`spec.ts:16-32`).
+  A surface cannot be pointed at an arbitrary path.
 - `refs` are a closed set of prefixes — `claim:`, `unknown:`, `proposal:`, `decision:`, `artifact:`,
   `evidence:`, `lens:`, `field:`, `version:`, `gate` (`cockpit/protocol/catalog.ts:48`).
 - Ops are a closed list: `surface.put`, `surface.patch`, `surface.remove`, `view.focus`, `view.place`,
@@ -100,7 +100,7 @@ trusted designer. The mitigation is structural rather than advisory.
 - `AGENTS.md:13` closes the escape hatch with a prohibition: "Do not add UI code paths the agent could reach
   other than the typed vocabulary."
 - Agent-supplied inline data is always rendered with an "agent-supplied" mark, "so a surface cannot pass its
-  own numbers off as process state" (`spec.ts:15`; the tag is rendered at `cockpit/web/Surface.tsx:30`).
+  own numbers off as process state" (`spec.ts:15`; the tag is `AgentTag`, rendered from `BlockTitle` at `cockpit/web/ui.tsx:67-70`).
 
 INFERRED: the rejected alternative here is an agent-authored HTML/JS panel. It is not recorded as having been
 built; the shape of the prohibition implies it. What is VERIFIED is the mechanism and the stated reason for it.
@@ -110,11 +110,11 @@ built; the shape of the prohibition implies it. What is VERIFIED is the mechanis
 A closed vocabulary buys enforcement and costs expressiveness. Three costs, all visible in the code:
 
 1. **New visual needs require a protocol change.** A surface is `layout: stack | columns` and 1–12 blocks of
-   fifteen types (`spec.ts:165,168-173`). Anything a new need wants beyond that set is a schema edit, a
+   fifteen types (`spec.ts:175,178-193`). Anything a new need wants beyond that set is a schema edit, a
    `REGISTRY` entry, a new `.tsx` renderer, and a catalog entry — not an agent decision.
 2. **`layout: "columns"` already promises more than it implements.** The schema comment says "columns: two
-   equal columns, blocks alternate" (`spec.ts:172`) and the catalog advertises `layout: stack|columns` to the
-   agent (`catalog.ts:46`). The renderer maps `columns` to a CSS class (`cockpit/web/Surface.tsx:31`) and that
+   equal columns, blocks alternate" (`spec.ts:182`) and the catalog advertises `layout: stack|columns` to the
+   agent (`catalog.ts:46`). The renderer maps `columns` to a CSS class (`cockpit/web/Surface.tsx:36`) and that
    class is `grid-template-columns: repeat(auto-fit, minmax(300px, 1fr))` (`cockpit/web/styles.css:74`) — a
    fluid auto-fit grid, not two alternating columns. Document and implementation disagree today. This is the
    clearest live instance of the cost: a closed vocabulary is a promise, and the promise is maintained by hand.
@@ -135,8 +135,8 @@ transferable" (PRODUCT.md:47), "the cockpit shows, it does not decide" (PRODUCT.
 - Body disclosure: `hooks/src/process.mjs:199-203`; `hooks/src/cli.mjs:134-137`.
 - Read denial: `hooks/src/engine.mjs:168-172`; tokenisation `hooks/src/engine.mjs:184-203`; strict default `hooks/src/cli.mjs:100`; tests `tests/hooks/replay.test.mjs:37-38`.
 - Cockpit vocabulary: `cockpit/protocol/spec.ts:1-3,15-22,165,168-183,189-194`; `cockpit/protocol/catalog.ts:1-2,34-37,46-51`; `AGENTS.md:13`.
-- `layout: "columns"` divergence: `cockpit/protocol/spec.ts:172`; `cockpit/protocol/catalog.ts:46`; `cockpit/web/Surface.tsx:31`; `cockpit/web/styles.css:74`.
-- Agent-supplied mark: `cockpit/protocol/spec.ts:15`; `cockpit/web/Surface.tsx:30`. Product constraints: `PRODUCT.md:13,23,47`.
+- `layout: "columns"` divergence: `cockpit/protocol/spec.ts:182`; `cockpit/protocol/catalog.ts:46`; `cockpit/web/Surface.tsx:36`; `cockpit/web/styles.css:74`.
+- Agent-supplied mark: `cockpit/protocol/spec.ts:15`; `cockpit/web/ui.tsx:67-70`; the surface-level "agent" badge at `cockpit/web/Surface.tsx:33`. Product constraints: `PRODUCT.md:13,23,47`.
 
 INFERRED: the rejected alternative here is an agent-authored HTML/JS panel. It is not recorded as having been
 built; the shape of the prohibition implies it. What is VERIFIED is the mechanism and the stated reason for it.

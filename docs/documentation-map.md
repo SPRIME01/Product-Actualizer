@@ -32,11 +32,17 @@ Layer 3 subsystems, Layer 4 workflows, Layer 5 explanation, Layer 6 tutorials, L
 | [reference/cli.md](reference/cli.md) | reference | every command, flag, exit code, env var, `just` recipe | "what are the exact arguments?" | — | how-to, subsystems/hooks, subsystems/cockpit | **the CLI surface, exit codes, environment variables, `just` recipes, the artifact header, what `check.py` enforces and does not** |
 | [reference/lenses.md](reference/lenses.md) | reference | every lens and the dependency graph | "which lens do I need?" | concepts | subsystems/skills | **the canonical lens table (`needs`, `executes_with`, ownership) and the graph** |
 | [reference/product-model-schema.md](reference/product-model-schema.md) | reference | the model contract | "is my model valid?" | concepts | concepts.md | **the ten sections and field keys, the seven grades, the source format, `proposals.md`, the staleness algorithm, the validity checklist** |
-| [reference/cockpit-protocol.md](reference/cockpit-protocol.md) | reference | the typed surface vocabulary | "what can I compose?" | subsystems/cockpit | cockpit.md | **the 15 blocks, the source grammar, refs, actions, error codes, the 12 tools, the events** |
+| [reference/cockpit-protocol.md](reference/cockpit-protocol.md) | reference | the typed surface vocabulary | "what can I compose?" | subsystems/cockpit | cockpit.md | **the 15 blocks, the six source families with their columns, refs, actions, error codes, the tools (14 always + 7 by context + `work_update` while pending), the events** |
 | [reference/files-and-layout.md](reference/files-and-layout.md) | reference | the run directory and the repository tree | "where is this file?" | — | source-map.md | **the run directory's ownership table, the repository layout, the fixtures** |
 | [reference.md](reference.md) | reference | cross-cutting reference index | "what is enforced?" | — | reference/cli.md | what `tests/check.py` enforces **and the four things it does not** |
 | [source-map.md](source-map.md) | reference | concept → implementation | "where is it implemented?" | — | reference/files-and-layout.md | the concept/capability/workflow → code map |
 | [documentation-map.md](documentation-map.md) | reference | this file | "what owns which concept?" | — | README.md | **canonical knowledge ownership across the documentation system** |
+| [workflows/hook-enforcement.md](workflows/hook-enforcement.md) | explanation | one gated tool call, end to end | "why was my write denied?" | subsystems/hooks | troubleshooting | the event path client → adapter → engine → denial; the stop-gate loop |
+| [workflows/cockpit-session.md](workflows/cockpit-session.md) | explanation | one live cockpit session | "what happens when I click?" | subsystems/cockpit | cockpit.md | the agent-compose path and the owner-input path as traces |
+| [how-to/run-a-governed-run.md](how-to/run-a-governed-run.md) | how-to | execute the enforced sequence | "do this for me" | getting-started | reference/cli, workflows/a-full-run | the operational procedure and its recovery paths |
+| [hooks.md](hooks.md) | how-to | install and operate hooks | "set up enforcement" | getting-started | subsystems/hooks, reference/cli | installer usage and per-client configuration |
+| [cockpit.md](cockpit.md) | how-to | use the cockpit as an owner or agent | "show me the cockpit" | getting-started | subsystems/cockpit, reference/cockpit-protocol | cockpit task flow; the vocabulary lives in the reference |
+| [troubleshooting.md](troubleshooting.md) | reference | diagnose a symptom | "it is broken" | — | every subsystem page | **failure symptoms and their real refusal messages** |
 
 ## Repository-root documents
 
@@ -45,6 +51,12 @@ their content into `docs/`.
 
 | file | canonical for |
 |---|---|
+| `README.md` | the repository front door: what it is, the lens table in brief, how to run and check it |
+| `AGENTS.md` | conventions for working *in* this repository |
+| `DESIGN.md` | the design system: OKLCH tokens, grade palette, components, Do's and Don'ts |
+| `PRODUCT.md` | who the product is for, its purpose, brand personality, anti-references, design principles, accessibility |
+| `PROVENANCE.md` | which donor repositories informed which lens, and each donor's licence |
+
 ## Concept ownership rules
 
 - A **grade** is defined once, in [concepts.md](concepts.md) (meaning), with the mechanical contract in
@@ -72,14 +84,8 @@ Recorded so a later run can close them rather than re-derive them:
   their subsystem pages, but a step-by-step procedure would serve a reader who is actually doing it.
 - No page for the **compiled executable** (`bun run build`) as a distribution topic; it is covered inside
   [reference/cli.md](reference/cli.md) and [explanation/why-bun-only.md](explanation/why-bun-only.md).
-| `README.md` | the repository front door: what it is, the lens table in brief, how to run and check it |
-| `AGENTS.md` | conventions for working *in* this repository |
-| `DESIGN.md` | the design system: OKLCH tokens, grade palette, components, Do's and Don'ts |
-| `PRODUCT.md` | who the product is for, its purpose, brand personality, anti-references, design principles, accessibility |
-| `PROVENANCE.md` | which donor repositories informed which lens, and each donor's licence |
-| [workflows/hook-enforcement.md](workflows/hook-enforcement.md) | explanation | one gated tool call, end to end | "why was my write denied?" | subsystems/hooks | troubleshooting | the event path client → adapter → engine → denial; the stop-gate loop |
-| [workflows/cockpit-session.md](workflows/cockpit-session.md) | explanation | one live cockpit session | "what happens when I click?" | subsystems/cockpit | cockpit.md | the agent-compose path and the owner-input path as traces |
-| [how-to/run-a-governed-run.md](how-to/run-a-governed-run.md) | how-to | execute the enforced sequence | "do this for me" | getting-started | reference/cli, workflows/a-full-run | the operational procedure and its recovery paths |
-| [hooks.md](hooks.md) | how-to | install and operate hooks | "set up enforcement" | getting-started | subsystems/hooks, reference/cli | installer usage and per-client configuration |
-| [cockpit.md](cockpit.md) | how-to | use the cockpit as an owner or agent | "show me the cockpit" | getting-started | subsystems/cockpit, reference/cockpit-protocol | cockpit task flow; the vocabulary lives in the reference |
-| [troubleshooting.md](troubleshooting.md) | reference | diagnose a symptom | "it is broken" | — | every subsystem page | **failure symptoms and their real refusal messages** |
+- No workflow trace for the **Work Terminal** as a round trip (a typed line → a queued request → the agent
+  acknowledging → the owner's acceptance). The interpreter's four outcomes are documented in
+  [workbench.md](workbench.md) and the request lifecycle is in
+  [reference/cockpit-protocol.md](reference/cockpit-protocol.md), but no page walks one end to end the way
+  [workflows/cockpit-session.md](workflows/cockpit-session.md) walks an owner gesture.

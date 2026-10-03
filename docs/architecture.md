@@ -162,7 +162,7 @@ the engine's own event stream, read back at `sync.ts:47-60`).
 Also notice the deliberate asymmetry in the projection: **the cockpit stores references, not artifact bodies.**
 `project.ts:48-51` keeps `rel`, `lens`, `built`, `reads`, `cites`, `status`; a body is read on demand through
 `safeRunFile`, which accepts only `artifacts/`, `evidence/`, `history/` and re-checks prefix and realpath
-(`sources.ts:78-83`) — the same restriction the protocol's `file:` grammar states.
+(`sources.ts:80-86`) — the same restriction the protocol's `file:` grammar states.
 
 Omitted: the event log the engine appends to on every deny and stop-block (`store.mjs:92-96`), the `.state/` snapshots
 taken at `reconcile start`, and `.cockpit/` (agent token, `cockpit.db`, `server.json`, `context.json`), which sits inside
@@ -247,8 +247,8 @@ directory, the engine returns `null` for every event and stays silent (`engine.m
 - Framing: `README.md:6-8,20-37,96-113,115-127`; `AGENTS.md:1-14`; `PRODUCT.md:9,11,13,21,25`; `package.json:5-9,18-33`; `justfile:1-30`.
 - Layers and non-duplication: `docs/subsystems/skills.md:3,7,22,24,44,82`; `docs/subsystems/hooks.md:3,20-24,44,49,161`; `docs/subsystems/cockpit.md:3,7,20-24,42,44,80,94,104`.
 - Runtime: `docs/hooks.md:8-16,45,72,86-87`; `hooks/bin/actualize`; `hooks/clients/opencode/actualize.js:6-39`; `hooks/clients/prime/actualize.ts:8-42`; `hooks/src/cli.mjs:83-97`; `cockpit/server/serve.ts:22-33,45,105-123,133-146`; `cockpit/build.ts:14-19`; `cockpit/server/dev.ts:5-7`.
-- Dependencies: `hooks/src/engine.mjs:1-8`; `hooks/src/lib/md.mjs:1-9`; `hooks/src/lib/store.mjs:1-12`; `hooks/src/lib/lenses.mjs:1-6`; `cockpit/server/project.ts:1-8`; `cockpit/server/core.ts:1-16`; `cockpit/web/Workspace.tsx:3-4`; `cockpit/web/blocks/graph-impl.tsx:2`; `cockpit/web/blocks/chart-impl.tsx:3-7`; `cockpit/protocol/actions.ts:32-34,59-63`; `cockpit/protocol/spec.ts:165,168-183`; `docs/hooks.md:87`; `PROVENANCE.md:1-5`.
+- Dependencies: `hooks/src/engine.mjs:1-8`; `hooks/src/lib/md.mjs:1-9`; `hooks/src/lib/store.mjs:1-12`; `hooks/src/lib/lenses.mjs:1-6`; `cockpit/server/project.ts:1-8`; `cockpit/server/core.ts:1-16`; `cockpit/web/Workspace.tsx:3-4`; `cockpit/web/blocks/graph-impl.tsx:2`; `cockpit/web/blocks/chart-impl.tsx:3-7`; `cockpit/protocol/actions.ts:33-35,60-64`; `cockpit/protocol/spec.ts:175,178-193`; `docs/hooks.md:87`; `PROVENANCE.md:1-5`.
 - Data: `hooks/src/lib/store.mjs:13,25-40,42-57,72-96,116-131`; `hooks/src/lib/inbox.mjs:1-44`; `hooks/src/lib/md.mjs:158-229`; `cockpit/server/project.ts:26-92`; `cockpit/server/sync.ts:1-4,25-42,96-127`; `cockpit/server/sources.ts:78-95`; `docs/reference/files-and-layout.md:5-35`.
 - Control: `skills/actualize-product/SKILL.md:9-22`; `hooks/src/engine.mjs:16-33,242-262`; `hooks/src/process.mjs:54-107`; `skills/cockpit/SKILL.md:11,17,24-30`.
-- Trust: `PRODUCT.md:9-15,21,25,45,48`; `product-model/SCHEMA.md:35-52,66-75`; `hooks/src/lib/md.mjs:198,206`; `hooks/src/engine.mjs:60-68,73-106,137,151,171`; `product-model/PHYSICAL-PREFLIGHT.md:1-5,9-17,19-33,35-50`; `cockpit/server/serve.ts:17-20,30-41,54-56,70-75,97`; `cockpit/protocol/actions.ts:63,66-70`; `cockpit/server/sources.ts:78-83`; `docs/subsystems/cockpit.md:42,44,78,91-95`.
+- Trust: `PRODUCT.md:9-15,21,25,45,48`; `product-model/SCHEMA.md:35-52,66-75`; `hooks/src/lib/md.mjs:198,206`; `hooks/src/engine.mjs:60-68,73-106,137,151,171`; `product-model/PHYSICAL-PREFLIGHT.md:1-5,9-17,19-33,35-50`; `cockpit/server/serve.ts:17-20,30-41,54-56,70-75,97`; `cockpit/protocol/actions.ts:63,66-70`; `cockpit/server/sources.ts:80-86`; `docs/subsystems/cockpit.md:42,44,78,91-95`.
 - Evidence: `tests/hooks/replay.test.mjs:16-21,31-41,191-194,199-211`; `tests/hooks/physical.test.mjs:50-67,104-137,139-147`; `tests/cockpit/authority.test.ts:54-69,116-147,150-199`; `tests/cockpit/hooks-bun.test.ts:100-107`; `docs/workflows/a-full-run.md:1-63,152-174`.

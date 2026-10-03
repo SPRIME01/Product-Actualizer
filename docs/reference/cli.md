@@ -147,13 +147,13 @@ The inbox is `actualize/inbox.jsonl`: append-only, authoritative, written only b
 
 | flag | values | effect |
 |---|---|---|
-| `--client` | `claude`, `codex`, `cline`, `opencode`, `pi`, `prime`, `all` (default `all`; `pi`/`prime`/`prime-agent` are one adapter) |
-| `--scope` | `user` (default) \| `project` |
-| `--project` | directory, default cwd |
-| `--dry-run` | print actions without writing |
-| `--status` | report; **exits 1 if anything drifted** |
-| `--uninstall` | remove only managed entries |
-| `--force` | overwrite an unmanaged file at the target path |
+| `--client` | `claude`, `codex`, `cline`, `opencode`, `pi`, `prime`, `all` | default `all`; `pi`/`prime`/`prime-agent` are one adapter |
+| `--scope` | `user` (default) \| `project` | which location the hook files are written to |
+| `--project` | directory | root the `project` scope resolves against; default cwd |
+| `--dry-run` | *(no value)* | print actions without writing |
+| `--status` | *(no value)* | report; **exits 1 if anything drifted** |
+| `--uninstall` | *(no value)* | remove only managed entries |
+| `--force` | *(no value)* | overwrite an unmanaged file at the target path |
 
 Idempotent; backs up any file it changes into `backupDir()` (`ACTUALIZE_BACKUP_DIR`, else `~/.agents/state/actualize-backups` or `~/.local/state/actualize/backups`, `hooks/adapters/common.mjs:15-20`). `runtimeProblem()` requires Bun >= 1.4.0 and `bun` on PATH unless running compiled; `--status`, `--dry-run`, and `--uninstall` warn instead of failing.
 
@@ -302,6 +302,6 @@ Stdlib only, 661 lines. It currently prints `lenses: 17`, validates both walkthr
 - `hooks/adapters/common.mjs:15-20` — `backupDir`, `ACTUALIZE_BACKUP_DIR`
 - `hooks/bin/actualize` — the shim and its 127 path
 - `justfile`, `package.json` — recipes, variables, scripts
-- `docs/reference.md:88-93` — the repository-checks summary this page expands
+- `docs/reference.md:6-18` — the repository-checks summary this page expands
 - `docs/hooks.md` — client table, install forms, hook behaviour, escape hatches, runtime
 - `tests/check.py` — every rule above, with line numbers

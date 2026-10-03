@@ -95,7 +95,7 @@ error per line; report the exact line.
 - Lens start and selection refusals: `hooks/src/process.mjs:146-167,177-198`; reconciliation `:240-273`; gate blockers `:54-90`.
 - Artifact rules: `hooks/src/lib/md.mjs:166-229`; gate verdict `md.mjs:205-208`, `tests/hooks/replay.test.mjs:187`.
 - Physical classification: `hooks/src/engine.mjs:70-108`; `product-model/PHYSICAL-PREFLIGHT.md:9-17`; `tests/hooks/physical.test.mjs:65-66,114-122`.
-- Cockpit authority and error codes: `cockpit/protocol/actions.ts:61-77`; enforcement `cockpit/server/workspace.ts:208,252,273-285`; tests `tests/cockpit/authority.test.ts:29-49,68-93,95-141,143-200`.
+- Cockpit authority and error codes: `cockpit/protocol/actions.ts:62-79`; enforcement `cockpit/server/workspace.ts:208,252,273-285`; tests `tests/cockpit/authority.test.ts:29-49,68-93,95-141,143-200`.
 - Cockpit CLI and projection: `cockpit/cli.ts:16-71,86-118`; `cockpit/server/db.ts:1-4`; serving `cockpit/server/serve.ts:45,74`.
 - Repository checks: `tests/check.py:43-99,200-244,303-390,432-440,500-535,563-631`.
 - Existing troubleshooting text: `docs/hooks.md:82-88`.

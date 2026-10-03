@@ -24,7 +24,7 @@ Every block object is `.strict()`: an unknown property is a schema error, not a 
 
 ## Surface envelope
 
-`SurfaceSchema` (`spec.ts:168-183`):
+`SurfaceSchema` (`spec.ts:178-193`):
 
 | field | type | default / bound |
 |---|---|---|
@@ -37,7 +37,7 @@ Every block object is `.strict()`: an unknown property is a schema error, not a 
 
 `superRefine` adds: duplicate block ids are errors; a `form`'s ask ids share the same namespace and must be unique too; an `entity` block's `follow` must name a block present in the same surface.
 
-`PlacementSchema` (`spec.ts:189-194`), used by `show_surface` and `view.place`:
+`PlacementSchema` (`spec.ts:199-204`), used by `show_surface` and `view.place`:
 
 | field | type | default / bound |
 |---|---|---|
@@ -50,7 +50,7 @@ Every block object is `.strict()`: an unknown property is a schema error, not a 
 
 ## The 15 blocks
 
-`BLOCK_TYPES` (`spec.ts:165`), matching `REGISTRY` in the renderer one-for-one (`Surface.tsx:10-13`). A type not in the registry cannot be drawn; the server's schema never lets one through.
+`BLOCK_TYPES` (`spec.ts:175`), matching `REGISTRY` in the renderer one-for-one (`Surface.tsx:11-14`). A type not in the registry cannot be drawn; the server's schema never lets one through.
 
 ### Read blocks
 
@@ -101,7 +101,7 @@ Every block object is `.strict()`: an unknown property is a schema error, not a 
 
 **`form`** (`spec.ts:143-145`) — required `type`, `id`, `asks` (`AskBase` with the same rules, **2–8**, submitted together). Optional `title`.
 
-### Cross-block `superRefine` rules (`spec.ts:147-162`)
+### Block and cross-block `superRefine` rules (`spec.ts:157-172`)
 
 | condition | requirement |
 |---|---|
@@ -117,9 +117,9 @@ Every block object is `.strict()`: an unknown property is a schema error, not a 
 
 | layer | what it says |
 |---|---|
-| `spec.ts:172` | the inline comment reads `// columns: two equal columns, blocks alternate` |
+| `spec.ts:182` | the inline comment reads `// columns: two equal columns, blocks alternate` |
 | `catalog.ts:46` | the vocabulary string advertises `layout: stack\|columns` with that same intent |
-| `Surface.tsx:31` | the only thing the renderer does is append the class string `columns` to the blocks container: `` className={`blocks ${spec.layout === "columns" ? "columns" : ""}`} `` |
+| `Surface.tsx:36` | the only thing the renderer does is append the class string `columns` to the blocks container: `` className={`blocks ${spec.layout === "columns" ? "columns" : ""}`} `` |
 | `styles.css:74` | `.blocks.columns { grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); align-items: start; }` |
 
 So the real behaviour is a **fluid auto-fit grid**: the column count follows the panel's pixel width, not the block count or block order, and blocks are **not** alternated between two equal columns. An agent composing for alternation gets a different number of columns depending on how wide the owner made the panel. Nothing in `tests/cockpit/` asserts the documented behaviour, which is why it persisted. `docs/subsystems/cockpit.md:110-114` records the same finding.
@@ -130,9 +130,9 @@ So the real behaviour is a **fluid auto-fit grid**: the column count follows the
 
 A block's data is bound by **source**, not typed in. Agent-supplied `data` is always rendered with an "agent-supplied" mark, because a surface cannot pass its own numbers off as process state (`spec.ts:15`, `sources.ts:1-3`).
 
-`SourceSchema` = `z.string().max(300)` refined (`spec.ts:18-22`). One of four forms (`pa:`, `graph:`, `world:`, `file:`):
+`SourceSchema` = `z.string().max(300)` refined (`spec.ts:28-32`). One of **six** forms: `pa:`, `graph:`, `case:`, `work:`, `world:`, `file:`. The refinement dispatches on the prefix and checks the name against that family's constant, so a valid prefix with an unknown name fails (`spec.ts:29`); `file:` is matched separately and `..` is refused.
 
-### `pa:` — 14 read-only projections of process state
+### `pa:` — 20 read-only projections of process state
 
 | source | resolves to | `sources.ts` columns |
 |---|---|---|
@@ -149,9 +149,17 @@ A block's data is bound by **source**, not typed in. Agent-supplied `data` is al
 | `pa:versions` | settled worlds: per-version counts and identity | `version`(ref), `world` (`model@N`), `settled` (log time, or empty), `claims`(number), `unknowns`(number), `decisions`(number), `latest`, `digest` (12 hex of the model digest) |
 | `pa:responses` | the inbox | `id`, `kind`, `outcome`, `ref`, `value`, `status`(status) |
 | `pa:candidates` | open and settled proposals as candidates | `id`(ref), `parent` (world), `intention`, `producer`, `delta`, `status`(status), `requires` (what settles it) |
-| `pa:trace` | the run as nested activity, built from the event log (`sources.ts:168-189`) | tree, not rows |
+| `pa:trace` | the run as nested activity, built from the event log (`sources.ts:170-192`) | tree, not rows |
+| `pa:jobs` | the Jobs table, with what judges each job and what it could recover | `id`(ref), `actor`, `job`, `grade`(grade), `criteria` ("judged by"), `opportunities` (`sources.ts:42`) |
+| `pa:criteria` | the Success criteria table, with measurement and evidence | `id`(ref), `job`, `statement`, `importance`, `satisfaction`, `evidence`(status), `grade`(grade), `score`(status) (`sources.ts:43`) |
+| `pa:opportunities` | the Opportunities table and the candidates addressing each | `id`(ref), `deficiency`, `basis` ("recovers"), `evidence`(status), `alternatives` ("actor uses today"), `candidates`, `grade`(grade) (`sources.ts:44`) |
+| `pa:decision-states` | decision states, one per Case, with what made each row `direct`, `inferred`, or `invalid` | `case`, `actor`(ref), `job`(ref), `trigger`, `push`, `pull`, `anxiety`, `habit`, `grade`(grade), `kind` ("marked", status), `evidence` (`sources.ts:536`) |
+| `pa:experiments` | experiments with their freeze state and git ordering | `id`("experiment", ref), `hypothesis`, `state`(status), `frozen`(status), `result`(status), `ordering`("git order", status), `scope`, `issues` (`sources.ts:539`) |
+| `pa:patterns` | pattern claims with support, contradiction, and the contract they must meet | `id`("claim", ref), `claim`, `status`(status), `supports`(number), `contradicts`(number), `settings`, `needs`("contract"), `reuse`("reused by", number), `summary` (`sources.ts:542`) |
 
-`PA_SOURCES` is the constant at `spec.ts:16`; the projection table is `PA` at `sources.ts:22-34`.
+The last six arrived with the [Case](../case-navigation.md): the demand tables are model rows, and the last three are read from stamped evidence artifacts, so all six grade and go stale like any other projection. They are dispatched before the general `PA` table because the learning three need the evidence world, not the entity projection (`sources.ts:245-252`).
+
+`PA_SOURCES` is the constant at `spec.ts:16`; the projection table is `PA` at `sources.ts:30-46`.
 
 **Query params.** Any `pa:<name>?k=v` pair becomes an `eq` filter on field `k` (`sources.ts:242`), with these special cases:
 
@@ -163,7 +171,7 @@ A block's data is bound by **source**, not typed in. Agent-supplied `data` is al
 | `type=<prefix>` | `pa:events?type=lens.finished` — SQL `LIKE '<prefix>%'` | `sources.ts:233` |
 | `subject=<ref>` | `pa:events?subject=surface:x` — exact match | `sources.ts:234` |
 
-### `graph:` — 6 computed graphs
+### `graph:` — 8 computed graphs
 
 | source | nodes and edges | source |
 |---|---|---|
@@ -171,10 +179,12 @@ A block's data is bound by **source**, not typed in. Agent-supplied `data` is al
 | `graph:staleness` | stale artifacts → the decisions that staled them → the fields those decisions touched | `sources.ts:134-146` |
 | `graph:claims` | claims (toned by grade) → their sources, citing artifacts, touching decisions | `sources.ts:147-160` |
 | `graph:model` | every artifact → the fields it reads | `sources.ts:161-163` |
+| `graph:workflow` | the process as its nine stages, with the current one marked | `sources.ts:236` (`workflowGraph`) |
+| `graph:case` | the Case's one primary move, what it opens, and the blocked moves with what blocks them | `sources.ts:237` (`caseGraph`) |
 | `graph:impact?focus=<ref>&dir=&depth=&kinds=&gate=1` | the focused consequence graph of a ref over recorded relationships (see [the world debugger](../world-debugger.md)) | `sources.ts` (`worldGraph`) |
 | `graph:why?focus=<ref>` | what the ref rests on: its upstream, three hops by default | `sources.ts` (`worldGraph`) |
 
-`GRAPH_SOURCES` is in `spec.ts`. All return `provenance: "process"`.
+`GRAPH_SOURCES` is at `spec.ts:17`. All return `provenance: "process"`. `case` and `workflow` are dispatched ahead of the six lens/artifact graphs because they are derived from the Case and the run rather than from recorded relationships (`sources.ts:236-239`).
 
 ### `world:` — the debugger's questions, and `at=`
 
@@ -203,13 +213,42 @@ Grammar (`spec.ts:21`): `^file:(artifacts|evidence|history)/[^#?]+(#[\w.:-]+)?$`
 | none, `.md`/`.csv` | the whole file as a document | `readFile` |
 | none, another extension | the file as a document | `sources.ts:217` |
 
-Root is restricted to `artifacts/`, `evidence/`, `history/`. Files are read from the run directory only, with `MAX_FILE = 240_000` bytes (`sources.ts:20`).
+Root is restricted to `artifacts/`, `evidence/`, `history/`. Files are read from the run directory only, with `MAX_FILE = 240_000` bytes (`sources.ts:28`).
 
-Invalid source → `{ kind: "error", code: "BAD_SOURCE" }`. Unknown `pa:` projection → `BAD_SOURCE` (`sources.ts:229`); unparseable → `BAD_SOURCE` (`sources.ts:222`); a `#tableN` that does not exist → `BAD_SOURCE` naming the table count (`sources.ts:114`).
+Invalid source → `{ kind: "error", code: "BAD_SOURCE" }`. Unknown `pa:` projection → `BAD_SOURCE` (`sources.ts:256`); unparseable → `BAD_SOURCE` (`sources.ts:231`); a `#tableN` that does not exist → `BAD_SOURCE` naming the table count (`sources.ts:116`).
+
+### `case:` — the derived Case's four projections
+
+A Case is derived on every read; nothing is stored. All four are read-only (`CASE_SOURCES`, `spec.ts:24`). Meaning, semantics, and what the Case refuses to do: [case-navigation.md](../case-navigation.md).
+
+| source | rows |
+|---|---|
+| `case:state?ref=` | the state in decision order: destination, any owner's note, now, deviation, next move, cost and authority, how we will know, then reachable (when the move opens something), settlement (`case.ts:397-414`) |
+| `case:affordances?ref=` | the eight declared columns — move, why, requires, cost, authority, recovery, how we will know, then reachable (`sources.ts:530`). Each row also carries its `lane`, `status`, and `prior` refs: `caseMoveRows` groups them **next move → choose → alternatives → blocked** and caps each lane with an `N more` row (`case.ts:415-428`) |
+| `case:settlement?ref=` | condition, type, status (`sources.ts:531`; rows built at `case.ts:429-434`) |
+| `case:prior?q=` | settled patterns and experiments that already bear on `q` |
+
+`ref` accepts `run` (default), a demand ref (`OP1`/`S1`/`J1`), `C4`, `U<n>`, `P<n>`, or `evidence/<lens>/<file>`; the anchor decides the Case's purpose.
+
+### `work:` — the Workbench's seven row sources
+
+`WORK_SOURCES` (`spec.ts:27`), resolved by `workRows` in `cockpit/server/workSources.ts:92`. All read; the rows come from the run projection and the cockpit's own control state.
+
+| source | rows | columns |
+|---|---|---|
+| `work:workflow` | the nine stages, current one prefixed `▶` | `n`("#"), `stage`, `status`, `actor` ("who acts"), `why` ("now"), `accepts` ("accepted when") |
+| `work:capabilities[?scope=all]` | one row per capability; without `scope=all`, only those selected or satisfied | `capability`(ref), `category`, `status`, `needs`, `implementation`, `alternatives`, `executor`, `found`, `warning` |
+| `work:layers?capability=<lens>` | one capability's layers: Capability, Implementation, each Alternative, Executor, Observation (Reach), and any Conflict | `layer`, `name`, `detail`, `state`, `basis` |
+| `work:contract?stage=<id\|current>` | the task contract for one stage | `field`(labelled with the stage title), `value`, `basis` |
+| `work:requests[?active=1\|review=1\|status=…]` | work requests, with what the next actor must do | `id`("request"), `text`, `status`, `capability`, `refs`, `next` |
+| `work:ledger` | the evidence ledger | `mark`("·"), `check`, `result`, `evidence` |
+| `work:waiting` | everything waiting on the owner: a pause, open asks, open proposals, blocked requests | `kind`, `what`, `how`("how to answer") |
+
+An unknown `work:` name, or a `stage`/`capability` that does not exist, returns an error naming the valid values (`workSources.ts:114,127,157`) — not an empty table.
 
 ## Refs
 
-`REF_KINDS` — ten kinds (`refs.ts:6`). A ref is the only way a surface points at process state.
+`REF_KINDS` — fifteen kinds (`refs.ts:8`). A ref is the only way a surface points at process state.
 
 | kind | id pattern | example |
 |---|---|---|
@@ -238,7 +277,7 @@ Three tiers, enforced in the reducer, not by UI convention (`workspace.ts:3-7`):
 | **agent** | surfaces: content, placement requests, annotations, questions | yes, through the eleven `AGENT_OPS` |
 | **human** | layout preference (topology, sizes, pins, minimized), controls, answers | no — never accepted from an agent role |
 
-### Agent operations — eleven (`AGENT_OPS`, `actions.ts:34`)
+### Agent operations — eleven (`AGENT_OPS`, `actions.ts:35`)
 
 | op | fields | refusals it can hit |
 |---|---|---|
@@ -260,17 +299,18 @@ Non-fatal warnings, not refusals: `PLACEMENT_IGNORED` when replacing a surface t
 
 `MAX_AGENT_SURFACES = 8`, `MAX_HISTORY = 10` (`workspace.ts:12-13`). At the cap, the least-recent unpinned surface with no open ask is evicted; if every one is pinned or waiting, the action is refused with `CLUTTER_CAP` (`workspace.ts:206-213`).
 
-### Case sources
+### What the Case and the Workbench added to this vocabulary
 
-A Case is derived on every read; these sources are its projections (`CASE_SOURCES`, `spec.ts`), all read-only. `pa:` gains `jobs`, `criteria`, `opportunities`, `decision-states`, `experiments`, `patterns`, and `graph:` gains `case`. Ref kinds gain `job`, `criterion`, `opportunity`, `actor`, and `case` (`case:run`, `case:OP1`, `case:evidence/<lens>/<file>`); the `human.open` template list gains `case`. The Workbench adds a `work:` source scheme (`WORK_SOURCES`: `workflow`, `capabilities`, `layers`, `contract`, `requests`, `ledger`, `waiting`) and `graph:workflow`.
+The [Case](../case-navigation.md) and the [Workbench](../workbench.md) each added to the closed vocabulary rather than beside it:
 
-| source | rows |
-|---|---|
-| `case:state?ref=` | the seven questions in decision order: destination, now, deviation, next move, cost and authority, how we will know, then reachable, plus settlement |
-| `case:affordances?ref=` | the field: lane (`next move`, `choose`, `alternatives`, `blocked`), move, why, requires, cost, authority, recovery, evidence, then; capped, with a "N more" row |
-| `case:settlement?ref=` | required and optional conditions |
-| `case:prior?q=` | settled patterns and experiments that already bear on `q` |
-| `graph:case?ref=` | the move and what it opens, the blocked moves and what blocks them |
+- `pa:` gained `jobs`, `criteria`, `opportunities` (model rows) and `decision-states`, `experiments`, `patterns` (rows read from stamped artifacts) — see the `pa:` table above.
+- `graph:` gained `case` and `workflow`.
+- Two new families: `case:` (four projections) and `work:` (seven row sources) — see the grammar chapter above.
+- Ref kinds gained `job`, `criterion`, `opportunity`, `actor`, and `case` (`refs.ts:8`); a case ref is `case:run`, `case:OP1`, `case:evidence/<lens>/<file>`, and so on. `REF_KINDS` is **15** in total.
+- The `human.open` template list gained `case` (`TEMPLATE_IDS`).
+- Tools gained `case_get`, `work_get`, and `work_update` — see the tools chapter.
+
+Everything else stayed closed: no new block type, no new dependency, and nothing that can settle.
 
 ### Human operations — eighteen (`HUMAN_OPS`, `actions.ts`): twelve for the workspace and the process, six for the control plane
 
@@ -297,7 +337,7 @@ Four of them are **authority-bearing over the process**: `AUTHORITY_OPS = {human
 
 ## Error codes — the ten reachable ones
 
-`ERROR_CODES` (`actions.ts:66-78`) declares eleven strings. **Ten are reachable**; the eleventh is not. A refusal is `{ ok: false, code, message, issues? }` where `issues` is at most 8 compact Zod issues, each `{ path, message, expected? }` (`issuesOf`, `actions.ts:86-91`).
+`ERROR_CODES` (`actions.ts:67-79`) declares eleven strings. **Ten are reachable**; the eleventh is not. A refusal is `{ ok: false, code, message, issues? }` where `issues` is at most 8 compact Zod issues, each `{ path, message, expected? }` (`issuesOf`, `actions.ts:87-92`).
 
 | code | meaning | likely cause | raised at |
 |---|---|---|---|
@@ -413,13 +453,13 @@ The rejection is the only cockpit-channel event written outside the reducer — 
 
 ### Source trail
 
-- `cockpit/protocol/spec.ts` — `id`, `text`, `Tone`, `PA_SOURCES:16`, `GRAPH_SOURCES:17`, `SourceSchema:18`, `Row`/`Data:25-26`, `Filter:27`, `Sort:28`, `bound:29`, `label:30`, `cite:31`, the 15 block schemas (`:34-145`), `BlockSchema` + `superRefine:147-162`, `BLOCK_TYPES:165`, `SurfaceSchema:168-183`, `PlacementSchema:189-194`, `normalizeSurfaceDoc:198`, `parseSurfaceText:205`
-- `cockpit/protocol/actions.ts` — `sid:7`, the 11 agent ops (`:10-30`), `AgentActionSchema:32`, `AGENT_OPS:34`, the 12 human ops (`:37-57`), `TEMPLATE_IDS:54`, `HumanOpSchema:59`, `HUMAN_OPS:61`, `AUTHORITY_OPS:63`, `ERROR_CODES:66-78`, `issuesOf:86`, `fail:93`
-- `cockpit/protocol/refs.ts` — `REF_KINDS:6`, `ID:9-13`, `parseRef:15`, `fmtRef:23`, `RefSchema:25`, `BARE`/`expandRef:29-34`, `REF_TOKEN:35`
-- `cockpit/protocol/catalog.ts` — `CATALOG:7-38`, `INTENTS:40`, `vocabulary:42-52`
-- `cockpit/protocol/tools.ts` — `TOOLS:12-37`, `TOOL_NAMES:38`, `toolSchemas:39`
-- `cockpit/server/workspace.ts` — `MAX_AGENT_SURFACES`/`MAX_HISTORY:12-13`, the state types (`:17-28`), `Ctx:30-34`, the two guard rails (`:180-182`), every agent op body (`:190-328`), every human op body (`:340-426`), `isAuthorityOp:429`, `contextOf:432`
-- `cockpit/server/sources.ts` — `Resolved` shapes (`:11-17`), `MAX_FILE:20`, `PA:22-34`, `applyFilters:40-52`, `parseQuery:60`, `readFile:85-101`, `fileRows:103-121`, `graph:127-165`, `trace:168-189`, `treeOfPaths:191-203`, `resolve:208-247`, `detail:252-346`
+- `cockpit/protocol/spec.ts` — `id:7`, `text:8`, `Tone:9`, `PA_SOURCES:16`, `GRAPH_SOURCES:17`, `SourceSchema:28-32`, `Row`/`Data:35-36`, `Filter:37`, `Sort:38`, `bound:39`, `label:40`, `cite:41`, the 15 block schemas (`:44-155`), `BlockSchema` + its cross-block `superRefine:157-172`, `BLOCK_TYPES:175`, `SurfaceSchema:178-193`, `PlacementSchema:199-204`, `normalizeSurfaceDoc:208`, `parseSurfaceText:215`
+- `cockpit/protocol/actions.ts` — `sid:8`, the 11 agent op schemas (`:11-31`), `AgentActionSchema:33`, `AGENT_OPS:35`, the 12 human op schemas (`:38-59`), `TEMPLATE_IDS:55`, `HumanOpSchema:60`, `HUMAN_OPS:62` (twelve plus the six `CONTROL_OPS` imported from `work.ts`), `AUTHORITY_OPS:64`, `ERROR_CODES:67-79`, `issuesOf:87-92`, `fail:93`
+- `cockpit/protocol/refs.ts` — `REF_KINDS:8`, `ID:11-18`, `parseRef:19-26`, `fmtRef:27-28`, `RefSchema:29`, `BARE:33`/`expandRef:34-38`, `REF_TOKEN:39`
+- `cockpit/protocol/catalog.ts` — `CATALOG:7-39`, `INTENTS:40-41`, `vocabulary:42-54`
+- `cockpit/protocol/tools.ts` — `TOOLS:16-41` (12 always-on), `CASE_TOOLS:45` pushed at `:49`, `WORLD_TOOLS:54` pushed at `:70`, `WORK_TOOLS:75-81`, `BASE_TOOLS:82`, `activeTools:87-97`, `TOOL_NAMES:98`, `toolSchemas:100`
+- `cockpit/server/workspace.ts` — `MAX_AGENT_SURFACES:13`/`MAX_HISTORY:14`, the state types (`:17-29`), `Ctx:31-35`, the schema guards (`:180-184`), `applyAgent` — every agent op body (`:177-333`), `applyHuman` — every human op body (`:334-430`), `isAuthorityOp:431`, `contextOf:451`
+- `cockpit/server/sources.ts` — `Resolved:25-26`, `MAX_FILE:28`, `PA:30-47`, `applyFilters:54-73`, `parseQuery:74`, `safeRunFile:80-86`, `readFile:87-104`, `fileRows:105-123`, `graph:129-169`, `trace:170-192`, `treeOfPaths:193-207`, `resolve:211`, `detail:379`
 - `cockpit/server/sync.ts` — `KINDS:9`, `writeRows:25`, `fromLog:47-60`, `diffEvents:62-94`, `Syncer.refresh:102`, `rebuild:121`
 - `cockpit/server/core.ts` — `wsDelta:106`, `preselect:115`, `agent:126-133` (the rejection event at `:131`), `human:136`, the tool dispatch (`:192-208`)
 - `cockpit/web/Surface.tsx` — `REGISTRY:10-13`, `Boundary:15-19`, the `columns` class at `:31`
