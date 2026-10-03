@@ -392,9 +392,9 @@ describe("the views are compositions of the existing fifteen blocks", () => {
     const rows = (k.data("case:state") as any).rows; const dev = rows.find((r: any) => r.id === "deviation");
     expect(["quiet", "salient"]).toContain(dev.signal); expect(dev.signal).not.toBe("interrupt");
   });
-  test("the empty workspace offers the Case first, then at most three other things", () => {
+  test("the empty workspace offers the Workbench, then the Case, then at most two other things", () => {
     const fx = fixtureRun("mote", { stale: true, openProposals: ["P12"] }); const k = open(fx); const h = (k.snapshot() as any).hints;
-    expect(h[0].template).toBe("case"); expect(h.length).toBeLessThanOrEqual(4);
+    expect(h[0].template).toBe("workbench"); expect(h[1].template).toBe("case"); expect(h.length).toBeLessThanOrEqual(4);
     const r = k.human({ op: "human.open", template: "case" }); expect(r.ok).toBe(true); expect(Object.keys(k.ws.panels)).toContain("case-run");
     expect(readInbox(fx.run)).toEqual([]);   // opening a view is layout, not authority
   });

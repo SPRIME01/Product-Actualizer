@@ -101,7 +101,7 @@ A surface looks at history or a candidate only through its own sources (`pa:clai
 
 The tool definitions are one list (`cockpit/protocol/tools.ts`) feeding the CLI, the loopback MCP endpoint, and WebMCP. What is *offered* follows what the owner is looking at (`activeTools`), to keep the catalogue small. This is discovery, not authorization: every tool stays callable, and none can do more than read the run or compose the cockpit as the agent role.
 
-| context | offered besides the thirteen base tools |
+| context | offered besides the fourteen base tools |
 |---|---|
 | normal | nothing |
 | a subject is open or selected, or a non-current world | `world_why`, `world_impact` |
@@ -116,7 +116,7 @@ The tool definitions are one list (`cockpit/protocol/tools.ts`) feeding the CLI,
 
 | invariant | where it is enforced and tested |
 |---|---|
-| the cockpit is not the source of truth; SQLite is disposable | the same answers after deleting the database and rebuilding (`world.transport.test.ts`) |
+| the cockpit is not the source of truth; the projection is disposable | the same answers after deleting the database and rebuilding (`world.transport.test.ts`) |
 | a historical viewport is not the current world | the banner is derived from sources; the rail and gate are unchanged while viewing history (`world.test.ts`, `ui.e2e.test.ts`) |
 | a candidate is not truth; a counterfactual is not execution | every world operation leaves every run file byte-identical; `authority: "possibility"`; `authoritative: false` |
 | observer evidence does not settle | `settles: false`; no grade, claim, gate, or inbox change |

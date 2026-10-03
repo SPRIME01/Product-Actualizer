@@ -7,7 +7,7 @@ build/
 *.tsbuildinfo
 /actualize-bin
 
-# Cockpit operational state: a disposable SQLite projection, the server port/tokens, and the agent context file
+# Cockpit operational state: SQLite (a disposable projection plus the cockpit's own durable control tables), the server port/tokens, and the agent context file
 actualize/.cockpit/
 **/.cockpit/
 *.db

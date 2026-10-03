@@ -105,7 +105,7 @@ The palette is deliberately unremarkable. Tinted graphite neutrals in OKLCH, chr
 
 This is Restrained strategy, taken as a discipline rather than a default. It is what the product's own anti-references demand: no SaaS admin card grids, no hero metrics, no chat UI, no gamified progress, and above all **no confidence smoothing** (PRODUCT.md). A no-go gate must be able to feel like a no-go gate.
 
-Layout is one fixed rail above a docking workspace, and the rail is capped at a fifth of the viewport including its drawer. A surface is a sticky header plus a stack or two-column grid of blocks. Borders do the structural work that shadows would do in a softer system. The system rejects any interface where a viewer could not tell at a glance which parts are checked fact and which parts are the agent's opinion.
+Layout is one fixed rail above a docking workspace, and the rail is capped at a fifth of the viewport including its drawer. Below the workspace sits the Work Terminal: one input line with a mode chip, the last result, and, when work is queued, a strip of request chips that state their real lifecycle status. It is a command line for the work, never a chat: no bubbles, no assistant voice, and no claim that anything ran that an executor did not report. A surface is a sticky header plus a stack or two-column grid of blocks. Borders do the structural work that shadows would do in a softer system. The system rejects any interface where a viewer could not tell at a glance which parts are checked fact and which parts are the agent's opinion.
 
 **Key Characteristics:**
 - Colour is a data channel, never decoration. If it means nothing, it does not appear.

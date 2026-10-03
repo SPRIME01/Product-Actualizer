@@ -49,6 +49,8 @@ export function statusBlock(run, state, lenses, full) {
   if (waiting.length) lines.push(`Owner responses waiting (${waiting.length}): ${waiting.slice(0, 3).map(describeInbox).join(" | ")} -> route each, then \`inbox ack <id> --as "..."\``);
   const ui = cockpitLine(run);
   if (ui) lines.push(ui);
+  const work = workLine(run);
+  if (work) lines.push(work);
   if (full) {
     lines.push(`Process CLI: ${cliCmd()} <status|lenses|select|lens start|lens done|reconcile start|reconcile done|done>`);
     lines.push("Enforced: product-model.md is edited only between `reconcile start` and `reconcile done`; a lens writes only artifacts/<lens>/, evidence/<lens>/ and appends open rows to proposals.md; lens bodies load only through `lens start`; the run cannot stop with open proposals, stale artifacts, an invalid model, or no current release gate.");
@@ -65,6 +67,17 @@ function cockpitLine(run) {
     const asks = c.asking?.length ? ` · asking: ${c.asking.slice(0, 2).map((a) => a.prompt).join(" | ")}` : "";
     const w = c.world && c.world.mode !== "current" ? ` · viewing ${c.world.mode}${c.world.worlds?.length ? " " + c.world.worlds.join(",") : ""}${c.world.subject ? " " + c.world.subject : ""} (read-only; the run is unchanged)` : "";
     return `[cockpit] connected · focus: ${c.focus ?? "none"} · ${c.visible?.length ?? 0} surface(s)${w}${asks} (full: ${cliCmd()} ui context)`;
+  } catch { return null; }
+}
+
+// Work the owner typed into the cockpit's Work Terminal. A request is a record, not a command: nothing has run until an executor acknowledges it.
+// Shown whether or not the browser is open, because the owner may queue work and close the tab; the file is the cockpit's own advisory note.
+function workLine(run) {
+  try {
+    const c = JSON.parse(readText(path.join(run.cockpitDir, "context.json"), "null"));
+    const w = c?.work; if (!w || !w.pending) return null;
+    const items = (w.items ?? []).slice(0, 2).map((i) => `${i.id} ${i.status} "${String(i.text).slice(0, 48)}"`).join("; ");
+    return `[cockpit] ${w.pending} work request(s) from the owner${w.review ? `, ${w.review} awaiting their review` : ""}: ${items}${w.pending > 2 ? "; ..." : ""} (read: ${cliCmd()} work; acknowledge: ${cliCmd()} work ack R<n>; you cannot accept your own work)`;
   } catch { return null; }
 }
 

@@ -124,7 +124,7 @@ just cockpit-up        # or: actualize cockpit up      (opens your browser; PROJ
 just cockpit-down
 ```
 
-See `docs/cockpit.md`. The same run can be interrogated, read-only, with `actualize world why <ref>`, `impact`, `diff`, `timeline`, `counterfactual`, `reach` and `replay`: why something is true, what depends on it, what a candidate would do, and who could gather missing evidence. See `docs/world-debugger.md`. Where the work is trying to go, what stands between, and the one move that answers it come from `actualize case [ref]`, a derived view that stores nothing and never settles (`docs/case-navigation.md`).
+See `docs/cockpit.md`. The same run can be interrogated, read-only, with `actualize world why <ref>`, `impact`, `diff`, `timeline`, `counterfactual`, `reach` and `replay`: why something is true, what depends on it, what a candidate would do, and who could gather missing evidence. See `docs/world-debugger.md`. Where the work is trying to go, what stands between, and the one move that answers it come from `actualize case [ref]`, a derived view that stores nothing and never settles (`docs/case-navigation.md`). A Workbench whose view follows the work (orient, execute, decide, verify, complete) and a Work Terminal that answers known questions locally and queues real work as typed requests are described in `docs/workbench.md`.
 
 ## Provenance
 

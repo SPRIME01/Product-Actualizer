@@ -4,6 +4,7 @@ import type { Proj } from "./project";
 import type { Surface } from "../protocol/spec";
 import { TEMPLATE_IDS } from "../protocol/actions";
 import { caseSurface } from "./caseSurfaces";
+import { screenOf, workflowSurface, capabilitiesSurface, contractSurface, requestsSurface, reviewSurface } from "./screens";
 import fs from "node:fs";
 import path from "node:path";
 
@@ -12,6 +13,9 @@ const table = (id: string, source: string, columns: any[], extra: any = {}) => (
 const follow = (of: string, show: string[]) => ({ type: "entity", id: "detail", follow: of, show });
 
 export const TEMPLATES: Record<Exclude<(typeof TEMPLATE_IDS)[number], "ref">, T> = {
+  // The Workbench is composed by the cockpit core, which knows the control plane and the Case; this static form is what a bare projection shows.
+  workbench: (p) => screenOf({ proj: p, requests: [], asksOpen: 0, settlementReachable: false, primary: null }).surface,
+  workflow: () => workflowSurface(), capabilities: () => capabilitiesSurface(), contract: () => contractSurface(), requests: () => requestsSurface(), review: () => reviewSurface(),
   case: () => caseSurface("run"),
   trace: () => ({ id: "trace", title: "Run trace", summary: "Nested activity of this run: waves, lenses, reconciliations, with durations.", intent: "monitor", layout: "stack", blocks: [{ type: "progress", id: "run", label: "Run", source: "run" }, { type: "tree", id: "tree", source: "pa:trace", expand: 3, show: ["status", "duration"] }] }),
   proposals: () => ({ id: "proposals", title: "Open proposals", summary: "Lens findings waiting for a reconciliation. Your ruling is recorded for the router; it does not edit the model.", intent: "decide", layout: "stack", blocks: [table("list", "pa:proposals?status=open", [{ field: "id", kind: "ref" }, { field: "lens" }, { field: "field" }, { field: "kind" }, { field: "proposal", kind: "text" }]), follow("list", ["consequence", "actions", "sources"])] as any }),
@@ -48,5 +52,6 @@ export function hints(p: Proj): { label: string; why: string; template: (typeof 
   if (p.run.activeLenses.length || p.run.phase !== "idle") out.push({ label: "Follow the run", why: p.run.activeLenses.length ? `running: ${p.run.activeLenses.join(", ")}` : p.run.phase, template: "trace" });
   if (!out.length) out.push({ label: "Lens map", why: "which lenses ran and what is next", template: "lenses" });
   out.unshift({ label: "Where we are trying to go", why: "the destination, the deviation, and the one move that answers it", template: "case" });
+  out.unshift({ label: "Open the Workbench", why: "the view that fits the work now: orient, execute, decide, verify, or complete", template: "workbench" });
   return out.slice(0, 4);
 }

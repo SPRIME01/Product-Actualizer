@@ -75,7 +75,7 @@ export function serveCockpit(o: ServeOpts) {
           }
           case "/api/boot": return json({ role, agentToken: role === "human" ? agentToken : undefined, tools: toolSchemas(), active: cockpit.tools(), snapshot: cockpit.snapshot() });
           // Agent role: typed actions and tools. A human-only operation sent here is refused by the reducer with AUTHORITY_HUMAN.
-          case "/api/agent/action": return role === "agent" || role === "human" ? json(cockpit.agent(body)) : json({}, 403);
+          case "/api/agent/action": if (role === "agent") cockpit.noteAgent(); return role === "agent" || role === "human" ? json(cockpit.agent(body)) : json({}, 403);
           case "/api/agent/tool": return json(cockpit.tool(body.name, body.input));
           case "/api/notify": cockpit.refresh(); return json({ ok: true });
           // Open the browser from the server side, so the human link never has to leave this process.

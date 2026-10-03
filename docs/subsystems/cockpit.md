@@ -4,7 +4,7 @@ Layer 3. For the operator's view of the same subsystem see [../cockpit.md](../co
 
 ## Purpose
 
-One interactive surface the owner and the agent share while a run is going. The agent composes views of process state; the owner answers, rules, confirms, and lays out; neither becomes a second source of truth. The run directory stays authoritative, the SQLite file stays disposable, and every owner gesture becomes an inbox entry the router still has to route.
+One interactive surface the owner and the agent share while a run is going. The agent composes views of process state; the owner answers, rules, confirms, and lays out; neither becomes a second source of truth. The run directory stays authoritative. The SQLite file holds two classes: a disposable projection of the run, and durable cockpit-owned state (layout, work requests, bindings, declared budgets, reviews) that never settles Product Model truth ([../workbench.md](../workbench.md)). Every owner gesture that bears on the process becomes an inbox entry the router still has to route.
 
 ## Responsibilities
 
@@ -75,7 +75,7 @@ Two stores, with different standing.
 - **Authoritative on disk:** `product-model.md`, `proposals.md`, `state.json`, `.log.jsonl`, and `inbox.jsonl`. Append-only for the inbox. Every owner gesture lands there with `via: "cockpit", actor: "owner"` (`core.ts:155`).
 - **Authoritative for UI state:** `ui_state.ws` — panels with `spec`, `placedBy`, `pinned`, `minimized`, `controls`, `selection`, `rev`; the layout `tree`; `focus`; `maximized`; `mru`; `asks`; `notes`; `saved` snapshots; and a 10-entry `history` (`workspace.ts:24-28`).
 - **Disposable:** `actualize/.cockpit/cockpit.db`. Delete it and the projection, FTS index, rail, events, and search all return; the owner's layout, pins, and open surfaces are lost. `actualize cockpit rebuild` regenerates it without a restart (`live.test.ts:89-104`).
-- **Advisory:** `.cockpit/context.json` (one status line for the hooks), `.cockpit/server.json`, `.cockpit/agent.token`. All inside the hooks' protected zone — the agent is denied direct writes to `inbox.jsonl`, `cockpit.db`, `agent.token`, and `context.json` (`hooks-bun.test.ts:100-107`).
+- **Advisory:** `.cockpit/context.json` (one status line for the hooks, plus the owner's pending work requests), `.cockpit/server.json`, `.cockpit/agent.token`. All inside the hooks' protected zone — the agent is denied direct writes to `inbox.jsonl`, `cockpit.db`, `agent.token`, and `context.json` (`hooks-bun.test.ts:100-107`).
 
 **Authority tiers.** System owns the rail, gate state, the model, and grades: read only, and no action addresses them (`workspace.ts:3-7`). Agent owns surface content, annotations, questions, focus/place requests. Owner owns layout, pins, minimized, filters and sorts, answers, rulings, confirmations. Precedence: a surface the owner moved keeps its position while the agent may still replace its content; a pinned surface cannot be removed or moved; at most eight panels are open. `MAX_AGENT_SURFACES` (`workspace.ts:12`) is named imprecisely — the count is `Object.values(ws.panels).length`, every panel including owner-placed ones.
 

@@ -24,6 +24,7 @@ const USAGE = `actualize <command>
   validate [file]                         check a Product Model against SCHEMA.md
   inbox [ack <id> --as "..."]             owner responses from the cockpit; route each, then acknowledge it
   cockpit up|down|open|status|rebuild     the interactive cockpit (optional; the process works without it)
+  work [requests|workflow|capabilities|contract|ledger|ack|run|produce|review R<n>]   the owner's work requests and the workflow (cockpit)
   ui <status|context|catalog|put|show|compare|ask|arrange|responses>   compose the cockpit through typed actions
   hook <client> <event>                   native hook entry (claude|codex|cline) -- see docs/hooks.md
   install ...                             see hooks/install.mjs`;
@@ -89,11 +90,11 @@ async function main(argv) {
     const m = await import("../install.mjs");
     return m.main(argv.slice(1));
   }
-  if (cmd === "cockpit" || cmd === "ui" || cmd === "inbox" || cmd === "world" || cmd === "case") {
+  if (cmd === "cockpit" || cmd === "ui" || cmd === "inbox" || cmd === "world" || cmd === "case" || cmd === "work") {
     const m = await import("../../cockpit/cli.ts");
     const rest = pos.slice(1);
     if (cmd === "inbox") return m.inboxMain(rest, opt, process.cwd());
-    if (cmd === "world" || cmd === "case") return m.uiMain([cmd, ...rest], opt, process.cwd());
+    if (cmd === "world" || cmd === "case" || cmd === "work") return m.uiMain([cmd, ...rest], opt, process.cwd());
     return cmd === "ui" ? m.uiMain(rest, opt, process.cwd()) : m.cockpitMain(rest, opt, process.cwd());
   }
   const lenses = P.loadLenses();

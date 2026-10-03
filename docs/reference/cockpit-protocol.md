@@ -262,7 +262,7 @@ Non-fatal warnings, not refusals: `PLACEMENT_IGNORED` when replacing a surface t
 
 ### Case sources
 
-A Case is derived on every read; these sources are its projections (`CASE_SOURCES`, `spec.ts`), all read-only. `pa:` gains `jobs`, `criteria`, `opportunities`, `decision-states`, `experiments`, `patterns`, and `graph:` gains `case`. Ref kinds gain `job`, `criterion`, `opportunity`, `actor`, and `case` (`case:run`, `case:OP1`, `case:evidence/<lens>/<file>`); the `human.open` template list gains `case`.
+A Case is derived on every read; these sources are its projections (`CASE_SOURCES`, `spec.ts`), all read-only. `pa:` gains `jobs`, `criteria`, `opportunities`, `decision-states`, `experiments`, `patterns`, and `graph:` gains `case`. Ref kinds gain `job`, `criterion`, `opportunity`, `actor`, and `case` (`case:run`, `case:OP1`, `case:evidence/<lens>/<file>`); the `human.open` template list gains `case`. The Workbench adds a `work:` source scheme (`WORK_SOURCES`: `workflow`, `capabilities`, `layers`, `contract`, `requests`, `ledger`, `waiting`) and `graph:workflow`.
 
 | source | rows |
 |---|---|
@@ -272,11 +272,11 @@ A Case is derived on every read; these sources are its projections (`CASE_SOURCE
 | `case:prior?q=` | settled patterns and experiments that already bear on `q` |
 | `graph:case?ref=` | the move and what it opens, the blocked moves and what blocks them |
 
-### Human operations — twelve (`HUMAN_OPS`, `actions.ts:61`)
+### Human operations — eighteen (`HUMAN_OPS`, `actions.ts`): twelve for the workspace and the process, six for the control plane
 
 Arrive only over the authenticated human channel; `applyHuman` is the single entry (`workspace.ts:136`, `serve.ts:5`).
 
-`human.answer` · `human.rule` · `human.confirm` · `human.annotate` · `human.select` · `human.control` · `human.layout` · `human.pin` · `human.close` · `human.layout-restore` · `human.open` · `human.size`.
+`human.answer` · `human.rule` · `human.confirm` · `human.annotate` · `human.select` · `human.control` · `human.layout` · `human.pin` · `human.close` · `human.layout-restore` · `human.open` · `human.size`; and, from `protocol/work.ts`, the six control operations `human.terminal` · `human.review` · `human.cancel` · `human.bind` · `human.contract` · `human.executor`. The control operations write cockpit state only (never the inbox, the model, or the gate) and an agent that sends one gets `AUTHORITY_HUMAN`; see [the Workbench](../workbench.md).
 
 Four of them are **authority-bearing over the process**: `AUTHORITY_OPS = {human.answer, human.rule, human.confirm, human.annotate}` (`actions.ts:63`). They become inbox records and are never accepted from an agent role.
 
@@ -292,7 +292,7 @@ Four of them are **authority-bearing over the process**: `AUTHORITY_OPS = {human
 | `human.pin` | `id`, `pinned: boolean` — pinning also sets `placedBy: "human"` (`workspace.ts:416`) |
 | `human.close` | `id` |
 | `human.layout-restore` | `name`, default `"previous"` |
-| `human.open` | `template` ∈ `TEMPLATE_IDS` = trace, proposals, claims, contradictions, unknowns, staleness, lenses, gate, inbox, events, ref; `ref?`; `as?: detail\|document\|lineage\|why\|impact\|diff` (a view; opening one writes nothing to the inbox) |
+| `human.open` | `template` ∈ `TEMPLATE_IDS` = workbench, workflow, capabilities, contract, requests, review, case, trace, proposals, claims, contradictions, unknowns, staleness, lenses, gate, inbox, events, ref; `ref?`; `as?: detail\|document\|lineage\|why\|impact\|diff` (a view; opening one writes nothing to the inbox) |
 | `human.size` | `id`, `state: normal\|minimized\|maximized` |
 
 ## Error codes — the ten reachable ones
@@ -316,7 +316,7 @@ Four of them are **authority-bearing over the process**: `AUTHORITY_OPS = {human
 
 `"NO_RESPONDER"` is listed at `actions.ts:77` but has **zero uses anywhere in `cockpit/server/`** — a repository-wide search for the string returns that one declaration and nothing else. No code path returns it, so no client can receive it. It is reserved, not live. Do not treat it as part of the protocol's observable surface.
 
-## The tools: thirteen always, seven by context
+## The tools: fourteen always, seven by context, and work_update while a request is pending
 
 One definition, three transports: the local CLI (`actualize ui …`), the loopback MCP endpoint at `/mcp`, and WebMCP in the page (`tools.ts:1-3`; `webmcp.ts`; `serve.ts:83`). Every tool is either a read, or composes the cockpit through the same typed actions an agent sends directly. None of them can answer for the owner, edit the Product Model, or touch the rail — those capabilities do not exist here (`tools.ts:3`).
 
@@ -334,6 +334,8 @@ One definition, three transports: the local CLI (`actualize ui …`), the loopba
 | `arrange` | compose | `{ action: AgentActionSchema }` — any of the eleven agent ops |
 | `annotate` | compose | `{ target: string ≤80, text: 1–400, tone?: note\|warning\|danger\|ok default "note" }` — pins an agent note, visibly marked as the agent's |
 | `case_get` | read | `{ ref?: "run"\|OP1\|S1\|J1\|C4\|U2\|P7\|evidence/…, part?: summary\|moves\|settlement\|prior, q?, view?: case\|decision, show? }` — the derived [Case](../case-navigation.md): destination, deviation, the one primary move with cost/authority/recovery/evidence, blocked moves with what would reach them, whether settlement is reachable. Never a dump; runs and settles nothing |
+| `work_get` | read | `{ part?: summary\|requests\|workflow\|capabilities\|contract\|ledger\|screen, id?: R3, stage?, capability?, show? }` — the [Workbench](../workbench.md): screen mode, workflow stage, pending work requests, capability / implementation / executor, the task contract, the evidence ledger |
+| `work_update` | compose | `{ id: R3, status: acknowledged\|running\|produced\|ready_for_review\|blocked\|failed, note?, refs? }` — moves a request the agent holds. `accepted` and `cancelled` are refused with `AUTHORITY_HUMAN`. Offered only while a request is pending |
 | `read_responses` | read | `{ unhandled?: boolean default true }` — what the owner answered, ruled, confirmed, or annotated. Routing them is the router's job through the process CLI; this tool only reads |
 
 The seven world tools (`WORLD_TOOLS`) are all reads; `show: true` additionally composes the answer through `surface.put`.
@@ -348,7 +350,7 @@ The seven world tools (`WORLD_TOOLS`) are all reads; `show: true` additionally c
 | `world_reach` | `{ need?: capability, ref?, show? }`: exactly one of `need`, `ref` |
 | `world_replay` | `{ selects: file:evidence/…#tableN, where?, expect, discriminates?, show? }` |
 
-All inputs are `.strict()`. `toolSchemas()` renders them as JSON Schema (`unrepresentable: "any"`, `io: "input"`) with WebMCP `annotations`: `readOnlyHint` for reads, `untrustedContentHint` for tools whose output carries text the run's files supplied. `activeTools(context)` selects which are offered: the twelve base tools always, and the world tools by what the focused surface is looking at (`world.mode`, the kinds of the refs it shows or has selected). MCP `tools/list` and the page's WebMCP registration follow it; the CLI's `ui tools --all` lists every definition. Every tool stays callable whether or not it is offered.
+All inputs are `.strict()`. `toolSchemas()` renders them as JSON Schema (`unrepresentable: "any"`, `io: "input"`) with WebMCP `annotations`: `readOnlyHint` for reads, `untrustedContentHint` for tools whose output carries text the run's files supplied. `activeTools(context)` selects which are offered: the fourteen base tools always, `work_update` while a work request is pending, and the world tools by what the focused surface is looking at (`world.mode`, the kinds of the refs it shows or has selected). MCP `tools/list` and the page's WebMCP registration follow it; the CLI's `ui tools --all` lists every definition. Every tool stays callable whether or not it is offered.
 
 ## Events
 

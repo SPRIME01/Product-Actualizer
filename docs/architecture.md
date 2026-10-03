@@ -48,7 +48,7 @@ flowchart TD
         C["hooks/src/cli.mjs (process CLI)"]
     end
     subgraph L4["4 · Projection"]
-        J["cockpit/ server + web (disposable)"]
+        J["cockpit/ server + web (a projection; its SQLite also holds the cockpit's own state)"]
     end
 
     L1 -->|read and followed| L2
@@ -150,7 +150,7 @@ flowchart LR
     C["state.json + .log.jsonl"] --> G["gate blockers, next action, rail"]
     M --> G
     A --> G
-    G --> X["cockpit SQLite, disposable"]
+    G --> X["cockpit SQLite: projection rows are disposable, control_* rows are durable cockpit state"]
     G --> Y["status injected into the agent by the hook"]
 ```
 

@@ -3,6 +3,7 @@
 import { z } from "zod";
 import { SurfaceSchema, PlacementSchema, SourceSchema } from "./spec";
 import { RefSchema } from "./refs";
+import { CONTROL_OPS } from "./work";
 
 const sid = z.string().min(1).max(48);
 
@@ -51,14 +52,14 @@ const HControl = z.object({ op: z.literal("human.control"), surface: sid, block:
 const HLayout = z.object({ op: z.literal("human.layout"), tree: z.any(), moved: z.array(sid).max(24).optional(), minimized: z.array(sid).max(24).optional(), maximized: sid.nullable().optional(), focus: sid.nullable().optional() }).strict();
 const HPin = z.object({ op: z.literal("human.pin"), id: sid, pinned: z.boolean() }).strict();
 const HClose = z.object({ op: z.literal("human.close"), id: sid }).strict();
-export const TEMPLATE_IDS = ["case", "trace", "proposals", "claims", "contradictions", "unknowns", "staleness", "lenses", "gate", "inbox", "events", "ref"] as const;
+export const TEMPLATE_IDS = ["workbench", "workflow", "capabilities", "contract", "requests", "review", "case", "trace", "proposals", "claims", "contradictions", "unknowns", "staleness", "lenses", "gate", "inbox", "events", "ref"] as const;
 const HOpen = z.object({ op: z.literal("human.open"), template: z.enum(TEMPLATE_IDS), ref: RefSchema.optional(), as: z.enum(["detail", "document", "lineage", "why", "impact", "diff", "case", "decision"]).optional() }).strict();
 const HSize = z.object({ op: z.literal("human.size"), id: sid, state: z.enum(["normal", "minimized", "maximized"]) }).strict();
 const HLayoutOps = z.object({ op: z.literal("human.layout-restore"), name: z.string().max(32).default("previous") }).strict();
 
 export const HumanOpSchema = z.discriminatedUnion("op", [HAnswer, HRule, HConfirm, HAnnotate, HSelect, HControl, HLayout, HPin, HClose, HLayoutOps, HOpen, HSize]);
 export type HumanOp = z.infer<typeof HumanOpSchema>;
-export const HUMAN_OPS = ["human.answer", "human.rule", "human.confirm", "human.annotate", "human.select", "human.control", "human.layout", "human.pin", "human.close", "human.layout-restore", "human.open", "human.size"] as const;
+export const HUMAN_OPS = [...CONTROL_OPS, "human.answer", "human.rule", "human.confirm", "human.annotate", "human.select", "human.control", "human.layout", "human.pin", "human.close", "human.layout-restore", "human.open", "human.size"] as const;
 // Of these, the ones that carry the owner's authority over the process. They become inbox records and are never accepted from an agent role.
 export const AUTHORITY_OPS = new Set(["human.answer", "human.rule", "human.confirm", "human.annotate"]);
 

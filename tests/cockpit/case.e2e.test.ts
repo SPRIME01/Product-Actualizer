@@ -52,12 +52,12 @@ async function caseView(name: string, ref?: string) {
 const lanes = (page: Page) => page.locator("tr.group[data-lane]").evaluateAll((rs) => rs.map((r) => ({ lane: (r as HTMLElement).dataset.lane!, text: r.textContent!.trim() })));
 const rowText = (page: Page, part: string) => page.locator("tr", { has: page.locator("td", { hasText: new RegExp(`^${part}$`) }) }).first().textContent();
 
-d("the Case opens from the empty workspace, as the first and only dominant offer", () => {
-  test("the owner's first hint is the destination, and opening it writes nothing to the run or the inbox", async () => {
+d("the Case opens from the empty workspace, as the offer right after the Workbench", () => {
+  test("the owner's second hint is the destination, and opening it writes nothing to the run or the inbox", async () => {
     const s = sc.next; const before = survey(s.fx.run.dir); const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
     await page.goto(s.srv.humanUrl); await page.locator(".hint").first().waitFor();
-    expect((await page.locator(".hint b").allTextContents())[0]).toBe("Where we are trying to go"); expect(await page.locator(".hint").count()).toBeLessThanOrEqual(4);
-    await page.locator(".hint").first().click(); await page.locator("tr.group[data-lane]").first().waitFor();
+    const hints = await page.locator(".hint b").allTextContents(); expect(hints[0]).toBe("Open the Workbench"); expect(hints[1]).toBe("Where we are trying to go"); expect(await page.locator(".hint").count()).toBeLessThanOrEqual(4);
+    await page.locator(".hint").nth(1).click(); await page.locator("tr.group[data-lane]").first().waitFor();
     expect(survey(s.fx.run.dir)).toEqual(before); expect(readInbox(s.fx.run)).toEqual([]);
     await page.close();
   });

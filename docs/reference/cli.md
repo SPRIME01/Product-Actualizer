@@ -68,7 +68,7 @@ Complete set — **seven** verbs. `docs/cockpit.md:7` lists only four (`up|down|
 | `rebuild` | — | delete-and-regenerate the SQLite projection from the run directory and replay the engine log; prints the event count (`cli.ts:65-68`) |
 | `reset` | — | unlinks `cockpit.db`, `cockpit.db-wal`, `cockpit.db-shm` entirely. The next start rebuilds from the run (`cli.ts:69`) |
 
-Server state lives in `actualize/.cockpit/`: `cockpit.db` (projection), `server.json` (`{port,pid,url,startedAt}`), `agent.token`, `context.json`, `server.log`.
+Server state lives in `actualize/.cockpit/`: `cockpit.db` (a disposable projection plus the cockpit's durable control tables), `server.json` (`{port,pid,url,startedAt}`), `agent.token`, `context.json`, `server.log`.
 
 ## `actualize ui` (`cockpit/cli.ts:82-112`)
 
@@ -119,6 +119,19 @@ See [the world debugger](../world-debugger.md). `world timeline [ref] --git` add
 | `case <ref> --decision --show` | the decision-state view for that Case |
 
 It works with the cockpit closed (a function of the run files). See [case navigation](../case-navigation.md).
+
+## `actualize work`
+
+The owner's work requests and the agent's side of their lifecycle. Reads are free; the only write is moving a request the agent holds. It works with the cockpit closed, against the same SQLite file.
+
+| command | does |
+|---|---|
+| `work` (or `work summary`) | the Workbench mode and why, the current workflow stage, and the pending requests |
+| `work requests [R3]` | every request, or one, with where it stands and who has seen it |
+| `work workflow` / `work capabilities [lens]` / `work contract [stage]` / `work ledger` / `work screen` | the workflow stages, capability / implementation / executor, the task contract, the evidence ledger, the composed screen. `--show` also opens it for the owner |
+| `work ack\|run\|produce\|review\|block\|fail R3 [--note ...] [--refs ref,ref]` | moves a request. `review` means ready for the owner's review and needs refs or a note |
+
+There is no `accept`: the owner accepts, rejects, or cancels, and the cockpit refuses the agent's attempt with `AUTHORITY_HUMAN`. See [the Workbench](../workbench.md).
 
 ## `actualize inbox` (`cockpit/cli.ts:115-136`)
 
@@ -197,7 +210,7 @@ Idempotent; backs up any file it changes into `backupDir()` (`ACTUALIZE_BACKUP_D
 | `.state/` | CLI | `model.base.md`, `proposals.base.md` for the open reconciliation; protected |
 | `.log.jsonl` | CLI/engine | append-only event log, replayed by the cockpit |
 | `inbox.jsonl` | owner's gestures; router acks | append-only, authoritative |
-| `.cockpit/` | cockpit | SQLite projection, `server.json`, `agent.token`, `context.json`, `server.log` — **disposable**, git-ignored, rebuildable from the run |
+| `.cockpit/` | cockpit | SQLite (projection rows rebuildable from the run; `control_*` rows durable cockpit state), `server.json`, `agent.token`, `context.json`, `server.log`. Git-ignored |
 
 Zone classification is `zoneOf()` (`store.mjs:116-131`): `model`, `proposals`, `state`, `history`, `artifact`, `evidence`, `run-other`, `project`, `outside`.
 
@@ -268,6 +281,9 @@ Stdlib only, 661 lines. It currently prints `lenses: 17`, validates both walkthr
 | `tests/cockpit/ui.e2e.test.ts` | system Chrome via `playwright-core`: rail sizing and live updates, fixed-component rendering, drag/pin/minimize/restore/close, the empty-workspace affordances and keyboard palette, answering and ruling in the UI, the preflight confirm path, ref chips opening beside, offline/reconnect, WebMCP on `document.modelContext` (registration, abort-based withdrawal as the context changes, refusals, the deprecated alias, and its absence), the world debugger's banners and entity actions, and the software-only run |
 | `tests/cockpit/world.test.ts` | the world kernel against both walkthroughs: no operation changes a run file; diff against an independent reading of the model files; identity and digest convergence; `why` bases and gaps for every entity class; impact reduction; candidates and counterfactual classes; replay; the reach ladder; dynamic tool context; debugger surfaces validate against the fixed schema; malformed requests |
 | `tests/cockpit/world.transport.test.ts` | one question, the same answer from the cockpit, HTTP, MCP and the CLI; the catalogues are the same definitions; the agent token cannot forge or carry an owner operation; opening a view writes no inbox entry; the hook line reports history and candidate views; answers with the cockpit closed and after deleting SQLite |
+| `tests/cockpit/workbench.test.ts` | the two storage classes and migrations (v1 keeps layout, failure rolls back, rebuild keeps `control_*`); the workflow and its `needs` graph; the capability catalogue (lens metadata, `executes_with` as candidates, unknown is not usable, conflicts); the five Workbench modes and that layout is never moved; the terminal's rule table; the request lifecycle and that the agent cannot accept |
+| `tests/cockpit/workbench.transport.test.ts` | HTTP, MCP, WebSocket, CLI and the hook line agree; the agent role holds no owner operation on any channel; the control plane works with the cockpit closed; `rebuild` keeps and `reset` deletes cockpit state |
+| `tests/cockpit/workbench.e2e.test.ts` | system Chrome: the Workbench, the Work Terminal, the workflow, capability and contract views, a request moving through its lifecycle with an agent on the wire, the evidence ledger, a pinned tab left in place, a dropped connection |
 | `tests/cockpit/layoutMap.test.ts` | server tree → dockview → server tree is lossless for each shape |
 
 `tests/cockpit/helpers.ts` and `tests/hooks/helpers.mjs` are shared harnesses, not test files. `bun test` exercises the engine and the cockpit directly, not a live client session. `just test` / `bun run test` adds `tsc` and `tests/check.py`.
@@ -280,7 +296,7 @@ Stdlib only, 661 lines. It currently prints `lenses: 17`, validates both walkthr
 - `hooks/src/lib/md.mjs` — `validateModel`, `parseStamp`, `inlineCites`, `validateArtifact`
 - `hooks/src/lib/inbox.mjs:9` — inbox `KINDS`
 - `cockpit/cli.ts` — `cockpitMain` (all seven verbs; the usage string at `cli.ts:70` names them), `uiMain`, `inboxMain`, `call`/`out`
-- `cockpit/protocol/tools.ts` — the tool definitions (twelve base, seven world), their defaults, annotations, and `activeTools`
+- `cockpit/protocol/tools.ts` — the tool definitions (fourteen base, seven world, and `work_update` while a request is pending), their defaults, annotations, and `activeTools`
 - `cockpit/server/main.ts:6-14`, `cockpit/server/serve.ts:119` — `runDaemon`, `server.json`
 - `hooks/install.mjs` — flags, `resolveAdapters`, `runtimeProblem`, `MIN_BUN`, exit codes
 - `hooks/adapters/common.mjs:15-20` — `backupDir`, `ACTUALIZE_BACKUP_DIR`

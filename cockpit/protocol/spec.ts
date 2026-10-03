@@ -14,7 +14,7 @@ export const Tone = z.enum(["neutral", "ok", "warning", "danger", "unknown"]);
 //   file:evidence/electronics/power-budget.md#table2   file:artifacts/marketing/spec-sheet.md   graph:lenses
 // Agent-supplied `data` is always rendered with an "agent-supplied" mark: a surface cannot pass its own numbers off as process state.
 export const PA_SOURCES = ["claims", "unknowns", "decisions", "proposals", "artifacts", "evidence", "lenses", "waves", "events", "blockers", "versions", "responses", "trace", "candidates", "jobs", "criteria", "opportunities", "decision-states", "experiments", "patterns"] as const;
-export const GRAPH_SOURCES = ["lenses", "staleness", "claims", "model", "why", "impact", "case"] as const;
+export const GRAPH_SOURCES = ["lenses", "staleness", "claims", "model", "why", "impact", "case", "workflow"] as const;
 // The world debugger's questions. All read-only, all computed from the run's files: see server/world.ts.
 //   world:why?ref=claim:C5   world:impact?ref=decision:D7&dir=down&depth=2   world:diff?a=2&b=current   world:timeline[?ref=]
 //   world:counterfactual?ref=proposal:P3   world:reach?need=hardware.measure | ?ref=unknown:U2   world:replay?selects=file:...#table2&expect=margin~gt~0
@@ -22,11 +22,14 @@ export const WORLD_SOURCES = ["why", "impact", "diff", "timeline", "counterfactu
 // A Case is a derived view of the world around one present purpose: see server/case.ts. These are its projections, all read-only.
 //   case:state?ref=OP1   case:affordances?ref=run   case:settlement   case:prior?q=<words>        graph:case?ref=run
 export const CASE_SOURCES = ["state", "affordances", "settlement", "prior"] as const;
+// The Workbench's rows: the workflow, capabilities and their layers, the task contract, work requests, the evidence ledger, what waits for the owner.
+//   work:workflow   work:capabilities[?scope=all]   work:layers?capability=<lens>   work:contract?stage=<id|current>   work:requests[?active=1|review=1]   work:ledger   work:waiting
+export const WORK_SOURCES = ["workflow", "capabilities", "layers", "contract", "requests", "ledger", "waiting"] as const;
 export const SourceSchema = z.string().max(300).refine((s) => {
-  const m = /^(pa|graph|world|case):([a-z-]+)(\?.*)?$/.exec(s);
-  if (m) return ((m[1] === "pa" ? PA_SOURCES : m[1] === "graph" ? GRAPH_SOURCES : m[1] === "case" ? CASE_SOURCES : WORLD_SOURCES) as readonly string[]).includes(m[2]);
+  const m = /^(pa|graph|world|case|work):([a-z-]+)(\?.*)?$/.exec(s);
+  if (m) return ((m[1] === "pa" ? PA_SOURCES : m[1] === "graph" ? GRAPH_SOURCES : m[1] === "case" ? CASE_SOURCES : m[1] === "work" ? WORK_SOURCES : WORLD_SOURCES) as readonly string[]).includes(m[2]);
   return /^file:(artifacts|evidence|history)\/[^#?]+(#[\w.:-]+)?$/.test(s) && !s.includes("..");
-}, { message: "source must be pa:<claims|unknowns|decisions|proposals|artifacts|evidence|lenses|waves|events|blockers|versions|responses|trace|candidates>[?k=v | ?at=<model version>], graph:<lenses|staleness|claims|model|why|impact>[?focus=ref], case:<state|affordances|settlement|prior>[?ref=run|OP1|U3|..], world:<why|impact|diff|timeline|counterfactual|reach|replay>?..., or file:<artifacts|evidence|history>/<path>[#table|#tableN|#<ref>]" });
+}, { message: "source must be pa:<claims|unknowns|decisions|proposals|artifacts|evidence|lenses|waves|events|blockers|versions|responses|trace|candidates>[?k=v | ?at=<model version>], graph:<lenses|staleness|claims|model|why|impact>[?focus=ref], case:<state|affordances|settlement|prior>[?ref=run|OP1|U3|..], work:<workflow|capabilities|layers|contract|requests|ledger|waiting>, world:<why|impact|diff|timeline|counterfactual|reach|replay>?..., or file:<artifacts|evidence|history>/<path>[#table|#tableN|#<ref>]" });
 export type Source = z.infer<typeof SourceSchema>;
 
 const Row = z.record(z.string(), z.union([z.string(), z.number(), z.boolean(), z.null()]));

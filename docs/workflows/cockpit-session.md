@@ -5,7 +5,7 @@
 This page traces the cockpit as a running system: start, project, compose, render, owner input, route. The subsystem
 guide (`docs/subsystems/cockpit.md`) covers what the cockpit is; this covers execution.
 
-The invariant: **the run directory is authoritative, SQLite is a disposable projection, and every owner gesture is an
+The invariant: **the run directory is authoritative, SQLite's projection is disposable (its `control_*` tables are the cockpit's own durable state, never process truth), and every owner gesture is an
 inbox entry the router must route** (`cockpit/server/db.ts:1-3`, `hooks/src/lib/inbox.mjs:1-3`,
 `cockpit/server/project.ts:1-3`). `project(cwd)` is a pure function of files on disk and consults no cockpit state,
 so the rail and every process-backed view are by construction a function of process state (`project.ts:1-2,26`).
@@ -156,7 +156,7 @@ rebuilds the projection tables rather than migrating (`db.ts:17-21`).
 | Where state lives | What it holds | Who writes it |
 |---|---|---|
 | `actualize/*.md`, `inbox.jsonl`, `.log.jsonl` | authoritative process state | the process CLI, the router, and the cockpit for the inbox only |
-| `actualize/.cockpit/cockpit.db` | `entities`, `search`, `events`, `ui_state` key `ws`, `interactions`, `meta` | the syncer and the reducer; disposable |
+| `actualize/.cockpit/cockpit.db` | projection: `entities`, `search`, `events` (process), `meta` (disposable). Cockpit state: `ui_state` (`ws`, `terminal`, `agent.seen`), `interactions`, `events` (cockpit), `control_*` (durable) | the syncer, the reducer, and the control repository |
 | `actualize/.cockpit/agent.token`, `server.json` | the agent's bearer token, daemon pid and port | the server |
 | `.cockpit/context.json` | one advisory status line for the hook engine | `writeContext` (`core.ts:168-173`) |
 **What never happens.** Verified by `tests/cockpit/authority.test.ts`:

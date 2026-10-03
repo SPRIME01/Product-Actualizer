@@ -31,10 +31,19 @@ export function probesFor(env: Record<string, string | undefined>, which: (b: st
   return out;
 }
 
+// Looking a binary up scans every PATH entry, and on WSL that includes slow Windows mounts, so a miss costs milliseconds and a screenful of them seconds.
+// The answer is kept for a minute, keyed by PATH as well as the name, so a changed PATH is never answered from the old one.
+const found = new Map<string, { at: number; v: string | null }>();
+export const cachedWhich = (b: string): string | null => {
+  const k = `${process.env.PATH}\0${b}`; const hit = found.get(k);
+  if (hit && Date.now() - hit.at < 60_000) return hit.v;
+  const v = Bun.which(b); found.set(k, { at: Date.now(), v }); return v;
+};
+
 let probed: { at: number; probes: Record<string, ProbeRecord> } | null = null;   // one probe per minute, not one per question
 // `base` is the project directory: a relative path in a provider's config means "in this project", so the same question has the same answer from any process.
 export const hostEnv = (env: Record<string, string | undefined> = process.env, run?: GhRunner, base: string = process.cwd()): ReachEnv => {
-  const which = (b: string) => Bun.which(b);
+  const which = cachedWhich;
   let probes: Record<string, ProbeRecord> = {};
   if (env.ACTUALIZE_GH === "1" || env.ACTUALIZE_PROBE) { if (run || !probed || Date.now() - probed.at > 60_000) { probes = probesFor(env, which, run); if (!run) probed = { at: Date.now(), probes }; } else probes = probed.probes; }
   return { which, env, exists: (p) => fs.existsSync(p.startsWith("~") ? p.replace(/^~/, os.homedir()) : path.resolve(base, p)), platform: process.platform, probes };

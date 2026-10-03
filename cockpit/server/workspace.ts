@@ -109,7 +109,8 @@ export function surfaceRefs(s: Surface): { path: string; ref: string }[] {
 export function surfaceSources(s: Surface): { path: string; source: string; type: string }[] {
   const out: any[] = [];
   s.blocks.forEach((b: any, i) => {
-    if (b.source) out.push({ path: `blocks.${i}(${b.id}).source`, source: b.source, type: b.type });
+    // a progress block's `source` names a live stream (run, wave, lens, gate), not a data source; resolving it as one rejected every surface that had one
+    if (b.source && b.type !== "progress") out.push({ path: `blocks.${i}(${b.id}).source`, source: b.source, type: b.type });
     (b.items ?? []).forEach((it: any, j: number) => { if (it.source) out.push({ path: `blocks.${i}(${b.id}).items.${j}.source`, source: it.source, type: "item" }); if (it.src) out.push({ path: `blocks.${i}(${b.id}).items.${j}.src`, source: it.src, type: "media" }); });
   });
   return out;

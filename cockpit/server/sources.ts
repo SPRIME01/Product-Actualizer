@@ -11,6 +11,8 @@ import { worldOfSource, parseWorldId, type Viewing } from "../protocol/world";
 import * as K from "./world";
 import * as C from "./case";
 import * as L from "./learn";
+import { workRows } from "./workSources";
+import { workflowGraph } from "./workflows";
 import { frontmatter } from "../../hooks/src/lib/md.mjs";
 import { markdownTables, slug } from "./tables";
 
@@ -22,7 +24,7 @@ export type DocData = { kind: "doc"; provenance: "file"; path: string; ext: stri
 export type GraphData = { world?: Viewing; kind: "graph"; provenance: "process" | "agent"; nodes: any[]; edges: any[] };
 export type Resolved = Rows | TreeData | DocData | GraphData | { kind: "error"; code: string; message: string };
 
-export type Env = { db: Database; runDir: string; proj?: Proj; reach?: import("./reach").ReachEnv };
+export type Env = { db: Database; runDir: string; proj?: Proj; reach?: import("./reach").ReachEnv; agentSeen?: string | null; asks?: () => { id: string; prompt: string; surface: string }[]; avail?: import("./capabilities").AvailEnv };
 export const MAX_FILE = 240_000;
 
 const PA: Record<string, { kind: string; refKind: string; cols: Col[] }> = {
@@ -225,11 +227,13 @@ function resolveInner(env: Env, source: string | undefined, o: ResolveOpts = {})
     if (o.as === "rows" || m[2]?.startsWith("table")) return fileRows(env, m[1], m[2], o.filter, o.sort, limit);
     return readFile(env, m[1], m[2]);
   }
-  const [, kind, name, qs] = /^(pa|graph|world|case):([a-z-]+)(\?.*)?$/.exec(source) ?? [];
+  const [, kind, name, qs] = /^(pa|graph|world|case|work):([a-z-]+)(\?.*)?$/.exec(source) ?? [];
   if (!kind) return { kind: "error", code: "BAD_SOURCE", message: `cannot parse source ${source}` };
   const q = parseQuery(qs?.slice(1));
   if (kind === "world") return worldSource(env, name, q, o, source);
   if (kind === "case") return caseSource(env, name, q, o, source);
+  if (kind === "work") return workSource(env, name, q, o, source);
+  if (kind === "graph" && name === "workflow") { if (!env.proj) return noProj(); return { kind: "graph", provenance: "process", ...workflowGraph(env.proj) }; }
   if (kind === "graph" && name === "case") { const w = W(env); if (!w) return noProj(); const c = C.caseOf(w, caseIdOf(q)); return c.ok ? { kind: "graph", provenance: "process", ...C.caseGraph(c) } : bad(c.message); }
   if (kind === "graph" && (name === "impact" || name === "why")) return worldGraph(env, name, q);
   if (kind === "graph") return graph(env, name, q);
@@ -505,6 +509,16 @@ export function detail(env: Env, ref: string): Detail {
 }
 
 export const search = (env: Env, q: string, limit = 12) => searchEntities(env.db, q, limit).map((h) => ({ ...h, ref: `${h.kind}:${h.id}` }));
+
+// ---- the Workbench's rows ------------------------------------------------------------------------------------------------------------------------
+function workSource(env: Env, name: string, q: Record<string, string>, o: ResolveOpts, source: string): Resolved {
+  if (!env.proj) return noProj();
+  const w = W(env);
+  const primary = () => { if (!w) return null; const c = C.caseOf(w, "run"); const m = c.ok ? c.field.find((x) => x.primary) : null; return m ? { label: m.label, authority: m.authority } : null; };
+  const r = workRows({ db: env.db, proj: env.proj, runDir: env.runDir, reach: env.reach, avail: env.avail, agentSeen: env.agentSeen, asks: env.asks, primary }, name, q);
+  if ("error" in r) return bad(r.error);
+  return rowsOut(r.cols, r.rows, o, source);
+}
 
 // ---- the Case and what the run has learned, as rows -----------------------------------------------------------------------------------------
 const caseIdOf = (q: Record<string, string>) => q.ref || "run";

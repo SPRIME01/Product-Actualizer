@@ -7,6 +7,7 @@ import { SurfaceSchema, PlacementSchema, AskBase } from "./spec";
 import { RefSchema } from "./refs";
 import { CAPABILITIES, type WorldMode } from "./world";
 import { caseAnchor } from "./refs";
+import { REQUEST_STATUSES } from "./work";
 
 const idStr = z.string().min(1).max(48);
 const show = z.boolean().default(false).describe("also open the answer as a surface for the owner");
@@ -67,11 +68,22 @@ export const WORLD_TOOLS: ToolDef[] = [
     description: "Run an observation criterion again over recorded evidence: select rows of an evidence table, assert what must hold. The result is evidence for the router and owner; it settles nothing." },
 ];
 TOOLS.push(...WORLD_TOOLS);
-export const BASE_TOOLS = TOOLS.filter((t) => !t.name.startsWith("world_")).map((t) => t.name);
+
+// ---- the Workbench: the workflow, capabilities, the task contract, and the owner's work requests. work_update only moves a request the agent holds. ----
+// It can acknowledge, report progress, attach refs, and mark ready_for_review. It cannot accept, reject, or cancel: those are the owner's, and the
+// reducer refuses them with AUTHORITY_HUMAN. It is offered only while a request is pending, so the always-visible catalogue stays small.
+export const WORK_TOOLS: ToolDef[] = [
+  { name: "work_get", effect: "read", untrusted: true, input: z.object({ part: z.enum(["summary", "requests", "workflow", "capabilities", "contract", "ledger", "screen"]).default("summary"), id: z.string().regex(/^R\d+$/).optional(), stage: z.string().regex(/^[a-z][a-z-]*$/).optional(), capability: z.string().regex(/^[a-z][a-z0-9-]*$/).optional(), show }).strict(),
+    description: "The Workbench in one call. summary: the screen mode and why, the current workflow stage, and the owner's pending work requests (typed, durable, what they asked; a request is queued until you acknowledge it). requests: all of them, or one by id. workflow: the real stages and their status. capabilities: each lens as capability, implementation candidates and the binding, executor, and availability (unknown is not usable). contract: the task contract of a stage. ledger: the evidence ledger (pass, pending, fail, unknown). screen: the composed Workbench. Reads only; nothing here runs work." },
+  { name: "work_update", effect: "compose", input: z.object({ id: z.string().regex(/^R\d+$/), status: z.enum(REQUEST_STATUSES), note: z.string().max(400).optional(), refs: z.array(RefSchema).max(8).optional() }).strict(),
+    description: "Move a work request you hold: acknowledged (you picked it up), running, produced, ready_for_review (needs refs to what you produced, or a note), blocked, failed. Attach refs to artifacts or evidence you produced. You cannot accept your own work: accepted, cancelled, and the owner's review belong to the owner and are refused." },
+];
+TOOLS.push(...WORK_TOOLS);
+export const BASE_TOOLS = TOOLS.filter((t) => !t.name.startsWith("world_") && t.name !== "work_update").map((t) => t.name);
 
 // Which tools are worth showing the agent right now. This is discovery, not authorization: every tool stays callable from the CLI,
 // and none of them can do more than read the run or compose the cockpit as the agent role.
-export type ToolContext = { mode: WorldMode; subjects: string[] };
+export type ToolContext = { mode: WorldMode; subjects: string[]; pendingWork?: boolean };
 export function activeTools(c: ToolContext): string[] {
   const has = (...k: string[]) => c.subjects.some((s) => k.includes(s));
   const on = new Set<string>(BASE_TOOLS);
@@ -80,6 +92,7 @@ export function activeTools(c: ToolContext): string[] {
   if (c.mode === "candidate" || has("proposal")) { on.add("world_counterfactual"); on.add("world_replay"); on.add("world_reach"); }
   if (has("unknown", "claim")) on.add("world_reach");
   if (has("evidence")) on.add("world_replay");
+  if (c.pendingWork) on.add("work_update");
   return TOOLS.filter((t) => on.has(t.name)).map((t) => t.name);
 }
 export const TOOL_NAMES = TOOLS.map((t) => t.name);

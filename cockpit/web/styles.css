@@ -166,3 +166,28 @@ input[type=radio]:checked::before, input[type=checkbox]:checked::before { transf
 .t tr.group[data-lane="blocked"] td { color: var(--danger); }
 .t tr.group[data-lane="choose"] td { color: var(--ink); }
 .t tr.group[data-lane="alternatives"] td { color: var(--ink-3); font-weight: 500; }
+
+/* Work Terminal: a command line for the work. Compact log, no bubbles; requests show their real lifecycle state. */
+.term { flex: none; border-top: 1px solid var(--line); background: var(--panel); display: flex; flex-direction: column; font-size: 12.5px; }
+.term-line { display: flex; align-items: center; gap: 8px; padding: 4px 10px; min-width: 0; }
+.term-prompt { color: var(--accent); font-family: var(--mono); font-weight: 700; }
+.term-input { flex: 1 1 200px; min-width: 0; background: var(--bg); border: 1px solid var(--line); border-radius: var(--radius); padding: 4px 8px; font-family: var(--mono); font-size: 12.5px; }
+.term-input:focus-visible { border-color: var(--accent); }
+.term-input:disabled { opacity: .55; }
+.term-mode { flex: none; font-size: 10.5px; letter-spacing: .06em; font-weight: 600; border: 1px solid var(--line); background: var(--panel-2); color: var(--ink-2); border-radius: 3px; padding: 1px 7px; cursor: pointer; }
+.term-mode:hover { border-color: var(--accent); }
+.term-mode[data-mode="decide"] { color: var(--warn); border-color: var(--warn); } .term-mode[data-mode="complete"] { color: var(--ok); border-color: var(--ok); } .term-mode[data-mode="verify"] { color: var(--accent); border-color: var(--accent); }
+.term-last { flex: 0 1 38%; min-width: 0; color: var(--ink-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 12px; }
+.term-last.refused { color: var(--danger); } .term-last.unrecognized { color: var(--warn); }
+.term-log { max-height: 26vh; overflow: auto; padding: 4px 10px; border-bottom: 1px solid var(--line-soft); display: flex; flex-direction: column; gap: 3px; }
+.term-row { display: flex; flex-direction: column; } .term-cmd { font-family: var(--mono); color: var(--ink-2); } .term-say { color: var(--ink); padding-left: 14px; }
+.term-row.refused .term-say { color: var(--danger); } .term-row.unrecognized .term-say { color: var(--warn); }
+.term-reqs { display: flex; flex-wrap: wrap; gap: 4px 8px; padding: 3px 10px; border-bottom: 1px solid var(--line-soft); align-items: center; }
+.term-req { display: inline-flex; align-items: center; gap: 5px; border: 1px solid var(--line); border-radius: 999px; padding: 0 4px 0 8px; background: var(--panel-2); max-width: 46ch; }
+.term-req-text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.term-act { border: 1px solid var(--line); background: var(--panel); border-radius: 3px; padding: 0 6px; cursor: pointer; font-size: 11.5px; color: var(--ink-2); } .term-act:hover { border-color: var(--accent); } .term-act.ok { color: var(--ok); border-color: var(--ok); }
+.term-hint { font-size: 11.5px; }
+.status.queued, .status.acknowledged, .status.produced, .status.ready_for_review, .status.attention { color: var(--warn); border-color: var(--warn); }
+.status.accepted, .status.declared, .status.found { color: var(--ok); border-color: var(--ok); }
+.status.cancelled, .status.ready, .status.n-a { color: var(--ink-3); border-color: var(--line); }
+.status.cancelled { text-decoration: line-through; }

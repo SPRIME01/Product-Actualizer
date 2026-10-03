@@ -67,7 +67,7 @@ Order inside a wave: evidence and proposals, then reconciliation, then artifacts
 
 ## State
 
-None. The skill layer is read-only text. A lens's only persistent effect is rows in `proposals.md` plus its own `artifacts/<lens>/` and `evidence/<lens>/` — e.g. `skills/electronics/SKILL.md:62` names `electrical-review.md` and `evidence/electronics/{power-budget,bus-budget,measurements,actions}.md`. Phase, selection, and reconciliation windows are owned by `hooks/src/process.mjs`; the cockpit's SQLite is a disposable projection (`AGENTS.md:13`).
+None. The skill layer is read-only text. A lens's only persistent effect is rows in `proposals.md` plus its own `artifacts/<lens>/` and `evidence/<lens>/` — e.g. `skills/electronics/SKILL.md:62` names `electrical-review.md` and `evidence/electronics/{power-budget,bus-budget,measurements,actions}.md`. Phase, selection, and reconciliation windows are owned by `hooks/src/process.mjs`; the cockpit's SQLite holds a disposable projection and the cockpit's own durable state, never process truth (`AGENTS.md:13`, `docs/workbench.md`).
 
 ## Lifecycle
 

@@ -80,7 +80,8 @@ the repository root; `Symbol` names a function, class, or constant that carries 
 | Fixture run builder | `tests/cockpit/helpers.ts` | A cockpit test gets real model/proposal/artifact files; only `state.json` and the log are synthesized. |
 | Vocabulary grammar | `tests/cockpit/grammar.test.ts`, `tests/cockpit/compositions/*.yaml` | Every catalog example and YAML composition parses, resolves its refs and sources in that run, and places. |
 | Authority boundaries | `tests/cockpit/authority.test.ts` | The agent cannot touch the rail, forge process state, write the inbox, or answer for the owner. |
-| Live projection | `tests/cockpit/live.test.ts` | Events flow from the real engine; a closed cockpit does not stall the run; SQLite is disposable. |
+| Live projection | `tests/cockpit/live.test.ts` | Events flow from the real engine; a closed cockpit does not stall the run; the projection is disposable. |
+| Storage classes, migrations, rebuild keeps `control_*` | `tests/cockpit/workbench.test.ts` | v1 files migrate keeping layout; a failed migration rolls back; rebuild regenerates the projection and keeps control rows; hooks never read them. |
 | Browser behaviour | `tests/cockpit/ui.e2e.test.ts` | Rail, spatial workspace, every human gesture, reconnection, WebMCP — in system Chrome. |
 | Layout round trip | `tests/cockpit/layoutMap.test.ts` | `toDockview`/`fromDockview` is lossless for every tree shape. |
 | End-to-end hooks per client | `tests/cockpit/hooks-bun.test.ts` | installer → client config → generated command → `bin/actualize` → engine → that client's native output. |
@@ -126,7 +127,7 @@ The entries above are the trail; these are the files that define the relationshi
 - `hooks/src/lib/md.mjs` — model and artifact validation, `touches`, `staleReasons`, `validTouched`
 - `hooks/src/lib/lenses.mjs` — `ROUTER`, `loadLenses`, `lensBody`, `waves`
 - `hooks/src/lib/inbox.mjs` — `readInbox`, `ackInbox`, `unhandled`
-- `cockpit/protocol/spec.ts`, `actions.ts`, `tools.ts`, `world.ts` — the closed vocabulary, the tools (13 base, 7 world), and the world vocabulary shared with the page
+- `cockpit/protocol/spec.ts`, `actions.ts`, `tools.ts`, `world.ts` — the closed vocabulary, the tools (14 base, 7 world, plus work_update while a request is pending), and the world vocabulary shared with the page
 - `cockpit/server/world.ts`, `reach.ts`, `reach.providers.json`, `worldSurfaces.ts` — the world debugger kernel, the reach ladder, and its standard compositions
 - `cockpit/server/{project,sync,workspace,serve,db}.ts` — projection, event derivation, authority, transport
 - `cockpit/cli.ts`, `cockpit/build.ts` — the cockpit verbs and the compiled executable
@@ -143,3 +144,14 @@ The entries above are the trail; these are the files that define the relationshi
 - Views: `cockpit/server/caseSurfaces.ts`; sources `case:*`, `graph:case`, `pa:jobs|criteria|opportunities|decision-states|experiments|patterns` in `sources.ts`; the `case_get` tool in `protocol/tools.ts`; `actualize case` in `cockpit/cli.ts`
 - Tests: `tests/cockpit/case.test.ts`, `case.transport.test.ts`, `case.e2e.test.ts`
 - Specification and plan: `.agents/specs/outcome-navigation.md`; residuals: `.agents/DEBT.md`
+
+## The Workbench and the Work Terminal
+
+- Migrations and the two storage classes: `cockpit/server/db.ts` (`migrate`, `MIGRATIONS`)
+- Control repository (requests, bindings, contracts, reviews, executors): `cockpit/server/control.ts`; lifecycle table, control operations, screen modes: `cockpit/protocol/work.ts`
+- Workflow, graph, task contract: `cockpit/server/workflows.ts`; capability catalogue, availability, conflicts: `cockpit/server/capabilities.ts`
+- `work:*` rows and the evidence ledger: `cockpit/server/workSources.ts`; source resolution in `sources.ts` (`workSource`); schema in `protocol/spec.ts` (`WORK_SOURCES`)
+- Mode rule and compositions: `cockpit/server/screens.ts`; templates in `templates.ts`; the Workbench follow, control operations, terminal, tools, and context in `cockpit/server/core.ts`
+- Terminal interpreter: `cockpit/server/terminal.ts`; UI: `cockpit/web/WorkTerminal.tsx`; tools `work_get`, `work_update` in `protocol/tools.ts`; `actualize work` in `cockpit/cli.ts`; the router's hook line in `hooks/src/engine.mjs` (`workLine`)
+- Tests: `tests/cockpit/workbench.test.ts`, `workbench.transport.test.ts`, `workbench.e2e.test.ts`
+- Specification and plan: `.agents/specs/workbench.md`

@@ -66,7 +66,7 @@ export async function cockpitMain(args: string[], opt: Record<string, any>, cwd:
     const { Cockpit } = await import("./server/core"); const c = new Cockpit(cwd);
     const r = c.rebuild(); console.log(`projection rebuilt from the run directory: ${r.events.length} event(s) replayed`); c.close(); return 0;
   }
-  if (sub === "reset") { for (const f of ["cockpit.db", "cockpit.db-wal", "cockpit.db-shm"]) { try { fs.unlinkSync(path.join(d, f)); } catch { /* none */ } } console.log("cockpit state deleted; the next start rebuilds the projection from the run"); return 0; }
+  if (sub === "reset") { console.log("note: this deletes the cockpit's own durable state too (work requests, bindings, declared budgets, reviews, layout); the run, the model, and the inbox are untouched"); for (const f of ["cockpit.db", "cockpit.db-wal", "cockpit.db-shm"]) { try { fs.unlinkSync(path.join(d, f)); } catch { /* none */ } } console.log("cockpit state deleted; the next start rebuilds the projection from the run"); return 0; }
   console.error("usage: actualize cockpit up|down|open|status|rebuild|reset|serve [--port n] [--no-open] [--print-url]"); return 2;
 }
 
@@ -106,10 +106,11 @@ export async function uiMain(args: string[], opt: Record<string, any>, cwd: stri
     case "responses": return out(await call(cwd, "read_responses", { unhandled: !opt.all }));
     case "tool": return out(await call(cwd, need(args[1], "<name> '<json>'"), args[2] ? JSON.parse(args[2]) : {}));
     case "tools": { const r: any = await call(cwd, "get_workspace", {}); const names = opt.all ? TOOLS.map((t) => t.name) : r.result?.tools ?? r.tools ?? BASE_TOOLS; console.log(names.join("\n")); return 0; }
+    case "work": return workMain(args.slice(1), opt, cwd);
     case "world": return worldMain(args.slice(1), opt, cwd);
     case "case": return caseMain(args.slice(1), opt, cwd);
     default:
-      console.error(`usage: actualize ui <case [summary|moves|settlement|prior] [ref] [--show]|status|context|catalog [block]|list <what>|entity <ref>|put <file>|show <ref>|compare <a> <b>|ask '<json>'|arrange '<json>'|annotate <target> <text>|responses|tool <name> '<json>'>\n tools: ${TOOLS.map((t) => t.name).join(", ")}`);
+      console.error(`usage: actualize ui <work [requests|workflow|capabilities|contract|ledger|screen|ack|run|produce|review|block|fail] ...|case [summary|moves|settlement|prior] [ref] [--show]|status|context|catalog [block]|list <what>|entity <ref>|put <file>|show <ref>|compare <a> <b>|ask '<json>'|arrange '<json>'|annotate <target> <text>|responses|tool <name> '<json>'>\n tools: ${TOOLS.map((t) => t.name).join(", ")}`);
       return 2;
   }
 }
@@ -120,6 +121,21 @@ async function caseMain(args: string[], opt: Record<string, any>, cwd: string): 
   const ref = args[0] && args[0] !== "--" ? args[0] : "run";
   if (part === "prior" && (!opt.q || opt.q === true)) { console.error("usage: actualize case prior --q \"words about what you are about to investigate\""); return 2; }
   return out(await call(cwd, "case_get", { ref, ...(part ? { part } : {}), ...(opt.q && opt.q !== true ? { q: opt.q } : {}), ...(opt.decision === true ? { view: "decision" } : {}), show: opt.show === true }));
+}
+
+// ---- work: the owner's work requests, and the agent's side of their lifecycle. Reads are free; the only write is moving a request the agent holds.
+// The owner's Work Terminal queues them; nothing runs until an executor acknowledges one. An agent cannot accept its own work.
+async function workMain(args: string[], opt: Record<string, any>, cwd: string): Promise<number> {
+  const sub = args[0];
+  const parts = ["summary", "requests", "workflow", "capabilities", "contract", "ledger", "screen"];
+  const move: Record<string, string> = { ack: "acknowledged", run: "running", produce: "produced", review: "ready_for_review", block: "blocked", fail: "failed" };
+  if (sub && move[sub]) {
+    const id = args[1]; if (!id || !/^R\d+$/.test(id)) { console.error(`usage: actualize ui work ${sub} R<n> [--note "..."] [--refs ref,ref]${sub === "review" ? "   (ready for the owner's review; attach refs to what you produced)" : ""}`); return 2; }
+    return out(await call(cwd, "work_update", { id, status: move[sub], ...(opt.note && opt.note !== true ? { note: opt.note } : {}), ...(opt.refs && opt.refs !== true ? { refs: String(opt.refs).split(",").filter(Boolean) } : {}) }));
+  }
+  if (sub && !parts.includes(sub)) { console.error("usage: actualize ui work [summary|requests [R<n>]|workflow|capabilities [lens]|contract [stage]|ledger|screen] [--show]  |  work <ack|run|produce|review|block|fail> R<n> [--note ...] [--refs ...]"); return 2; }
+  const part = sub ?? "summary"; const a = args[1];
+  return out(await call(cwd, "work_get", { part, ...(part === "requests" && a ? { id: a } : {}), ...(part === "capabilities" && a ? { capability: a } : {}), ...(part === "contract" && a ? { stage: a } : {}), show: opt.show === true }));
 }
 
 // ---- world: ask the product world a question. Read-only; works with the cockpit closed (the answer is a function of the run files).

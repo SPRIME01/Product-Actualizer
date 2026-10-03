@@ -18,7 +18,7 @@ Located by `findRun` (`hooks/src/lib/store.mjs:25-40`): `ACTUALIZE_DIR` if set, 
 | `.state/proposals.base.md` | CLI | scratch | the proposals rows at `reconcile start`. The base for immutability and deletion checks |
 | `.log.jsonl` | engine / CLI | **yes** (append-only) | every process event, `{ts, type, …}`. The cockpit replays it; nothing rewrites it |
 | `inbox.jsonl` | owner's gestures; router acks | **yes** (append-only) | `answer`, `ruling`, `confirmation`, `annotation`. Unhandled entries block the gate |
-| `.cockpit/` | cockpit | **disposable** | `cockpit.db` (+ `-wal`, `-shm`), `server.json`, `agent.token`, `context.json`, `server.log`. Git-ignored. `cockpit rebuild` regenerates the projection from the run; `cockpit reset` deletes the files outright. Deleting it loses only the owner's layout, pins, and the surfaces on screen |
+| `.cockpit/` | cockpit | **projection rows disposable, `control_*` rows durable cockpit state** | `cockpit.db` (+ `-wal`, `-shm`), `server.json`, `agent.token`, `context.json`, `server.log`. Git-ignored. `cockpit rebuild` regenerates the projection from the run and keeps the cockpit's own rows; `cockpit reset` deletes the files outright. Deleting it loses the owner's layout, pins, work requests, bindings, declared budgets, and reviews, and nothing the process knows (see [../workbench.md](../workbench.md)) |
 
 **Zone classification** (`zoneOf`, `store.mjs:116-131`) is what the pre-tool hook enforces:
 

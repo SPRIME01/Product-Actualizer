@@ -19,21 +19,29 @@ import { parseWorldId } from "../protocol/world";
 import { vocabulary } from "../protocol/catalog";
 import { SurfaceSchema } from "../protocol/spec";
 import { appendInbox, readInbox, ackInbox } from "../../hooks/src/lib/inbox.mjs";
+import { Control } from "./control";
+import { ControlOpSchema, isControlOp, type RequestStatus } from "../protocol/work";
+import { workRows, requestNext, capsOf } from "./workSources";
+import { screenOf, workflowSurface, capabilitiesSurface, contractSurface, requestsSurface, reviewSurface, WORKBENCH_ID, type Screen } from "./screens";
+import { workflowOf } from "./workflows";
+import { interpret, type Plan } from "./terminal";
 import { findRun, makeRun, DIR_NAME } from "../../hooks/src/lib/store.mjs";
 
 export type Role = "agent" | "human";
 export type Listener = (msg: any) => void;
 
 export class Cockpit {
-  db; syncer; run: any; ws: WS; env: Env; listeners = new Set<Listener>(); clients = 0; last: ReturnType<Syncer["refresh"]>;
+  db; syncer; run: any; ws: WS; env: Env; control: Control; listeners = new Set<Listener>(); clients = 0; last: ReturnType<Syncer["refresh"]>;
   private persisted = new Map<string, string>();
+  private wbDigest = ""; private wbMode = ""; private seenWritten = 0;
   constructor(public cwd: string, opts: { dbFile?: string } = {}) {
     this.run = findRun(cwd) ?? makeRun(path.join(cwd, DIR_NAME));
     const dir = path.join(this.run.dir, ".cockpit");
     this.db = openDb(opts.dbFile ?? path.join(dir, "cockpit.db"));
     this.syncer = new Syncer(this.db, cwd);
     this.ws = getUi<WS>(this.db, "ws") ?? emptyWS();
-    this.env = { db: this.db, runDir: this.run.dir };
+    this.env = { db: this.db, runDir: this.run.dir, agentSeen: getUi<string>(this.db, "agent.seen"), asks: () => Object.entries(this.ws.asks).filter(([, a]) => a.state === "open").map(([id, a]) => ({ id, prompt: a.prompt, surface: a.surface })) };
+    this.control = new Control(this.db);
     this.last = this.syncer.refresh();
     this.run = this.last.run ?? this.run;
     this.env.runDir = this.run.dir; this.env.proj = this.last.proj;
@@ -88,8 +96,13 @@ export class Cockpit {
       this.emit({ t: "invalidate", kinds: [...kinds] });
     }
     this.writeContext();
+    this.syncWorkbench();
+    if (this.clients > 0) this.pushWork();
     return this.last;
   }
+  // The terminal's mode chip follows the run, not only the owner's own actions. Sent only when something in it changed.
+  private workKey = "";
+  private pushWork() { const w = this.workState(); const k = JSON.stringify([w.mode, w.why, w.requests, w.agentSeen]); if (k !== this.workKey) { this.workKey = k; this.emit({ t: "work", work: w }); } }
 
   // The rail is the process projection plus the count of questions the cockpit itself has open. The agent cannot edit either part.
   rail() {
@@ -113,7 +126,7 @@ export class Cockpit {
 
   // Which tools are worth offering right now (WebMCP re-registers on this; MCP clients see it on the next tools/list).
   private toolsKey = "";
-  tools(): string[] { const v = viewingOf(this.ws); return activeTools({ mode: v.mode, subjects: v.subjects.map((x) => x.split(":")[0]) }); }
+  tools(): string[] { const v = viewingOf(this.ws); return activeTools({ mode: v.mode, subjects: v.subjects.map((x) => x.split(":")[0]), pendingWork: this.control.pending(this.runKey()).length > 0 }); }
   private emitTools() { const t = this.tools(); const k = t.join(","); if (k !== this.toolsKey) { this.toolsKey = k; this.emit({ t: "tools", tools: t }); } }
 
   // Send only what changed: topology and small maps whole, panels by revision.
@@ -158,10 +171,13 @@ export class Cockpit {
         return this.agent(existing ? { op: "view.focus", id: act.surface.id } : act);
       }
       if (!TEMPLATES[t]) return fail("SCHEMA", `no template ${t}`);
-      const r = this.agent({ op: "surface.put", surface: TEMPLATES[t](this.last.proj, this.run.dir), place: { rel: "within", to: "active", focus: true } });
-      if (r.ok && (raw as any).ref) this.agent({ op: "view.focus", id: TEMPLATES[t](this.last.proj, this.run.dir).id, ref: (raw as any).ref });
+      const surface = this.templateSurface(t);
+      const r = this.agent({ op: "surface.put", surface, place: { rel: "within", to: "active", focus: true } });
+      if (r.ok && (raw as any).ref) this.agent({ op: "view.focus", id: surface.id, ref: (raw as any).ref });
+      if (r.ok && t === "workbench") this.syncWorkbench(true);
       return r;
     }
+    if (isControlOp((raw as any)?.op)) return this.controlOp(raw);
     const prev = this.ws;
     const o = applyHuman(prev, raw, this.ctx());
     if (!o.result.ok) return o.result;
@@ -177,14 +193,141 @@ export class Cockpit {
     return (this.db.query("SELECT ts, op, data FROM interactions WHERE op NOT IN ('human.layout','human.select','human.control') ORDER BY seq DESC LIMIT 5").all() as any[]).reverse().map((r) => ({ ts: r.ts, op: r.op, summary: JSON.parse(r.data).summary }));
   }
   context() { return { ...contextOf(this.ws, this.recent()), tools: this.tools() }; }
+  private runKey() { return this.last.proj.run.startedAt; }
 
   // A compact file for the hook engine: one status line per prompt, so the router knows what the owner is looking at.
   writeContext() {
     try {
       const c = this.context(); const dir = path.join(this.run.dir, ".cockpit");
       fs.mkdirSync(dir, { recursive: true });
-      fs.writeFileSync(path.join(dir, "context.json"), JSON.stringify({ connected: this.clients > 0, pid: process.pid, ts: new Date().toISOString(), focus: c.focus, visible: c.visible.map((v) => v.id), asking: c.asking, layout: c.layout, world: c.world }));
+      fs.writeFileSync(path.join(dir, "context.json"), JSON.stringify({ connected: this.clients > 0, pid: process.pid, ts: new Date().toISOString(), focus: c.focus, visible: c.visible.map((v) => v.id), asking: c.asking, layout: c.layout, world: c.world, work: this.workBrief() }));
     } catch { /* the context file is advisory */ }
+  }
+
+
+  // ---- the Workbench: a deterministic projection of the run and the control plane ----------------------------------------------------------------
+  // Opening it is the owner's act. Once its surface exists, its content follows the work; its position, tab, and pin are never touched here.
+  private templateSurface(t: keyof typeof TEMPLATES) { return t === "workbench" ? this.screen().surface : TEMPLATES[t](this.last.proj, this.run.dir); }
+  // The run Case is the costly part of a screen. It is a function of the projection, so it is kept until the next refresh replaces `last`.
+  private caseMemo: { last: unknown; c: ReturnType<typeof C.caseOf> } | null = null;
+  private runCase() { if (this.caseMemo?.last !== this.last) this.caseMemo = { last: this.last, c: C.caseOf(this.worldEnv(), "run") }; return this.caseMemo.c; }
+  screen(): Screen {
+    const c = this.runCase(); const prim = c.ok ? c.field.find((m) => m.primary) : null;
+    return screenOf({ proj: this.last.proj, requests: this.control.requests({ run: this.runKey() }), asksOpen: Object.values(this.ws.asks).filter((a) => a.state === "open").length, settlementReachable: c.ok ? c.settlement.reachable : false, primary: prim ? { label: prim.label, authority: prim.authority } : null });
+  }
+  syncWorkbench(force = false) {
+    const mode = () => this.screen();
+    const have = this.ws.panels[WORKBENCH_ID];
+    if (!have && !force) return;
+    const sc = mode(); const digest = JSON.stringify(sc.surface);
+    if (sc.mode !== this.wbMode) { if (this.wbMode) pushEvent(this.db, { channel: "cockpit", type: "workbench.mode", data: { from: this.wbMode, to: sc.mode, why: sc.why } }); this.wbMode = sc.mode; }
+    if (!have || digest !== this.wbDigest || force) {
+      const r = this.agent({ op: "surface.put", surface: sc.surface, place: have ? undefined : { rel: "within", to: "active", focus: true } });
+      if (r.ok) this.wbDigest = digest; else pushEvent(this.db, { channel: "cockpit", type: "workbench.error", data: { code: (r as any).code, message: (r as any).message, issues: (r as any).issues } });   // never silent: a Workbench that cannot compose says so
+    }
+  }
+
+  // The compact view of pending work, for the router's status line and for the page's terminal.
+  workBrief() {
+    const pend = this.control.pending(this.runKey());
+    return { pending: pend.length, review: pend.filter((r) => r.status === "ready_for_review").length, items: pend.slice(0, 4).map((r) => ({ id: r.id, status: r.status, text: r.text.slice(0, 70), capability: r.capability })) };
+  }
+  workState() {
+    const sc = this.screen(); const reqs = this.control.requests({ run: this.runKey(), limit: 60 });
+    return { mode: sc.mode, why: sc.why, agentSeen: this.env.agentSeen ?? null, pending: this.workBrief().pending, requests: reqs.map((r) => ({ id: r.id, text: r.text, kind: r.kind, capability: r.capability, status: r.status, refs: r.refs, note: r.note, next: requestNext(r, this.env.agentSeen), updatedAt: r.updatedAt })), log: getUi<any[]>(this.db, "terminal") ?? [] };
+  }
+  noteAgent() {
+    const now = Date.now(); this.env.agentSeen = new Date(now).toISOString();
+    if (now - this.seenWritten > 5000) { this.seenWritten = now; setUi(this.db, "agent.seen", this.env.agentSeen); }
+  }
+  // Everything that changes control state ends here: one event, then the page, the tools, the context file, and the Workbench follow.
+  private afterControl(events: { type: string; subject?: string; data?: any }[]) {
+    for (const e of events) pushEvent(this.db, { channel: "cockpit", type: e.type, subject: e.subject, data: e.data });
+    this.emit({ t: "work", work: this.workState() }); this.emit({ t: "invalidate", kinds: ["work"] }); this.emitTools(); this.writeContext(); this.syncWorkbench();
+  }
+  private logTerminal(e: { text: string; kind: string; say: string; id?: string }) {
+    const log = [...(getUi<any[]>(this.db, "terminal") ?? []), { ts: new Date().toISOString(), ...e }].slice(-40); setUi(this.db, "terminal", log);
+  }
+
+  // ---- the owner's control operations. Only the human channel reaches this; an agent's copy is refused by the reducer with AUTHORITY_HUMAN. ----
+  controlOp(raw: unknown): ActionResult {
+    const p = ControlOpSchema.safeParse(raw); if (!p.success) return fail("SCHEMA", "control operation does not match", issuesOf(p.error));
+    const a = p.data; const ok = (effects: string[], extra: object = {}) => ({ ok: true as const, rev: this.ws.rev, effects, ...extra });
+    this.db.query("INSERT INTO interactions (ts, actor, op, data) VALUES (?, 'human', ?, ?)").run(new Date().toISOString(), a.op, JSON.stringify(summarize(a)));
+    switch (a.op) {
+      case "human.terminal": return this.terminal(a.text);
+      case "human.cancel": {
+        const r = this.control.move(a.request, "cancelled", "human"); if (r.ok === false) return fail(r.code, r.message);
+        this.afterControl([{ type: "work.cancelled", subject: a.request }]); return ok([`cancelled ${a.request}`]);
+      }
+      case "human.review": {
+        const asReq = /^R\d+$/.test(a.subject);
+        if (asReq) {
+          const row = this.control.request(a.subject); if (!row) return fail("NOT_FOUND", `no work request ${a.subject}`);
+          if (row.status !== "ready_for_review") return fail("SCHEMA", `${a.subject} is ${row.status}; only work marked ready_for_review is reviewed${row.status === "queued" ? " (it has not been picked up)" : ""}`);
+          const m = this.control.move(a.subject, a.outcome === "accepted" ? "accepted" : "blocked", "human", { note: a.outcome === "rejected" ? `review rejected${a.note ? `: ${a.note}` : ""}` : a.note });
+          if (m.ok === false) return fail(m.code, m.message);
+          this.control.review({ subjectType: "request", subjectId: a.subject, status: a.outcome, evidenceRefs: row.refs, reviewer: "owner", note: a.note });
+          this.afterControl([{ type: `work.${a.outcome}`, subject: a.subject, data: { note: a.note } }]);
+          return ok([`${a.outcome} ${a.subject}`]);
+        }
+        if (!this.refExists(a.subject) || parseRef(a.subject)?.kind !== "artifact") return fail("BAD_REF", `${a.subject} is not an artifact in this run; review applies to a work request (R3) or an artifact`);
+        this.control.review({ subjectType: "artifact", subjectId: parseRef(a.subject)!.id, status: a.outcome, evidenceRefs: [a.subject], reviewer: "owner", note: a.note });
+        this.afterControl([{ type: `review.${a.outcome}`, subject: a.subject }]); return ok([`${a.outcome} ${a.subject} (a note in the cockpit; the gate is unchanged)`]);
+      }
+      case "human.bind": {
+        const lens = this.last.proj.lenses.find((l) => l.name === a.capability); if (!lens) return fail("BAD_REF", `no capability ${a.capability}: capabilities are lenses`, [{ path: "capability", message: this.last.proj.lenses.map((l) => l.name).join(", ") }]);
+        if (a.implementation && !lens.executesWith.includes(a.implementation)) return fail("SCHEMA", `${a.implementation} is not a candidate for ${lens.name}; its executes_with is ${lens.executesWith.join(", ") || "empty"}`);
+        if (a.executor && !this.control.executor(a.executor)) return fail("BAD_REF", `no executor ${a.executor}; known: ${this.control.executors().map((e) => e.id).join(", ")}`);
+        this.control.bind(a.capability, { implementation: a.implementation, executor: a.executor }, "owner");
+        this.afterControl([{ type: "binding.set", subject: `lens:${a.capability}`, data: { implementation: a.implementation, executor: a.executor } }]); return ok([`bound ${a.capability}`]);
+      }
+      case "human.contract": {
+        if (!workflowOf(this.last.proj).stages.some((x) => x.id === a.stage)) return fail("BAD_REF", `no stage ${a.stage}`);
+        if (a.executor && !this.control.executor(a.executor)) return fail("BAD_REF", `no executor ${a.executor}`);
+        const cur = this.control.contract(a.stage);
+        const invariants = a.addInvariant ? [...(cur?.invariants ?? []), a.addInvariant].slice(0, 8) : a.invariants;
+        this.control.setContract(a.stage, { budget: a.budget ? { ...(cur?.budget ?? {}), ...a.budget } : undefined, invariants, executor: a.executor });
+        this.afterControl([{ type: "contract.set", subject: `stage:${a.stage}` }]); return ok([`declared the ${a.stage} contract`]);
+      }
+      case "human.executor": {
+        if (["current-agent", "owner"].includes(a.id)) return fail("SCHEMA", `${a.id} is built in`);
+        this.control.putExecutor(a); this.afterControl([{ type: "executor.set", subject: a.id }]); return ok([`executor ${a.id} saved`]);
+      }
+    }
+  }
+
+  // Natural language for the work. Known phrases compile to existing views; an imperative becomes a stored request; the rest is refused honestly.
+  terminal(text: string): ActionResult {
+    const proj = this.last.proj; const c = this.runCase(); const prim = c.ok ? c.field.find((m) => m.primary) : null;
+    const plan: Plan = interpret(text, { proj, requests: this.control.requests({ run: this.runKey() }), primary: prim ? { label: prim.label, authority: prim.authority } : null });
+    const done = (say: string, extra: Record<string, any> = {}): ActionResult => {
+      this.logTerminal({ text, kind: plan.kind, say, ...(extra.id ? { id: extra.id } : {}) }); this.emit({ t: "work", work: this.workState() });
+      return { ok: true, rev: this.ws.rev, effects: [say], terminal: { kind: plan.kind, say, ...extra } } as ActionResult;
+    };
+    const failed = (r: ActionResult) => { const msg = (r as any).message ?? "refused"; this.logTerminal({ text, kind: "refused", say: msg }); this.emit({ t: "work", work: this.workState() }); return r; };
+    switch (plan.kind) {
+      case "unrecognized": return done(plan.say);
+      case "answer": case "view": {
+        const o: any = plan.open; let r: ActionResult = { ok: true, rev: this.ws.rev, effects: [] };
+        if (o && "surface" in o) {
+          const surface = ({ workbench: () => this.screen().surface, workflow: () => workflowSurface(), capabilities: () => capabilitiesSurface(o.capability), contract: () => contractSurface(o.stage), requests: () => requestsSurface(), review: () => reviewSurface() } as const)[o.surface as "workbench"]();
+          r = this.agent({ op: "surface.put", surface, place: { rel: "within", to: "active", focus: true } }); if (r.ok && o.surface === "workbench") this.syncWorkbench(true);
+        } else if (o) r = this.human({ op: "human.open", template: o.template, ref: o.ref, as: o.as });
+        return r.ok ? done(plan.say, { opened: o?.surface ?? o?.template ?? null }) : failed(r);
+      }
+      case "review": {
+        if (!/^R\d+$/.test(plan.subject) && !(parseRef(plan.subject)?.kind === "artifact" && this.refExists(plan.subject))) return failed(fail("BAD_REF", `${plan.subject.replace(/^artifact:/, "")} is not a work request or an artifact of this run; accept and reject apply to a request (accept R3) or an artifact`));
+        const r = this.controlOp({ op: "human.review", subject: plan.subject, outcome: plan.outcome, note: plan.note }); return r.ok ? done(plan.say) : failed(r); }
+      case "control": { const r = this.controlOp(plan.op as any); return r.ok ? done(plan.say) : failed(r); }
+      case "cancel": { const r = this.controlOp({ op: "human.cancel", request: plan.request }); return r.ok ? done(plan.say) : failed(r); }
+      case "request": {
+        const x = plan.request; const bad = x.refs.filter((r) => !this.refExists(r)); const refs = x.refs.filter((r) => !bad.includes(r));
+        const row = this.control.submit({ run: this.runKey(), text: x.text, kind: x.kind, capability: x.capability, refs, facts: { ...x.facts, basis: x.basis }, actor: "owner" });
+        this.afterControl([{ type: "work.requested", subject: row.id, data: { kind: row.kind, capability: row.capability, text: row.text.slice(0, 120) } }]);
+        return done(`${row.id}: ${plan.say}`, { id: row.id, status: row.status, capability: row.capability, basis: x.basis });
+      }
+    }
   }
 
   // ---- reads ------------------------------------------------------------------------------------------------------
@@ -192,7 +335,7 @@ export class Cockpit {
   detail(ref: string) { return detail(this.env, ref); }
   search(q: string) { return search(this.env, q); }
   file(rel: string) { const abs = safeRunFile(this.run.dir, rel); return abs && fs.statSync(abs).isFile() ? abs : null; }
-  snapshot() { return { ws: this.fullWs(), tools: this.tools(), rail: this.rail(), hints: hints(this.last.proj), context: this.context(), events: (this.db.query("SELECT seq, ts, channel, type, subject, data FROM events ORDER BY seq DESC LIMIT 60").all() as any[]).reverse().map((e) => ({ ...e, data: JSON.parse(e.data) })) }; }
+  snapshot() { return { ws: this.fullWs(), work: this.workState(), tools: this.tools(), rail: this.rail(), hints: hints(this.last.proj), context: this.context(), events: (this.db.query("SELECT seq, ts, channel, type, subject, data FROM events ORDER BY seq DESC LIMIT 60").all() as any[]).reverse().map((e) => ({ ...e, data: JSON.parse(e.data) })) }; }
 
   // ---- tools: the same implementation behind CLI, loopback MCP, and WebMCP ------------------------------------------
   tool(name: string, input: unknown): { ok: true; result: any } | ActionResult {
@@ -201,6 +344,7 @@ export class Cockpit {
     const p = def.input.safeParse(input ?? {});
     if (!p.success) return fail("SCHEMA", `${name}: input does not match`, issuesOf(p.error));
     const a: any = p.data;
+    this.noteAgent();
     const apply = (action: unknown) => this.agent(action);
     switch (name) {
       case "get_status": return { ok: true, result: this.rail() };
@@ -220,6 +364,8 @@ export class Cockpit {
       case "arrange": return apply(a.action);
       case "annotate": return apply({ op: "note.add", target: a.target, text: a.text, tone: a.tone });
       case "case_get": return this.caseTool(a);
+      case "work_get": return this.workTool(a);
+      case "work_update": return this.workUpdate(a);
       case "world_why": case "world_impact": case "world_diff": case "world_timeline": case "world_counterfactual": case "world_reach": case "world_replay":
         return this.worldTool(name, a);
       case "read_responses": {
@@ -228,6 +374,31 @@ export class Cockpit {
       }
     }
     return fail("UNKNOWN_OP", name);
+  }
+
+
+  // ---- the Workbench for the agent: reads, and the one write it has: moving a request it holds ------------------------------------------------
+  private workTool(a: any): { ok: true; result: any } | ActionResult {
+    const E = { db: this.db, proj: this.last.proj, runDir: this.run.dir, reach: this.reachEnv, avail: this.env.avail, agentSeen: this.env.agentSeen, asks: this.env.asks };
+    const rows = (name: string, q: Record<string, string> = {}) => { const r = workRows(E, name, q); return "error" in r ? null : r.rows.map(({ _ref, ...x }: any) => x); };
+    let result: any; let surface: any = null;
+    switch (a.part) {
+      case "requests": { const one = a.id ? this.control.request(a.id) : null; if (a.id && !one) return fail("NOT_FOUND", `no work request ${a.id}`); result = a.id ? { request: { ...one, next: requestNext(one!, this.env.agentSeen) } } : { requests: this.workState().requests }; break; }
+      case "workflow": { const w = workflowOf(this.last.proj); result = { id: w.id, current: w.current, stages: w.stages.map((s) => ({ id: s.id, title: s.title, status: s.status, actor: s.actor, why: s.why })) }; surface = workflowSurface(); break; }
+      case "capabilities": { const caps = capsOf(E); result = { note: "capability = the lens; implementation = a candidate from executes_with; executor = who runs it. found means seen here; unknown is not usable.", capabilities: caps.filter((c) => !a.capability || c.id === a.capability).map((c) => ({ id: c.id, title: c.title, category: c.category, status: c.status, needs: c.needs, implementation: c.binding.implementation, basis: c.binding.basis, candidates: c.implementations, executor: c.binding.executor, observes: c.observes, warnings: c.warnings })) }; surface = capabilitiesSurface(a.capability); break; }
+      case "contract": { const r = workRows(E, "contract", { stage: a.stage ?? "current" }); if ("error" in r) return fail("BAD_REF", r.error); result = { stage: a.stage ?? "current", contract: r.rows }; surface = contractSurface(a.stage ?? "current"); break; }
+      case "ledger": { result = { note: "unknown stays unknown: a check the run does not record is never shown as passed", ledger: rows("ledger") }; surface = reviewSurface(); break; }
+      case "screen": { const sc = this.screen(); result = { mode: sc.mode, why: sc.why, blocks: sc.surface.blocks.map((b: any) => `${b.type}:${b.id}${b.source ? ` <- ${b.source}` : ""}`) }; surface = sc.surface; break; }
+      default: { const w = workflowOf(this.last.proj); const st = this.workState(); result = { mode: st.mode, why: st.why, stage: w.current, workflow: w.stages.filter((s) => s.status !== "pending").map((s) => `${s.id} ${s.status}: ${s.why}`), pending: this.control.pending(this.runKey()).map((r) => ({ id: r.id, status: r.status, text: r.text, capability: r.capability, refs: r.refs, next: requestNext(r, this.env.agentSeen) })), note: "a request is queued until you acknowledge it with work_update; the owner accepts or rejects finished work" }; }
+    }
+    const shown = a.show && surface ? this.agent({ op: "surface.put", surface }) : null;
+    return { ok: true, result: { ...result, ...(shown ? { shown: shown.ok ? surface.id : { refused: (shown as any).code } } : {}) } };
+  }
+  private workUpdate(a: { id: string; status: RequestStatus; note?: string; refs?: string[] }): { ok: true; result: any } | ActionResult {
+    const bad = (a.refs ?? []).filter((r) => !this.refExists(r)); if (bad.length) return fail("BAD_REF", `${bad.join(", ")} do not exist in this run`);
+    const r = this.control.move(a.id, a.status, "agent", { note: a.note, refs: a.refs, actor: "agent" }); if (r.ok === false) return fail(r.code, r.message);
+    this.afterControl([{ type: `work.${a.status}`, subject: a.id, data: { note: a.note, refs: a.refs } }]);
+    return { ok: true, result: { id: a.id, status: r.row.status, next: requestNext(r.row, this.env.agentSeen), note: r.row.status === "ready_for_review" ? "the owner reviews it; you cannot accept your own work" : undefined } };
   }
 
   // ---- the Case: a derived view. Reading it runs nothing; `show` composes it as an ordinary surface under the agent role. --------------------------
@@ -262,7 +433,8 @@ export class Cockpit {
 
   // ---- the world debugger: reads over the run files; `show` composes the answer as a surface through the ordinary agent path -------------
   worldEnv(): K.WorldEnv { return { proj: this.last.proj, runDir: this.run.dir, reach: this.reachEnv, observe: (d) => observe(this.env, d) }; }
-  reachEnv: import("./reach").ReachEnv | undefined;
+  get reachEnv() { return this.env.reach; }
+  set reachEnv(v: import("./reach").ReachEnv | undefined) { this.env.reach = v; }
   private worldTool(name: string, a: any): { ok: true; result: any } | ActionResult {
     const W = this.worldEnv(); const BAD = (m: string) => fail(/does not exist|not a ref|candidate is a proposal|give need/.test(m) ? "BAD_REF" : "BAD_SOURCE", m);
     const showIt = (s: any) => (a.show && s ? this.agent({ op: "surface.put", surface: s }) : null);
@@ -291,7 +463,7 @@ export class Cockpit {
 }
 
 const slug = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 30) || "q";
-const summarize = (raw: any) => ({ summary: ({ "human.answer": `answered ${raw.ask} (${raw.outcome})`, "human.rule": `${raw.ruling} ${raw.ref}`, "human.confirm": `${raw.outcome} preflight ${raw.surface}/${raw.block}`, "human.annotate": `annotated ${raw.target}`, "human.close": `closed ${raw.id}`, "human.pin": `${raw.pinned ? "pinned" : "unpinned"} ${raw.id}` } as any)[raw.op] ?? raw.op });
+const summarize = (raw: any) => ({ summary: ({ "human.answer": `answered ${raw.ask} (${raw.outcome})`, "human.rule": `${raw.ruling} ${raw.ref}`, "human.confirm": `${raw.outcome} preflight ${raw.surface}/${raw.block}`, "human.annotate": `annotated ${raw.target}`, "human.close": `closed ${raw.id}`, "human.terminal": `terminal: ${String(raw.text).slice(0, 60)}`, "human.review": `${raw.outcome} ${raw.subject}`, "human.cancel": `cancelled ${raw.request}`, "human.pin": `${raw.pinned ? "pinned" : "unpinned"} ${raw.id}` } as any)[raw.op] ?? raw.op });
 
 function compactRow(what: string, r: any) {
   switch (what) {

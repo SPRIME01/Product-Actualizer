@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useStore, send, getState, toast } from "./store";
 import { Workspace } from "./Workspace";
 import { openRef } from "./ui";
+import { WorkTerminal } from "./WorkTerminal";
 
 type Rail = any;
 
@@ -86,6 +87,8 @@ function Palette() {
   }, []);
   const items = useMemo(() => {
     const T: [string, string, () => void][] = [
+      ["Workbench", "the view that fits the work now", () => open("workbench")], ["Workflow", "stages and lens dependencies", () => open("workflow")], ["Capabilities", "capability, implementation, executor", () => open("capabilities")],
+      ["Task contract", "context, goal, authority, budget, acceptance", () => open("contract")], ["Work requests", "what you asked for and where it stands", () => open("requests")], ["Review", "evidence ledger and work to accept", () => open("review")],
       ["Run trace", "nested activity with durations", () => open("trace")], ["Open proposals", "rule on lens findings", () => open("proposals")], ["Claims ledger", "grades and sources", () => open("claims")],
       ["Contradictions", "claims the evidence disagrees on", () => open("contradictions")], ["Unknowns", "what the evidence does not say", () => open("unknowns")], ["Why stale", "decisions → artifacts", () => open("staleness")],
       ["Lens map", "which lenses ran", () => open("lenses")], ["Release gate", "blockers and verdict", () => open("gate")], ["Your responses", "what you told the process", () => open("inbox")], ["Events", "process event stream", () => open("events")],
@@ -131,6 +134,7 @@ export function App() {
         {!has ? <EmptyState /> : null}
         <Minimized />
       </main>
+      <WorkTerminal />
       <Palette />
       {t ? <div className={`toast ${t.bad ? "bad" : ""}`} role="status">{t.text}</div> : null}
     </div>
