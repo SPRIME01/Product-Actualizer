@@ -25,6 +25,7 @@ Public-facing copy may only use `OBSERVED` or `VERIFIED` claims. Gaps are writte
 | `product-model/TEMPLATE.md` | a blank model instance |
 | `skills/actualize-product/` | the router (always loaded): classifies evidence, builds the model, picks lenses, reconciles, rebuilds stale work, verifies |
 | `skills/<lens>/SKILL.md` | one lens each, 60-100 lines, with `references/` for detail loaded only on demand |
+| `skills/reconstruct-experience/` | conditional evidence tool with the owner's complete v0.2 experience-reconstruction method, called by `recon-software` when a reference experience is demonstrated (not a lens) |
 | `PROVENANCE.md` | which donor repositories informed which lens, and under what license |
 | `tests/check.py` | verifies the system's own structure: size limits, lens structure, routing scenarios, both walkthrough models against the schema, artifact staleness, grade discipline, the hardware evidence package, and re-execution of the walkthroughs' evidence with negative controls |
 | `tests/fixture/`, `tests/walkthrough/` | a fake incomplete software-and-sensor product and a hand-run transcript through the whole system |
@@ -40,7 +41,7 @@ Public-facing copy may only use `OBSERVED` or `VERIFIED` claims. Gaps are writte
 
 | lens | owns |
 |---|---|
-| `recon-software` | what a codebase actually does, as opposed to what its docs say |
+| `recon-software` | what source code or a demonstrated software experience establishes, without confusing a visible UI with verified behavior |
 | `recon-physical` | what physical objects, hardware (exact boards, revisions, schematics, BOMs, datasheets), CAD, images, documents, transcripts, and media show and measure |
 | `electronics` | the electrical implementation: domains, power, protection, buses, sensing, bench verification |
 | `embedded-systems` | the hardware/software boundary on MCU and Linux SBC targets: identity, boot, flash, recovery, drivers, services, updates |
@@ -66,14 +67,14 @@ serve as its execution layer when installed; the lens supplies the judgment, not
 ## How a run works
 
 1. Classify the evidence and state the goal and its launch bar.
-2. Build the model from the recon lenses' proposals; gaps become unknowns.
+2. For a demonstrated reference experience, `recon-software` invokes `reconstruct-experience` before target implementation/design; otherwise it uses source-code recon. Build the model from recon proposals; gaps become unknowns.
 3. Select only the lenses the evidence and goal require, ordered by their `needs`; run independent ones in parallel.
 4. Reconcile `proposals.md`: the router, the only editor of the model, accepts or rejects each proposal with a logged reason.
 5. Every artifact records `built_from: model@N`, the fields it `reads`, and the claim ids it `cites`; when a later decision
    touches any of those, the artifact is stale and its lens re-runs.
 6. Run `release-readiness`; stop at a verdict (go, no-go, defer, go-with-exception) with named blockers.
 
-Only the router and the schema are always loaded. A lens body is read only when that lens runs.
+Only the router and the schema are always loaded. A lens body is read only when that lens runs. The full reconstruction methodology is loaded only on the demonstrated-experience path. See [the walkthrough intake guide](docs/workflows/reconstruct-experience.md).
 
 ## Using it
 

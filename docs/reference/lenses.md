@@ -1,6 +1,6 @@
 # Reference: lenses
 
-The 17 lenses plus two non-lens skills. `actualize lenses` prints the same `name`, `description`, `reads`, `needs`,
+The 17 lenses plus three non-lens skills. `actualize lenses` prints the same `name`, `description`, `reads`, `needs`,
 and `executes_with` values from the front matter **without loading any lens body** — that separation is the
 progressive-disclosure mechanism, explained in
 [why progressive disclosure](../explanation/why-progressive-disclosure.md).
@@ -33,7 +33,7 @@ copied verbatim and none of it is a dependency.
 
 | lens | owns | `needs` | `executes_with` |
 |---|---|---|---|
-| `recon-software` | what a codebase actually does, versus what its docs say | — | — |
+| `recon-software` | what source code or a demonstrated application establishes | — | reconstruct-experience (conditional) |
 | `recon-physical` | what objects, hardware (exact boards, revisions, schematics, BOMs, datasheets), CAD, images, documents, transcripts and media show and measure | — | ee-datasheet-master, schematic-analyzer, xiao-assistant |
 | `electronics` | the electrical implementation: domains, power paths and budgets, protection, buses, sensing, bench verification | recon-physical | kicad-design, schematic-analyzer, ee-datasheet-master |
 | `embedded-systems` | the hardware/software boundary on MCU and Linux SBC targets: identity, boot, flash, recovery, pins, drivers, services, updates | electronics | esp32-development, xiao-assistant |
@@ -79,12 +79,13 @@ loads only on evidence — see
 `brand` gates the entire creative branch. `audio-sound` uniquely depends on `motion-editorial`.
 `fidelity-qa` and `provenance-licensing` are independent roots: they need the model but no other lens's output.
 
-## The two non-lens skills
+## The three non-lens skills
 
 | skill | kind | role |
 |---|---|---|
 | `actualize-product` | router | the orchestrator and the **only** editor of `product-model.md`; 22 lines; six steps |
 | `cockpit` | `kind: tool` | teaches an agent to drive the cockpit: compose surfaces, route inbox entries. Not a lens |
+| `reconstruct-experience` | `kind: tool` | uses the owner's full v0.2 behavior/affordance method during an active `recon-software` run with demonstrated reference evidence; see [workflow](../workflows/reconstruct-experience.md) |
 
 ## Adding a lens
 

@@ -120,3 +120,7 @@ DiUS; Meng To; Bang Tutorial; Siqi Chen (2025); Cofoundy SAC; Corey Haines (2025
 blender-industrial-kit contributors; kajisho5; Magnus Hedemark; RampStack Co.; Wondel.ai sp. z o.o. (2025); Seeed Studio (2026); lhbsaa (2026); Tal Raviv (2026) — all MIT.
 Alex Greenshpun (anidoodle), img2threejs authors, karekin/video-shotcraft authors, HeyGen (hyperframes), robotics-agent-skills contributors (2026), adityakamath (ros2-skill) — Apache-2.0
 (no NOTICE text applies to restated ideas; full texts are in the donors' repositories). therebelrobot/microcontroller-base is dedicated to the public domain (Unlicense). fl4p/kicad-design has no license file, so its ideas are recorded as read and restated in this project's words with no text taken.
+
+## Owner-supplied experience reconstruction method
+
+`skills/reconstruct-experience/method-v0.2.md` is the complete v0.2 `reconstruct-experience` skill supplied by the project owner on 2026-10-09. It is preserved verbatim as a versioned methodology, not extracted from REA or another donor, and is invoked conditionally via `recon-software`. Product Actualizer adds a small routing wrapper and evidence-to-model handoff rules; the original method is not rewritten or treated as a second source of product truth.

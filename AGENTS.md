@@ -4,6 +4,7 @@ Agent skills that move an incomplete product toward a coherent launch through on
 The skills are plain Markdown, YAML, and JSON. The hooks and the cockpit run on Bun >= 1.4 (no Node).
 
 - Entry point: `skills/actualize-product/SKILL.md`. Always loaded with it: `product-model/SCHEMA.md`.
+- For a demonstrated reference application (screenshots, transcript, video, live UI), select `recon-software` and run `skills/reconstruct-experience/SKILL.md` within that lens, before target design/implementation. The owner's full v0.2 method is retained unmodified in `skills/reconstruct-experience/method-v0.2.md`. Write evidence under `evidence/recon-software/reconstruct-experience/`; only the router reconciles proposals. Skip this path for source-only runs.
 - Lenses are `skills/<name>/SKILL.md` (60-100 lines; sections: Reads from the model, Distinctions, Failure modes, Check, Writes to proposals).
   Longer detail goes in that skill's `references/`, loaded only when the lens says so.
 - Lens frontmatter: `reads` (model fields it may use), `needs` (lenses whose output must exist first), `executes_with` (existing skills used as the execution layer when installed).

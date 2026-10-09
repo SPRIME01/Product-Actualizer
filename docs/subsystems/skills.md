@@ -20,7 +20,7 @@ The normative core of the product. Everything else in the repo is machinery that
 
 - Writing code, running tools, or rendering. A lens names what executes; `executes_with` is the execution layer *when installed on the agent host* (`SKILL.md:19`). An empty `executes_with` means the lens does its work directly.
 - Owning state. Nothing under `skills/` holds runtime state; the run directory `actualize/` is authoritative (`AGENTS.md:13`).
-- Being a UI. `skills/cockpit/` is `kind: tool`, so `check.py` skips the lens rules for it and applies only three literal string checks (`tests/check.py:57-61`, `tests/check.py:597-608`).
+- Being a UI. `skills/cockpit/` is `kind: tool`, so `check.py` skips the lens rules for it and applies only the tool-skill line budget. `skills/reconstruct-experience/` is also `kind: tool`: its original v0.2 method is invoked from an active `recon-software` lens when demonstration evidence exists, not selected as a separate lens.
 - Depending on the third-party skills it names. `ffmpeg`, `hallmark`, `impeccable`, `blender`, `threejs-skills`, `kicad-design`, `ros2-skill`, `marketingskills`, `humanizer`, `hyperframes`, `bang-motion`, `img2three`, `anidoodle`, `playwright-cli`, `agent-browser`, `ee-datasheet-master`, `schematic-analyzer`, `xiao-assistant`, `esp32-development` are not in this repo. Donor material is restated in this project's own words and no donor is a dependency (`PROVENANCE.md:1-5`).
 
 ## Position in the system
@@ -87,7 +87,7 @@ Select (frontmatter only) → load the body → write evidence → write proposa
 - **A new lens.** Create `skills/<name>/SKILL.md` with frontmatter `name` (== directory), `description`, `reads`, `needs`, `executes_with` and the five sections, 60–100 lines, `## Check` numbered. `reads` must use the ten schema field keys; `needs` must name existing lenses and stay acyclic. Then run `python3 tests/check.py`: it prints the lens count and validates both walkthroughs, including that every lens appears in each walkthrough's selection decision (`check.py:485-497`). A public-facing artifact stamps `public: true`.
 - **Split a lens.** Move detail into `skills/<name>/references/<file>.md`, link it by exact filename from the lens body, keep it under 150 lines (`check.py:200-215`). `robotics/references/ros2.md` is the worked example of a conditional reference.
 - **A new evidence kind.** Update the router's step-1 kind list (`SKILL.md:9`) and any lens that claims it; the physical branch additionally gates on evidence through `SCENARIOS` (`check.py:186-196`).
-- **A new tool skill.** Add `kind: tool` frontmatter so it stays out of the lens set (`check.py:57-61`).
+- **A new tool skill.** Add `kind: tool` frontmatter so it stays out of the lens set (`check.py:57-61`). A lens with `executes_with` calls such a tool in its authorized write scope; e.g. `recon-software` conditionally calls `reconstruct-experience` and stores its dossier under `evidence/recon-software/reconstruct-experience/`. Tool skills have no model-write authority.
 ### Source trail
 
 - Router: `skills/actualize-product/SKILL.md:1-22` (steps `9-14`, rules `16-22`).

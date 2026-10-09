@@ -53,6 +53,11 @@ export function lensOfPath(abs, env = process.env) {
   if (rel.startsWith("..") || path.isAbsolute(rel)) return null;
   const parts = rel.split(path.sep);
   if (parts[0] === ROUTER) return null;
-  if (parts[1] === "SKILL.md" || parts[1] === "references") return parts[0];
+  // Tool skills are execution helpers, not selectable lenses; they may be loaded inside an active lens.
+  // The strict hook must not forbid reading them just because they reside under skills/.
+  if (parts[1] === "SKILL.md" || parts[1] === "references") {
+    try { if (frontmatter(fs.readFileSync(path.join(dir, parts[0], "SKILL.md"), "utf8")).fm.kind === "tool") return null; } catch { /* unknown skill is handled elsewhere */ }
+    return parts[0];
+  }
   return null;
 }
