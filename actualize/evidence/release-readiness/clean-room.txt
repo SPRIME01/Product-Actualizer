@@ -1,0 +1,18 @@
+copy of the working tree (uncommitted changes included), without node_modules, renders and website/public
+
+71 packages installed [1182.00ms]
+bun install exit=0
+$ tsc -p tsconfig.json
+typecheck exit=0
+
+OK
+check.py exit=0
+
+ 315 pass
+ 0 fail
+ 2342 expect() calls
+Ran 315 tests across 17 files. [38.21s]
+bun test exit=0
+website built: 12 entries in website/public; 47 claims cited; model@10; film absent
+site build exit=0
+elapsed 45s

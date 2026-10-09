@@ -10,7 +10,7 @@ Everything here was produced by a governed run on this repository (`actualize/`)
 | Website source and build | `website/` (`bun website/build.mjs`), output `website/public/` | final, verified (`bun website/qa.mjs`) |
 | Website copy (every string on the page) | `actualize/artifacts/marketing/website-copy.md` | final |
 | Brand system: tokens, fonts, logos, icons, social cards, guide | `brand/` (`bun brand/build.mjs`), `brand/README.md` | final |
-| Explainer film, captions, transcript, poster, narration, source | `media/explainer/` (`media/explainer/README.md`) | final picture; voice pending (below) |
+| Film 3 (current): captions, transcript, poster, narration, score, source | `media/explainer-3/` (`media/explainer-3/README.md`) | final picture and score; voice pending (below). Films 1 and 2 (`media/explainer/`, `media/explainer-2/`) are superseded and kept |
 | LinkedIn, X or Bluesky, Show HN, r/ClaudeCode, announcement | `actualize/artifacts/marketing/launch-posts.md` | final |
 | One-page brief, three-minute demo narrative, use cases | `actualize/artifacts/marketing/sales-brief.md` | final |
 | Alternatives and battlecard (internal; do not publish) | `actualize/artifacts/marketing/alternatives.md` | final |

@@ -95,3 +95,27 @@ Added by the self-actualization run (2026-10-03, `docs/validation/self-actualiza
 - **Consequence:** whoever holds the owner page can accept; "the agent cannot accept its own work" holds only while the agent has no route to that page.
 - **Why not now:** identity beyond a local token is out of scope for a local tool.
 - **Reachable when:** the cockpit is shared between people, or a delegated acceptance needs to be recorded as such.
+
+## D14: three films copy the same tools
+
+- **Observed:** `media/explainer/`, `media/explainer-2/` and `media/explainer-3/` each carry their own copy of `tts.mjs`, `tts-lines.mjs`, `timeline.mjs`, `finish.mjs` and `render.mjs`, edited by `sed` for paths. A fix to one (for example, the duplicate-pause guard added in film 3's cue timing) does not reach the others.
+- **Evidence:** `diff media/explainer-2/tools/timeline.mjs media/explainer-3/tools/timeline.mjs`.
+- **Consequence:** three places to fix the same defect; film 1 and film 2 are superseded, so the drift costs little today.
+- **Why not now:** the films are validation artifacts of one run, and extracting a shared film toolkit is a product decision (is this part of the product or a fixture?).
+- **Reachable when:** a fourth film or a second product needs the tools.
+
+## D15: the site's motion and the film's timing have no visual regression test
+
+- **Observed:** `website/qa.mjs` checks overflow, contrast, focus, reduced motion and the demos, and waits for the scroll animations to settle before measuring; nothing records what a reveal, the board or the closing mark look like at a given moment. The film's check is a layout overlap scan at three points per scene plus hashed frames.
+- **Evidence:** `website/qa.mjs` (`settle` step in `open`); `media/explainer-3/render.mjs --layout`.
+- **Consequence:** a timing regression in the board or the film would pass every automated check; only a person watching would notice.
+- **Why not now:** frame-by-frame golden images would need a tolerance policy for fonts and anti-aliasing, and the run has no human reviewer to bless goldens (U15).
+- **Reachable when:** someone reviews the film and the site once and the result is kept as goldens.
+
+## D16: public comparison rests on an editorial column
+
+- **Observed:** the site and film 3 play four questions with "the usual answer" as a joke. That column is editorial, not a claim, and the page says so in a note; but the validator cannot tell a joke from a statement, so nothing prevents a later edit from turning it into an unsupported claim about a product.
+- **Evidence:** `actualize/artifacts/marketing/website-copy.md` keys `gap.usual.*`, `gap.note`.
+- **Consequence:** the copy rule (cite only OBSERVED or VERIFIED claims) has a hole exactly where the voice is most tempting.
+- **Why not now:** a "premise" marker in the copy format is a schema change and a decision about what the validator is for.
+- **Reachable when:** the copy format next changes; strings marked as premise could be exempt from citing but barred from naming a product.

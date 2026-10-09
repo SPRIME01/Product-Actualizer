@@ -26,14 +26,16 @@
   <div class="wrap bar">
     <a class="brand" href="#top" aria-label="Product Actualizer, start of page">{{lockup}}</a>
     <nav aria-label="Sections">
-      <a href="#mechanism">Mechanism</a><a href="#any">Any product</a><a href="#lab">Lab</a><a href="#order">Order of work</a><a href="#authority">Authority</a><a href="#proof">Proof</a><a href="#faq">Questions</a>
+      <a href="#gap">The gap</a><a href="#mechanism">Mechanism</a><a href="#any">Any product</a><a href="#lab">Lab</a><a href="#order">Order of work</a><a href="#authority">Authority</a><a href="#proof">Proof</a><a href="#faq">Questions</a>
     </nav>
     <button class="theme" type="button" id="theme" aria-label="Switch colour theme">Theme</button>
   </div>
+  <div class="progress" aria-hidden="true"><i></i></div>
 </header>
 
 <main id="main">
 <section class="hero wrap" id="top">
+  <svg class="ghost" aria-hidden="true" focusable="false" viewBox="0 0 64 64"><path class="gm-dashed" d="M9 55V9H55" fill="none" stroke-dasharray="14 6"/><path d="M55 9V55H9" fill="none"/><rect class="gm-block" x="29" y="29" width="20" height="20"/></svg>
   <div class="hero-text">
     <p class="kicker mono">{{html:hero.kicker}}</p>
     <h1>{{html:hero.headline}}</h1>
@@ -51,6 +53,30 @@
     <p class="note">{{html:ledger.note}}</p>
     <noscript><p class="note">With JavaScript on, this panel runs the product's validator in your browser. Downgrading claim C1 to REPORTED makes it print: <code>public artifact cites C1 graded REPORTED; only OBSERVED or VERIFIED may be public</code></p></noscript>
   </div>
+</section>
+
+<section class="wrap block gap" id="gap" aria-labelledby="gap-title">
+  <h2 id="gap-title" class="label"><span class="mono">00</span> {{html:gap.title}}</h2>
+  <p class="lead">{{html:gap.lead}}</p>
+  <div class="board" aria-hidden="true">
+    <div class="bcol"><b>{{html:gap.board.todo}}</b></div>
+    <div class="bcol"><b>doing</b></div>
+    <div class="bcol done"><b>{{html:gap.board.done}}</b>
+      <span class="bcard" style="--i:0">Landing page<em>✓</em></span><span class="bcard" style="--i:1">Brand<em>✓</em></span><span class="bcard" style="--i:2">Firmware<em>✓</em></span><span class="bcard" style="--i:3">Launch<em>✓</em></span>
+    </div>
+    <span class="agent">agent</span>
+    <p class="cust">{{html:gap.board.cust}}: <b>none</b></p>
+  </div>
+  <div class="tablewrap"><table class="tbl cmp">
+    <thead><tr><th scope="col">{{html:gap.col.q}}</th><th scope="col">{{html:gap.col.usual}}</th><th scope="col" class="ours">{{html:gap.col.ours}}</th></tr></thead>
+    <tbody>
+      <tr><th scope="row">{{html:gap.q.1}}</th><td class="usual" data-l="usual"><s>{{html:gap.usual.1}}</s></td><td class="ours" data-l="here">{{html:gap.ours.1}}</td></tr>
+      <tr><th scope="row">{{html:gap.q.2}}</th><td class="usual" data-l="usual"><s>{{html:gap.usual.2}}</s></td><td class="ours" data-l="here">{{html:gap.ours.2}}</td></tr>
+      <tr><th scope="row">{{html:gap.q.3}}</th><td class="usual" data-l="usual"><s>{{html:gap.usual.3}}</s></td><td class="ours" data-l="here">{{html:gap.ours.3}}</td></tr>
+      <tr><th scope="row">{{html:gap.q.4}}</th><td class="usual" data-l="usual"><s>{{html:gap.usual.4}}</s></td><td class="ours" data-l="here">{{html:gap.ours.4}}</td></tr>
+    </tbody>
+  </table></div>
+  <p class="fine">{{html:gap.note}}</p>
 </section>
 
 <section class="wrap block" id="film" aria-labelledby="film-title">

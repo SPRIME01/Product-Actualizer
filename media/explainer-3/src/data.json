@@ -1,0 +1,36 @@
+{
+ "modelVersion": 10,
+ "claimCount": 82,
+ "lensCount": 17,
+ "lenses": [
+  "audio-sound",
+  "brand",
+  "direction",
+  "electronics",
+  "embedded-systems",
+  "experience",
+  "fidelity-qa",
+  "illustration",
+  "legacy-modernization",
+  "marketing",
+  "motion-editorial",
+  "product-visualization",
+  "provenance-licensing",
+  "recon-physical",
+  "recon-software",
+  "release-readiness",
+  "robotics"
+ ],
+ "grades": [
+  "OBSERVED",
+  "VERIFIED",
+  "REPORTED",
+  "INFERRED",
+  "PROPOSED",
+  "UNKNOWN",
+  "CONTRADICTED"
+ ],
+ "authorityMessage": "AUTHORITY_HUMAN: accepted belongs to the owner: an agent can report progress and mark work ready_for_review, but cannot accept, reject, or cancel it",
+ "tagline": "Finish the product. Show the evidence.",
+ "cta": "Read the run: github.com/SPRIME01/Product-Actualizer, actualize/"
+}

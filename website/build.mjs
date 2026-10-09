@@ -83,13 +83,13 @@ const walk = [...gateText.matchAll(/^\| (PHY\d+) \| ([^|]+) \| [^|]+ \| ([^|]+) 
 if (!walk.length) die("the hardware gate walk was not found");
 const verdict = parseStamp(gateText).head.verdict;
 const moteWalk = `<div class="tablewrap"><table class="claims walk"><caption>Physical evidence walk from the hardware worked example's release gate (Mote, a fictional desk robot)</caption><thead><tr><th scope="col">id</th><th scope="col">claim</th><th scope="col">evidence found</th><th scope="col">exercised on the unit</th><th scope="col">result</th></tr></thead><tbody>${walk.map((w) => `<tr><th scope="row">${w.id}</th><td>${esc(w.claim)}</td><td>${esc(w.kind)}</td><td>${esc(w.on)}</td><td><span class="g ${/fail/i.test(w.res) ? "g-contradicted" : "g-unknown"}">${esc(w.res)}</span></td></tr>`).join("")}</tbody></table></div><p class="verdict-line">Verdict: <span class="g g-contradicted">${esc(verdict)}</span></p>`;
-const hasFilm = fs.existsSync(R("media/explainer-2/renders/explainer.mp4"));
-if (hasFilm) { cp(R("media/explainer-2/renders/explainer.mp4"), "media/explainer.mp4"); cp(R("media/explainer-2/captions/explainer.en.vtt"), "media/explainer.en.vtt"); cp(R("media/explainer-2/renders/poster.jpg"), "media/poster.jpg"); if (fs.existsSync(R("media/explainer-2/script/transcript.md"))) cp(R("media/explainer-2/script/transcript.md"), "media/transcript.md"); }
+const hasFilm = fs.existsSync(R("media/explainer-3/renders/explainer.mp4"));
+if (hasFilm) { cp(R("media/explainer-3/renders/explainer.mp4"), "media/explainer.mp4"); cp(R("media/explainer-3/captions/explainer.en.vtt"), "media/explainer.en.vtt"); cp(R("media/explainer-3/renders/poster.jpg"), "media/poster.jpg"); if (fs.existsSync(R("media/explainer-3/script/transcript.md"))) cp(R("media/explainer-3/script/transcript.md"), "media/transcript.md"); }
 const figs = fs.existsSync(R("website/src/figures.json")) ? JSON.parse(fs.readFileSync(R("website/src/figures.json"), "utf8")) : [];
 for (const f of figs) cp(R(f.from), "img/" + path.basename(f.from));
 const figures = figs.map((f) => `<figure><img src="img/${path.basename(f.from)}" alt="${esc(f.alt)}" width="${f.w}" height="${f.h}" loading="lazy"><figcaption>${esc(f.caption)}${f.claims.map((c) => " " + chip(c)).join("")}</figcaption></figure>`).join("\n");
 const abs = (p) => (SITE_URL ? SITE_URL + "/" + p : p);
-let page = fs.readFileSync(R("website/src/index.html"), "utf8");
+let page = fs.readFileSync(R("website/src/index.html"), "utf8").replace("{{film}}", hasFilm ? fs.readFileSync(R("website/src/film.html"), "utf8") : '<p class="note">The film has not been rendered in this build.</p>');
 page = page.replace(/\{\{html:([\w.]+)\}\}/g, (_, k) => html(k)).replace(/\{\{text:([\w.]+)\}\}/g, (_, k) => plain(k));
 // ---------- the claims behind the page (after rendering, so every chip has been counted) ----------
 const urlRe = /(https?:\/\/[^\s;)]+)/g;
@@ -104,7 +104,6 @@ fs.writeFileSync(path.join(out, "data/provenance.json"), JSON.stringify(provenan
 
 
 page = page.replace("{{lens-groups}}", lensGroups).replace("{{mote-walk}}", moteWalk).replace("{{lockup}}", lockup).replace("{{claim-rows}}", claimRows).replace("{{figures}}", figures)
-  .replace("{{film}}", hasFilm ? fs.readFileSync(R("website/src/film.html"), "utf8") : '<p class="note">The film has not been rendered in this build.</p>')
   .replace(/\{\{abs:([\w./-]+)\}\}/g, (_, p) => abs(p)).replace("{{model-version}}", String(model.version));
 const missing = [...page.matchAll(/\{\{[^}]+\}\}/g)].map((m) => m[0]); if (missing.length) die("unfilled placeholders: " + missing.join(", "));
 { let n = 0; page = page.replace(/<span class="mono">\d\d<\/span>/g, () => `<span class="mono">${String(n++).padStart(2, "0")}</span>`); }

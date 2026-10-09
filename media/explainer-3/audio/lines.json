@@ -1,0 +1,103 @@
+{
+ "voice": "b347db033a6549378b48d00acb0d06cd",
+ "method": "one synthesis per line; durations measured with ffprobe after trimming edge silence",
+ "lines": [
+  {
+   "id": 1,
+   "text": "Your agent says it's done. So the board says it's done. The board has never met a customer.",
+   "file": "audio/lines/L01.mp3",
+   "start": 0,
+   "duration": 7.326,
+   "words": 18,
+   "breaks": [
+    2.179,
+    4.911
+   ]
+  },
+  {
+   "id": 2,
+   "text": "The tests pass, on the machine that wrote them. The demo is real, at eight times speed. The testimonial comes from a very satisfied placeholder.",
+   "file": "audio/lines/L02.mp3",
+   "start": 0,
+   "duration": 11.633,
+   "words": 25,
+   "breaks": [
+    3.495,
+    7.321
+   ]
+  },
+  {
+   "id": 3,
+   "text": "Making got fast. Believing did not. The gap between made and real has no owner, so it gets a launch week.",
+   "file": "audio/lines/L03.mp3",
+   "start": 0,
+   "duration": 9.137,
+   "words": 21,
+   "breaks": [
+    1.754,
+    3.551
+   ]
+  },
+  {
+   "id": 4,
+   "text": "A render has never failed a drop test.",
+   "file": "audio/lines/L04.mp3",
+   "start": 0,
+   "duration": 2.691,
+   "words": 8,
+   "breaks": []
+  },
+  {
+   "id": 5,
+   "text": "Everything is already conspiring to get you over the line: agents, tools, suppliers, testers. Product Actualizer pins the plot to one board. One model, every claim graded, every lens reading it.",
+   "file": "audio/lines/L05.mp3",
+   "start": 0,
+   "duration": 15.884,
+   "words": 31,
+   "breaks": [
+    7.909,
+    11.694
+   ]
+  },
+  {
+   "id": 6,
+   "text": "Says who? Trust me. On the real unit? On the render. Who decides it's done? Whatever did the work. Here the answers are a source, a gate, and you.",
+   "file": "audio/lines/L06.mp3",
+   "start": 0,
+   "duration": 12.799,
+   "words": 29,
+   "breaks": [
+    1.233,
+    1.233,
+    4.053,
+    4.053,
+    7.171,
+    8.921
+   ]
+  },
+  {
+   "id": 7,
+   "text": "Even the agent cannot accept its own work. It tried. The cockpit declined, in capital letters.",
+   "file": "audio/lines/L07.mp3",
+   "start": 0,
+   "duration": 8.473,
+   "words": 16,
+   "breaks": [
+    3.318,
+    4.928
+   ]
+  },
+  {
+   "id": 8,
+   "text": "Product Actualizer. Finish the product. Show the evidence.",
+   "file": "audio/lines/L08.mp3",
+   "start": 0,
+   "duration": 4.849,
+   "words": 8,
+   "breaks": [
+    1.87,
+    3.5
+   ]
+  }
+ ]
+}

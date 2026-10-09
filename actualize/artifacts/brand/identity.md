@@ -1,4 +1,4 @@
-built_from: model@9
+built_from: model@10
 reads: [purpose, actors, constraints, voice, positioning, claims, unknowns, decisions]
 cites: [C1, C2, C3, C4, C5, C6, C11, C12, C15, C17, C20, C23, C27, C28, C31, C34, C35, C39, C43, C44, C45, C55, C71, C72, C73]
 public: false
@@ -19,7 +19,7 @@ Internal and category descriptor: Product Actualizer Architect. Public brand: **
 ## Message hierarchy
 1. **Category:** Evidence-gated product completion for any product that is only partly real, software or hardware.
 2. **One line:** One graded model of what is true about your product, specialist work ordered against it, and a gate that can say no.
-3. **Headline:** Finish the product. Show the evidence.
+3. **Headline:** Finish the product. Show the evidence. **Pain-first opener (D19):** Your agent says it's done. So does the board. The board has never met a customer.
 4. **Supporting statement:** Agents and tools produce code, drawings, renders and copy quickly. Product Actualizer keeps the model they must answer to: every claim graded, every artifact citing it, and a gate that will not call the launch ready until the evidence is there. For a physical product the gate also refuses a claim that was never exercised on the real unit [C73].
 5. **Mechanism messages:**
    - **One ledger, seven grades.** Every claim about the product carries a grade and a source anyone can re-open [C2].
@@ -51,7 +51,19 @@ Primary: **Read the run that made this site** (the `actualize/` directory). Seco
 - **Long:** Product Actualizer is evidence-gated product completion for any product that is only partly real, software, hardware, or both. It keeps one Product Model in which every claim carries a grade and a source, runs specialist lenses (brand, experience, marketing, motion, QA and others) in dependency order, and lets only the owner accept the work. Artifacts record the model version they were built from and go stale when a claim they cite changes. A release gate re-checks what it can and can return no-go. It is a set of Markdown skills, a process engine, and an optional local cockpit [C1][C5][C6].
 
 ## Voice
-Quiet, dense, legible. Traits with limits: direct, not curt; exact, not pedantic; dry, never jokey. Uses: evidence, claim, grade, source, ledger, model, stale, gate, verdict, owner, executor, lens, re-open. Refuses: AI-powered, seamless, effortless, revolutionary, supercharge, 10x, magic, streamline, modern teams, unlock the power of, "trusted by", "just works"; and prove, guarantee, or autonomous about anything the product does not do. Legal and error copy state the fact first.
+Quiet, dense, legible, and dry enough to be funny about systems. Traits with limits: direct, not curt; incisive, not pedantic; witty about habits and systems (a board, a test run, a demo, a launch week), never about a person, a company or a named product, and one joke per beat. Uses: evidence, claim, grade, source, ledger, model, stale, gate, verdict, owner, executor, lens, re-open. Refuses: AI-powered, seamless, effortless, revolutionary, supercharge, 10x, magic, streamline, modern teams, unlock the power of, "trusted by", "just works"; and prove, guarantee, or autonomous about anything the product does not do. Legal and error copy state the fact first.
+
+**How it sells (D19).** Lead with the pain the reader already feels and let the absurdity of the current norm show before the product appears; mechanism and features come after the relief is wanted. Show before telling. Jargon is medicine in small doses: one load-bearing term at a time, introduced by what it does. The narrative: everything around the owner (agents, tools, suppliers, testers) is already conspiring to finish the product, and the cockpit is where that plot is laid out in the open.
+
+## The comparison we own
+Four questions every "done" should survive. The middle column is a joke about the habit, never about a person or product; the right column is what the repository does, each cited. No competitor is named and no superiority is claimed (C36).
+
+| question | the usual answer | here |
+|---|---|---|
+| Says who? | "Trust me." | a source you can re-open on every claim [C2] |
+| On the real unit? | "On the render." | a gate that refuses a hardware release until the claim has run on the unit [C73] |
+| What changed since? | "Slack, probably." | whatever cites a changed claim is marked stale [C4] |
+| Who decides it's done? | "Whatever did the work." | the owner; an agent that tries to accept gets AUTHORITY_HUMAN [C12] |
 
 ## Mark brief (for direction and illustration)
 A mark that holds at 16 px, one colour, and reversed on dark. It should come from the product's own artefacts: the version stamp `built_from: model@N`, or a claim row with its grade. No gradients, orbs, glow, or confetti (PRODUCT.md "Anti-references"). Architecture: wordmark plus a letterform-grade square mark; one name for everything, sub-products named by what they do.
@@ -68,3 +80,5 @@ Rebuilt at model@7 after D15 (the license event recorded as C68): no content cha
 Rebuilt at model@8 after D16: the license is AGPL-3.0 by the owner's instruction; the objection answer and CTA now say so.
 
 Rebuilt at model@9 after D17: the category and position widened from agent-built software to any partly real product, with software as the first buyer and the hardware builder as a second, untested one.
+
+Rebuilt at model@10 after D19 and D20: the voice allows wit aimed at systems and habits; copy leads with pain and the absurdity of the current norm; the comparison to own is the four questions above; film 3 replaces film 2 as the current film.

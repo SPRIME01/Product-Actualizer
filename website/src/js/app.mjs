@@ -1,4 +1,5 @@
 import { $, h } from "./shared.mjs";
+import "./motion.mjs";
 // theme toggle: a real button, remembered per viewer when storage allows
 const root = document.documentElement;
 const dark = () => (root.dataset.theme ? root.dataset.theme === "dark" : matchMedia("(prefers-color-scheme: dark)").matches);

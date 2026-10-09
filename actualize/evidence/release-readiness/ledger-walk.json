@@ -1,0 +1,370 @@
+{
+ "at": "2026-10-03T23:02:32.196Z",
+ "model": 10,
+ "rows": [
+  {
+   "id": "C1",
+   "grade": "OBSERVED",
+   "files": "motion-editorial/explainer-film.md, marketing/website-copy.md, marketing/launch-posts.md",
+   "pass": true,
+   "detail": "19 skill directories, 17 lenses listed"
+  },
+  {
+   "id": "C2",
+   "grade": "OBSERVED",
+   "files": "motion-editorial/explainer-film.md, marketing/website-copy.md, marketing/launch-posts.md, marketing/sales-brief.md",
+   "pass": true,
+   "detail": "7 grades, 2 public"
+  },
+  {
+   "id": "C3",
+   "grade": "VERIFIED",
+   "files": "marketing/website-copy.md, marketing/launch-posts.md, marketing/sales-brief.md",
+   "pass": true,
+   "detail": "accepted [] then refused: public artifact cites C1 graded REPORTED; only OBSERVED or VERIFIED may be public"
+  },
+  {
+   "id": "C4",
+   "grade": "VERIFIED",
+   "files": "marketing/website-copy.md, marketing/launch-posts.md, marketing/sales-brief.md",
+   "pass": true,
+   "detail": "current at model@4; stale by D10 when built from model@3"
+  },
+  {
+   "id": "C5",
+   "grade": "VERIFIED",
+   "files": "marketing/website-copy.md, marketing/sales-brief.md",
+   "pass": true,
+   "detail": "4 waves"
+  },
+  {
+   "id": "C6",
+   "grade": "VERIFIED",
+   "files": "marketing/website-copy.md, marketing/sales-brief.md",
+   "pass": true,
+   "detail": " 26 pass,  0 fail"
+  },
+  {
+   "id": "C8",
+   "grade": "VERIFIED",
+   "files": "marketing/website-copy.md",
+   "pass": true,
+   "detail": "built ../../../../tmp/rr-binary/dist/bin/actualize (85 MB) i | lenses 17; run opened at /tmp/rr-binary/w/actualize"
+  },
+  {
+   "id": "C11",
+   "grade": "VERIFIED",
+   "files": "marketing/website-copy.md",
+   "pass": true,
+   "detail": "0 provider references in hooks/ and cockpit/; terminal.ts handles \"show the workflow\" with local rules"
+  },
+  {
+   "id": "C12",
+   "grade": "VERIFIED",
+   "files": "motion-editorial/explainer-film.md, marketing/website-copy.md, marketing/launch-posts.md, marketing/sales-brief.md",
+   "pass": true,
+   "detail": "refusal in control.ts and asserted in the transport test"
+  },
+  {
+   "id": "C13",
+   "grade": "OBSERVED",
+   "files": "marketing/website-copy.md",
+   "pass": true,
+   "detail": "R1 history begins queued"
+  },
+  {
+   "id": "C14",
+   "grade": "OBSERVED",
+   "files": "marketing/website-copy.md, marketing/launch-posts.md",
+   "pass": true,
+   "detail": "screenshot present; its text read during the run"
+  },
+  {
+   "id": "C15",
+   "grade": "VERIFIED",
+   "files": "marketing/website-copy.md, marketing/sales-brief.md",
+   "pass": true,
+   "detail": "tests/check.py: OK"
+  },
+  {
+   "id": "C16",
+   "grade": "VERIFIED",
+   "files": "marketing/website-copy.md, marketing/sales-brief.md",
+   "pass": true,
+   "detail": "mutation harness in tests/check.py"
+  },
+  {
+   "id": "C17",
+   "grade": "OBSERVED",
+   "files": "marketing/website-copy.md, marketing/launch-posts.md, marketing/sales-brief.md",
+   "pass": true,
+   "detail": "local GNU AFFERO GENERAL PUBLIC LICENSE; unpushed commit 5118770: yes; origin/main still: GNU GENERAL PUBLIC LICENSE"
+  },
+  {
+   "id": "C18",
+   "grade": "OBSERVED",
+   "files": "marketing/website-copy.md, marketing/launch-posts.md",
+   "pass": true,
+   "detail": "private:true; no releases listed"
+  },
+  {
+   "id": "C19",
+   "grade": "OBSERVED",
+   "files": "marketing/website-copy.md, marketing/launch-posts.md",
+   "pass": true,
+   "detail": "fix present (opened helper); suite result recorded in the clean-room step"
+  },
+  {
+   "id": "C20",
+   "grade": "OBSERVED",
+   "files": "marketing/website-copy.md, marketing/sales-brief.md",
+   "pass": true,
+   "detail": "ffmpeg found, hyperframes unknown"
+  },
+  {
+   "id": "C21",
+   "grade": "OBSERVED",
+   "files": "marketing/website-copy.md",
+   "pass": true,
+   "detail": "binary evidence names Linux x86_64 only"
+  },
+  {
+   "id": "C22",
+   "grade": "OBSERVED",
+   "files": "marketing/website-copy.md",
+   "pass": true,
+   "detail": "17 lenses with description and reads"
+  },
+  {
+   "id": "C23",
+   "grade": "OBSERVED",
+   "files": "marketing/website-copy.md, marketing/launch-posts.md",
+   "pass": true,
+   "detail": "five adapters imported"
+  },
+  {
+   "id": "C27",
+   "grade": "OBSERVED",
+   "files": "marketing/website-copy.md",
+   "pass": true,
+   "detail": "HTTP 200, found 2 phrase(s)"
+  },
+  {
+   "id": "C28",
+   "grade": "OBSERVED",
+   "files": "marketing/website-copy.md",
+   "pass": true,
+   "detail": "HTTP 200, found 4 phrase(s)"
+  },
+  {
+   "id": "C29",
+   "grade": "OBSERVED",
+   "files": "marketing/website-copy.md",
+   "pass": true,
+   "detail": "today 140012, 70982, 53756; claim is dated 2026-10-03 (139998, 70977, 53753)"
+  },
+  {
+   "id": "C31",
+   "grade": "OBSERVED",
+   "files": "marketing/website-copy.md",
+   "pass": true,
+   "detail": "HTTP 200, found 1 phrase(s)"
+  },
+  {
+   "id": "C32",
+   "grade": "OBSERVED",
+   "files": "marketing/website-copy.md",
+   "pass": true,
+   "detail": "codex: HTTP 200, found 2 phrase(s); cursor: HTTP 200, found 1 phrase(s)"
+  },
+  {
+   "id": "C33",
+   "grade": "OBSERVED",
+   "files": "marketing/website-copy.md, marketing/sales-brief.md",
+   "pass": true,
+   "detail": "hunchbite: HTTP 200, found 1 phrase(s); kitrum: HTTP 200, found 1 phrase(s)"
+  },
+  {
+   "id": "C38",
+   "grade": "OBSERVED",
+   "files": "marketing/website-copy.md, marketing/sales-brief.md",
+   "pass": true,
+   "detail": "README.md lines 30 and 31"
+  },
+  {
+   "id": "C39",
+   "grade": "OBSERVED",
+   "files": "marketing/website-copy.md, marketing/launch-posts.md, marketing/sales-brief.md",
+   "pass": true,
+   "detail": "12 model snapshots"
+  },
+  {
+   "id": "C40",
+   "grade": "OBSERVED",
+   "files": "marketing/website-copy.md",
+   "pass": true,
+   "detail": "four screenshots present"
+  },
+  {
+   "id": "C41",
+   "grade": "OBSERVED",
+   "files": "marketing/website-copy.md",
+   "pass": true,
+   "detail": "queued>acknowledged>running>produced>ready_for_review>accepted"
+  },
+  {
+   "id": "C43",
+   "grade": "OBSERVED",
+   "files": "marketing/website-copy.md",
+   "pass": true,
+   "detail": "HN item 48558502 by API, 2026-06-16"
+  },
+  {
+   "id": "C44",
+   "grade": "VERIFIED",
+   "files": "marketing/website-copy.md, marketing/sales-brief.md",
+   "pass": true,
+   "detail": "always loaded 12195, lens files 160045"
+  },
+  {
+   "id": "C45",
+   "grade": "OBSERVED",
+   "files": "marketing/website-copy.md, marketing/sales-brief.md",
+   "pass": true,
+   "detail": "engine.mjs denial text present"
+  },
+  {
+   "id": "C55",
+   "grade": "OBSERVED",
+   "files": "marketing/website-copy.md",
+   "pass": true,
+   "detail": "47343927: story score 127 comments 94; 47197595: story score 211 comments 118; 48558502: story score 1 comments 0"
+  },
+  {
+   "id": "C56",
+   "grade": "OBSERVED",
+   "files": "marketing/website-copy.md",
+   "pass": true,
+   "detail": "both license texts say OFL 1.1"
+  },
+  {
+   "id": "C57",
+   "grade": "OBSERVED",
+   "files": "marketing/website-copy.md",
+   "pass": true,
+   "detail": "HTTP 200, found 1 phrase(s)"
+  },
+  {
+   "id": "C58",
+   "grade": "VERIFIED",
+   "files": "marketing/website-copy.md",
+   "pass": true,
+   "detail": "0 files, 0 history commits with a full-token match (the pattern text alone, as in secret-scan.txt, is not a match)"
+  },
+  {
+   "id": "C59",
+   "grade": "VERIFIED",
+   "files": "marketing/website-copy.md, marketing/launch-posts.md, marketing/sales-brief.md",
+   "pass": true,
+   "detail": "site-qa check C3 (byte identity)"
+  },
+  {
+   "id": "C60",
+   "grade": "VERIFIED",
+   "files": "marketing/website-copy.md",
+   "pass": true,
+   "detail": "site-qa check D9"
+  },
+  {
+   "id": "C61",
+   "grade": "VERIFIED",
+   "files": "marketing/website-copy.md",
+   "pass": true,
+   "detail": "site-qa checks D1, D3"
+  },
+  {
+   "id": "C62",
+   "grade": "VERIFIED",
+   "files": "marketing/website-copy.md",
+   "pass": true,
+   "detail": "site-qa check D7"
+  },
+  {
+   "id": "C63",
+   "grade": "VERIFIED",
+   "files": "marketing/website-copy.md",
+   "pass": true,
+   "detail": "site-qa checks L1, T3, K1, M1"
+  },
+  {
+   "id": "C67",
+   "grade": "VERIFIED",
+   "files": "marketing/website-copy.md",
+   "pass": true,
+   "detail": "site-qa check P1"
+  },
+  {
+   "id": "C68",
+   "grade": "OBSERVED",
+   "files": "marketing/website-copy.md, marketing/launch-posts.md",
+   "pass": true,
+   "detail": "commit 931a76f and history snapshots present"
+  },
+  {
+   "id": "C69",
+   "grade": "OBSERVED",
+   "files": "marketing/website-copy.md",
+   "pass": true,
+   "detail": "HN item 49525494 by jonplackett, 2026-09-01"
+  },
+  {
+   "id": "C71",
+   "grade": "OBSERVED",
+   "files": "marketing/website-copy.md",
+   "pass": true,
+   "detail": "17 lenses, all named lenses present"
+  },
+  {
+   "id": "C72",
+   "grade": "OBSERVED",
+   "files": "marketing/website-copy.md, marketing/launch-posts.md, marketing/sales-brief.md",
+   "pass": true,
+   "detail": "verdict no-go; physical evidence walk present"
+  },
+  {
+   "id": "C73",
+   "grade": "OBSERVED",
+   "files": "motion-editorial/explainer-film.md, marketing/website-copy.md, marketing/launch-posts.md, marketing/sales-brief.md",
+   "pass": true,
+   "detail": "heading and rule present in the lens"
+  },
+  {
+   "id": "C79",
+   "grade": "VERIFIED",
+   "files": "motion-editorial/explainer-film.md, marketing/website-copy.md, marketing/launch-posts.md",
+   "pass": true,
+   "detail": "80.6 s, 1920x1080, BT.709, -16.0 LUFS, 0.46 frame, 0 digital-silence runs"
+  },
+  {
+   "id": "C80",
+   "grade": "VERIFIED",
+   "files": "motion-editorial/explainer-film.md, marketing/website-copy.md",
+   "pass": true,
+   "detail": "{\"frames\":162,\"stride\":15,\"digest\":\"c474f1e3f1668d959eca22ffe686d1a975397fb76d894db9691c24"
+  },
+  {
+   "id": "C81",
+   "grade": "OBSERVED",
+   "files": "motion-editorial/explainer-film.md, marketing/website-copy.md, marketing/launch-posts.md",
+   "pass": true,
+   "detail": "score.mjs synthesises from code, reads cues.mjs (as film.mjs does), has no network call, and no audio file is vendored outside audio/ and renders/"
+  },
+  {
+   "id": "C82",
+   "grade": "OBSERVED",
+   "files": "marketing/website-copy.md",
+   "pass": true,
+   "detail": "8 calls, all 200 audio, pinned voice, generation ids logged"
+  }
+ ]
+}

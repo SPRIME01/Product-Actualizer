@@ -172,3 +172,82 @@ pre { background: var(--surface-panel); border: 1px solid var(--rule); border-ra
 @media (max-width: 40rem) { .groups > div { grid-template-columns: 1fr; } }
 .walk caption { text-align: left; font: 500 var(--step--1) var(--font-mono); color: var(--ink-3); padding: 0 0 var(--s-3); }
 .verdict-line { margin: var(--s-3) 0 var(--s-5); font-weight: 700; }
+
+/* ---------- motion: small, and each movement says something (rules D-R6; see js/motion.mjs) ---------- */
+.top { overflow: visible; }
+.progress { position: absolute; left: 0; right: 0; bottom: -2px; height: 2px; background: repeating-linear-gradient(90deg, var(--ink-3) 0 6px, transparent 6px 12px); opacity: 0.55; pointer-events: none; }
+.progress i { display: block; height: 100%; background: var(--accent); transform-origin: 0 50%; transform: scaleX(0); will-change: transform; }
+.lockup path { transition: stroke-dasharray 0.2s linear; }
+.top nav a { box-shadow: inset 0 -2px 0 transparent; transition: color var(--t-fast), box-shadow var(--t-mid) var(--ease-out); }
+.top nav a[aria-current="true"] { color: var(--ink); box-shadow: inset 0 -2px 0 var(--accent); }
+.btn { transition: background var(--t-fast), transform var(--t-fast) var(--ease-out), filter var(--t-fast); }
+.btn:hover { transform: translateY(-1px); }
+.btn:active { transform: translateY(1px); }
+.js-motion .rv { opacity: 0; transform: translateY(14px); transition: opacity 0.7s var(--ease-out) var(--d, 0ms), transform 0.7s var(--ease-out) var(--d, 0ms); }
+.js-motion .rv.in { opacity: 1; transform: none; }
+
+/* the pointer light on live panels */
+.instrument { --mx: 50%; --my: 0%; background-image: radial-gradient(360px circle at var(--mx) var(--my), color-mix(in oklch, var(--accent) 6%, transparent), transparent 70%); }
+
+/* the first section: a board that calls things done, then the questions it cannot answer */
+.board { position: relative; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--s-4); margin: 0 0 var(--s-7); padding: var(--s-5); border: 1px solid var(--rule); border-radius: var(--radius); background: var(--surface-panel); }
+.bcol { min-height: 17rem; display: flex; flex-direction: column; gap: var(--s-3); }
+.bcol b { font: 500 var(--step--1) var(--font-mono); color: var(--ink-3); }
+.bcol.done { border-left: 1px solid var(--rule); padding-left: var(--s-4); }
+.bcard { display: flex; justify-content: space-between; align-items: center; min-height: 3rem; padding: 0 var(--s-4); border: 1.5px solid var(--g-observed); border-radius: var(--radius); background: var(--surface-raised); font-weight: 700; font-size: var(--step-1); transition: transform 0.9s var(--ease-out) calc(var(--i) * 0.55s + 0.2s), border-color 0.4s var(--ease-out) calc(var(--i) * 0.55s + 0.8s), opacity 0.4s calc(var(--i) * 0.55s); }
+.bcard em { font-style: normal; color: var(--g-observed); transition: opacity 0.3s calc(var(--i) * 0.55s + 0.9s); }
+.board.pre .bcard { transform: translateX(calc(-200% - 2 * var(--s-4) - var(--s-5))); border-color: var(--rule); }
+.board.pre .bcard em { opacity: 0; }
+.agent { position: absolute; left: 0; top: 0; font: 500 var(--step--1) var(--font-mono); color: var(--accent); border: 1.5px solid var(--accent); border-radius: var(--radius-pill); padding: 0 var(--s-3); background: var(--surface-panel); opacity: 0; pointer-events: none; transform: translate(34%, 6.4rem); }
+.board:not(.pre) .agent { animation: drag 2.6s var(--ease-out) 0.2s both; }
+@keyframes drag { 0% { opacity: 0; transform: translate(4%, 6.4rem); } 8% { opacity: 1; } 85% { opacity: 1; transform: translate(60%, 6.4rem); } 100% { opacity: 0; transform: translate(66%, 6.4rem); } }
+.cust { grid-column: 1 / -1; margin: var(--s-2) 0 0; font: 500 var(--step-0) var(--font-mono); color: var(--ink-3); transition: opacity 0.6s var(--ease-out) 2.6s, transform 0.6s var(--ease-out) 2.6s; }
+.cust b { color: var(--g-contradicted); font-size: var(--step-2); vertical-align: -0.08em; }
+.board.pre .cust { opacity: 0; transform: translateY(6px); }
+
+/* the comparison we want to own: the usual answer is struck as the real one lands */
+.cmp { table-layout: fixed; }
+.cmp th, .cmp td { padding-block: var(--s-4); }
+.cmp tbody th { font-size: var(--step-1); font-weight: 800; width: 28%; }
+.cmp td.usual { font-size: var(--step-1); color: var(--ink-3); width: 30%; }
+.cmp td.usual s { text-decoration: none; background: linear-gradient(var(--g-contradicted), var(--g-contradicted)) no-repeat 0 58% / 0% 2px; transition: background-size 0.6s var(--ease-out) calc(var(--d, 0ms) + 0.55s); }
+.cmp .in td.usual s, .cmp tr.in td.usual s { background-size: 100% 2px; }
+.cmp td.ours { font-size: var(--step-1); font-weight: 700; color: var(--ink); background: var(--accent-wash); box-shadow: inset 0 2px 0 transparent; }
+.cmp thead th.ours { color: var(--accent); background: var(--accent-wash); }
+.cmp tbody tr:not(:last-child) td.ours { border-bottom-color: var(--rule); }
+.cmp td.ours::before { content: ""; display: inline-block; width: 0.9em; height: 0.5em; margin-right: 0.55em; border-left: 3px solid var(--accent); border-bottom: 3px solid var(--accent); transform: rotate(-45deg) translateY(-0.18em) scale(0.85); transform-origin: 50% 50%; clip-path: inset(0 100% 0 0); transition: clip-path 0.45s var(--ease-out) calc(var(--d, 0ms) + 0.8s); }
+.cmp tr.in td.ours::before, html:not(.js-motion) .cmp td.ours::before { clip-path: inset(0 0 0 0); }
+html:not(.js-motion) .cmp td.usual s { background-size: 100% 2px; }
+.cmp .cl { font-size: 0.62em; }
+@media (max-width: 52rem) { .cmp td.ours::before { display: none; } .cmp tbody th { width: auto; } .cmp td.usual, .cmp td.ours { width: auto; } .cmp tbody tr { background: transparent; } .cmp td.ours { padding-inline: var(--s-3); } }
+
+/* verdicts: a refusal nudges once; an acceptance settles */
+.result .verdict.s-invalid { display: inline-block; animation: refuse 0.34s var(--ease-out) both; }
+.result .verdict.s-current { animation: settle 0.5s var(--ease-out) both; display: inline-block; }
+@keyframes refuse { 0%, 100% { transform: none; } 22% { transform: translateX(-4px); } 55% { transform: translateX(3px); } 80% { transform: translateX(-1px); } }
+@keyframes settle { from { opacity: 0.2; transform: translateY(3px); } to { opacity: 1; transform: none; } }
+.state[aria-current="true"] { animation: settle 0.5s var(--ease-out) both; }
+.crow { transition: background var(--t-mid); }
+.enter .crow { animation: rise 0.7s var(--ease-out) both; }
+.enter .crow:nth-child(2) { animation-delay: 80ms; } .enter .crow:nth-child(3) { animation-delay: 160ms; } .enter .crow:nth-child(4) { animation-delay: 240ms; } .enter .crow:nth-child(n+5) { animation-delay: 320ms; }
+@keyframes rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+/* stale work goes dim under a warm wash; current work stays as it was */
+.tbl tr.row-stale { animation: staling 0.9s var(--ease-out) both; }
+@keyframes staling { from { background-color: transparent; } to { background-color: color-mix(in oklch, var(--g-inferred) 10%, transparent); } }
+.walk .verdict-line { color: var(--g-contradicted); }
+@media (prefers-reduced-motion: reduce) { .progress { display: none; } .board .agent { display: none; } }
+.cmp thead th.ours, .cmp td.ours { padding-left: var(--s-5); }
+.block { scroll-margin-top: 4.25rem; }
+.bcol { min-height: 15rem; }
+.bcard { min-width: 0; overflow: hidden; white-space: nowrap; gap: var(--s-2); }
+@media (max-width: 40rem) { .board { grid-template-columns: 0.45fr 0.45fr 1.6fr; gap: var(--s-2); padding: var(--s-3); } .bcard { font-size: var(--step--1); padding: 0 var(--s-2); min-height: 2.6rem; } .bcol.done { padding-left: var(--s-2); } .board.pre .bcard { transform: translateX(calc(-130% - 2 * var(--s-2))); } }
+
+/* the unfinished frame behind the headline closes as you leave the hero */
+.hero { position: relative; isolation: isolate; }
+.ghost { position: absolute; z-index: -1; left: -4%; top: 8%; width: min(46rem, 70vw); height: auto; opacity: 0.8; pointer-events: none; }
+.ghost path { stroke: var(--rule); stroke-width: 2px; vector-effect: non-scaling-stroke; stroke-linejoin: miter; }
+.ghost .gm-block { fill: var(--accent-wash); opacity: 0.6; stroke: none; transform-box: fill-box; transform-origin: 50% 50%; transform: scale(var(--gb, 0.7)); }
+@media (max-width: 62rem) { .ghost { left: auto; right: 0; top: 2%; width: 80vw; opacity: 0.6; } }
+.hero { overflow-x: clip; }
+/* on a phone the three-row nav would eat a quarter of the screen, so the header scrolls away and the finish-line hairline stays */
+@media (max-width: 52rem) { .top { position: static; } .progress { position: fixed; top: 0; bottom: auto; z-index: 12; } .block { scroll-margin-top: 1rem; } }

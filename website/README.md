@@ -11,7 +11,16 @@ SITE_URL=https://example.org bun website/build.mjs   # absolute Open Graph image
 
 The build refuses to run if `actualize/artifacts/marketing/website-copy.md` is stale against `actualize/product-model.md`, fails the product's own validator, or cites any claim below OBSERVED. Every sentence on the page comes from that copy file. The claims table at the foot of the page is generated from the model.
 
-What the build copies in: `brand/tokens.css`, the two fonts, icons and social cards from `brand/`, the repository's validator (`hooks/src/lib/md.mjs`, unmodified), the Loam worked example from `tests/walkthrough/`, the lens front matter from `skills/`, the work-request transition table from `cockpit/protocol/work.ts`, and, when rendered, the film from `media/explainer/renders/`.
+What the build copies in: `brand/tokens.css`, the two fonts, icons and social cards from `brand/`, the repository's validator (`hooks/src/lib/md.mjs`, unmodified), the Loam worked example from `tests/walkthrough/`, the lens front matter from `skills/`, the work-request transition table from `cockpit/protocol/work.ts`, and, when rendered, the film from `media/explainer-3/renders/`.
+
+## Serve
+
+```
+just website-up       # starts detached server and opens browser (flags: --port N, --no-open)
+just website-down     # takes the server down
+just website-status   # checks if the server is up
+just website-open     # re-opens in browser without restarting
+```
 
 ## Verify
 

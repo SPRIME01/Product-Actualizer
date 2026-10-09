@@ -1,6 +1,6 @@
 {
- "modelVersion": 5,
- "copyBuiltFrom": 5,
+ "modelVersion": 10,
+ "copyBuiltFrom": 10,
  "vendoredValidator": {
   "source": "hooks/src/lib/md.mjs",
   "sha256": "2954367383f30b020664130a337af563af93d3c8cbdfceafe2713a9df3e8b8b7",

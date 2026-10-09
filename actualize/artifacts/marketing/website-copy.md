@@ -1,6 +1,6 @@
-built_from: model@9
+built_from: model@10
 reads: [actors, capabilities, constraints, positioning, voice, claims, unknowns, decisions]
-cites: [C1, C2, C3, C4, C5, C6, C8, C11, C12, C13, C14, C15, C16, C17, C18, C19, C20, C21, C22, C23, C27, C28, C29, C31, C32, C33, C38, C39, C40, C41, C43, C44, C45, C55, C56, C57, C58, C59, C60, C61, C62, C63, C64, C65, C66, C67, C68, C69, C71, C72, C73]
+cites: [C1, C2, C3, C4, C5, C6, C8, C11, C12, C13, C14, C15, C16, C17, C18, C19, C20, C21, C22, C23, C27, C28, C29, C31, C32, C33, C38, C39, C40, C41, C43, C44, C45, C55, C56, C57, C58, C59, C60, C61, C62, C63, C67, C68, C69, C71, C72, C73, C79, C80, C81, C82]
 public: true
 status: final
 
@@ -15,13 +15,13 @@ Product Actualizer: evidence-gated product completion
 Product Actualizer keeps one graded model of what is true about your product, software or hardware, and refuses to call a launch ready until the evidence is there. [C2][C6]
 
 ## hero.kicker
-Evidence-gated product completion
+The part after “done”
 
 ## hero.headline
 Finish the product. Show the evidence.
 
 ## hero.sub
-Agents and tools make code, drawings, renders and copy fast. Product Actualizer keeps the model they answer to: every claim graded, every artifact citing it, and a gate that can refuse the launch. [C2][C6]
+Your agent says it’s done. So does the board. Product Actualizer is where “done” has to answer: every claim graded, every artifact citing it, and a gate that can refuse the launch. [C2][C6]
 
 ## hero.cta.primary
 Read the run
@@ -279,10 +279,10 @@ The wave function in this page matched the engine's for four sets of lenses. [C6
 This demo returned the same result and message as the cockpit's own code for all 162 combinations of state, target and actor. [C60]
 
 ## film.note
-Rendered from source by a deterministic script; sampled frames hashed identically in two independent runs. [C64] The film runs 72 seconds, with captions. [C65]
+Rendered from source by a deterministic script; sampled frames hashed identically in two independent runs. [C80] The film runs about 80 seconds, with captions. [C79]
 
 ## film.voice
-The narration was generated with fish-audio/s2.1-pro-free:free. [C66] Fish Audio's pages say commercial use of its model needs a separate license, and that has not been confirmed for this voice. [C57]
+The narration was generated with fish-audio/s2.1-pro-free:free. [C82] Fish Audio's pages say commercial use of its model needs a separate license, and that has not been confirmed for this voice. [C57]
 
 ## proof.7
 The built site passed automated checks for overflow at five widths in light and dark, text contrast, a visible focus ring on every keyboard stop, and reduced motion. [C63] Its first load is under 150 KB with gzip, excluding images and the film. [C67]
@@ -319,3 +319,69 @@ Is this only for software?
 
 ## faq.9.a
 No. The lenses include electronics, embedded systems, robotics and three-dimensional visualization, and the release lens refuses a physical claim that was never exercised on the real unit. [C71][C73]
+
+## gap.title
+Done, as currently practised
+
+## gap.lead
+Your agent says it’s done. So the board says it’s done. The board has never met a customer.
+
+## gap.board.todo
+to do
+
+## gap.board.done
+done
+
+## gap.board.cust
+customers met by this board
+
+## gap.col.q
+the question
+
+## gap.col.usual
+the usual answer
+
+## gap.col.ours
+Product Actualizer
+
+## gap.q.1
+Says who?
+
+## gap.usual.1
+“Trust me.”
+
+## gap.ours.1
+A source you can re‑open, on every claim. [C2]
+
+## gap.q.2
+On the real unit?
+
+## gap.usual.2
+“On the render.”
+
+## gap.ours.2
+A gate that refuses a hardware release until the claim has run on the unit. [C73]
+
+## gap.q.3
+What changed since?
+
+## gap.usual.3
+“Slack, probably.”
+
+## gap.ours.3
+Whatever cites a changed claim is marked stale. [C4]
+
+## gap.q.4
+Who decides it’s done?
+
+## gap.usual.4
+“Whatever did the work.”
+
+## gap.ours.4
+You. An agent that tries to accept gets AUTHORITY_HUMAN. [C12]
+
+## gap.note
+The middle column is a joke about how “done” usually gets decided: it is about the habit, not about any person or product. The right column is what this repository does, with the claim behind each line.
+
+## film.sound
+The score and sound effects are synthesised by code in the repository; no third-party audio is used. [C81]

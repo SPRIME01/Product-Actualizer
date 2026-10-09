@@ -1,0 +1,1 @@
+A render has never failed a drop test.

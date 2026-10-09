@@ -1,6 +1,6 @@
-built_from: model@8
+built_from: model@10
 reads: [constraints, capabilities, claims, form, unknowns, decisions]
-cites: [C17, C56, C57, C58, C66]
+cites: [C17, C56, C57, C58, C81, C82]
 public: false
 status: final
 
@@ -16,13 +16,17 @@ status: final
 | Loam and Mote fixtures and walkthroughs | this repository (fictional products) | the owner | AGPL | yes | label as fictional | yes |
 | Quoted sentences (Hacker News, DEV, arXiv, Stack Overflow) | public pages, quoted briefly with source and date | their authors | quotation | short quotation only | attribution shown beside each | yes |
 | Reddit statements | read in a search extract; the pages refuse automated access | their authors | not applicable | not used publicly | none until re-opened (U13) | no |
-| Narration audio | `fish-audio/s2.1-pro-free:free` through OpenRouter, pinned voice id [C66] | output terms follow the model's terms | Fish Audio Research License for the open model; research and non-commercial use free, commercial use needs a separate license [C57]; the endpoint's own terms were not found | **unconfirmed (U14)** | confirm or re-voice before commercial publication | the site embeds it; the launch kit flags it pending |
-| Room tone | synthetic pink noise generated in the mix | none | none | yes | none | yes |
-| Music and effects | none used | none | none | n/a | none | n/a |
+| Narration audio (films 1 to 3) | `fish-audio/s2.1-pro-free:free` through OpenRouter, pinned voice id [C82] | output terms follow the model's terms | Fish Audio Research License for the open model; research and non-commercial use free, commercial use needs a separate license [C57]; the endpoint's own terms were not found | **unconfirmed (U14)** | confirm or re-voice before commercial publication | the site embeds film 3 with its voice; the launch kit flags it pending |
+| Room tone (films 1 and 2) | synthetic pink noise generated in the mix | none | none | yes | none | yes |
+| Score and sound effects (film 3) | synthesised by `media/explainer-3/tools/score.mjs` from sine, noise and envelopes; no samples, no loops, no third-party audio [C81] | the owner | AGPL (source), the rendered audio is the owner's | yes | none | yes |
+| Films 1 and 2 | `media/explainer/`, `media/explainer-2/`, rendered from source; superseded by film 3, kept as asked | the owner | as the code | yes (voice pending, as above) | none | not embedded on the site |
 | Build tools: opentype.js 1.3.4, Playwright, ffmpeg with libx264, Chrome | installed on the build machine | their authors | MIT, Apache-2.0, LGPL/GPL, Chrome terms | outputs are the owner's | none for outputs; tools are not distributed | no |
 | Donor ideas restated in the lenses | PROVENANCE.md | their authors | MIT or Apache-2.0, ideas only | yes | none beyond PROVENANCE.md | n/a |
 
 ## Findings
+- Film 3's music question is closed by synthesis: nothing was downloaded, so there is no attribution or license to track. Free online sound libraries were considered and not needed.
 - The only open rights question is the voiceover (U14). Picture, script and captions do not depend on the voice, so it can be closed by licensing the model or re-voicing without touching the picture.
 - A scan of the tree and the git history found no key, token or private key [C58].
 - The local license file reaches the public remote only when commit 5118770 is pushed [C17].
+
+Rebuilt at model@10 after D19 and D20: film 3's score and effects added; narration rows now cite C82.

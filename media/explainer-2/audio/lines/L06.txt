@@ -1,0 +1,1 @@
+A hardware release cannot pass on a build, a schematic, or a render. The claim has to be exercised on the real unit.

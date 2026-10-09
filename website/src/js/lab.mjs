@@ -72,7 +72,7 @@ export async function mount(root) {
           if (recorded?.id === "claim" && s.public && s.cites.includes(claimId)) buttons.push(h("button", { type: "button", class: "mini", onclick: () => rebuild(a, true) }, `Rebuild without ${claimId}`));
           buttons.push(h("span", { class: "sim" }, "simulated"));
         }
-        return h("tr", {}, h("th", { scope: "row", class: "mono" }, a.path, h("span", { class: "why" }, s.public ? "public" : "internal", cites ? ` · cites ${s.cites.slice(0, 6).join(" ")}${cites > 6 ? " …" : ""}` : "")),
+        return h("tr", { class: `row-${st.kind}` }, h("th", { scope: "row", class: "mono" }, a.path, h("span", { class: "why" }, s.public ? "public" : "internal", cites ? ` · cites ${s.cites.slice(0, 6).join(" ")}${cites > 6 ? " …" : ""}` : "")),
           h("td", { class: "mono", "data-l": "built from" }, `model@${s.built}`), h("td", { class: "mono", "data-l": "reads" }, s.reads.join(", ")),
           h("td", { "data-l": "status" }, h("span", { class: `g s-${st.kind}` }, st.kind), st.why.map((w) => h("span", { class: "why" }, w)),
             a.refusal ? h("div", { class: "result", role: "status" }, h("span", { class: "verdict s-invalid" }, "rebuild refused"), h("ul", {}, a.refusal.map((e) => h("li", {}, e)))) : null,

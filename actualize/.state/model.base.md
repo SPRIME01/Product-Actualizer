@@ -1,6 +1,6 @@
 ---
 product: Product Actualizer Architect
-model_version: 8
+model_version: 9
 ---
 
 ## Purpose
@@ -16,6 +16,7 @@ Move an incomplete real product toward a coherent launch through one shared Prod
 | A3 | Downstream reader (buyer, user, or handoff receiver) | Rely on what the product says about itself and re-open the evidence behind it |
 | A4 | Technical founder or small team shipping with coding agents (first buyer) | Get a built-but-unlaunched product to a launch they can stand behind, without the launch material saying more than the product does; the trigger is that it works and there is nothing to launch with |
 | A5 | Studio or consultant inheriting an agent-built product | Hand over what is true and what is not, and keep it current |
+| A6 | Hardware or physical-AI builder with an incomplete unit | Know which physical claims have been exercised on the real unit before saying them publicly |
 
 ## Capabilities
 
@@ -69,7 +70,7 @@ Traits with limits: direct, not curt; exact, not pedantic; dry, never jokey. Use
 
 ## Positioning
 
-**Category:** evidence-gated product completion (anchor: agent skills and spec-driven development; it rejects the assumption that the spec, the plan, or the agent's own report is the source of truth). **For:** technical founders and small teams who already build with a coding agent, have a working product, and have an owner who will read a verdict (A4). **The change they face:** agents made building cheap, so the bottleneck moved to completing and launching [C31]. **Their pain:** acute, a confident wrong "done" and a working product with nothing to launch it with; unnamed, launch material and memory that drift from the product with nothing checking them (evidence/brand/icp.md). **What they do today instead of nothing:** build stopgaps, such as test gates, receipt tools and hand-rewritten copy [C55]. **Alternative they use today:** agent chat plus CLAUDE.md or AGENTS.md notes, a spec toolkit for the code, separate tools for brand, site and film, and a final human read (C28, C30, C33). **The one difference:** every artifact cites graded claims from one model, goes stale when they change, and a gate can refuse the launch [C2][C3][C4][C6]. **Not for:** buyers who want an agent to ship without an owner reading the verdict, buyers who need a hosted service, or buyers who need guarantees about code correctness. Tagline: "Finish the product. Show the evidence." The comparative claim that no other tool does this is PROPOSED (C36) and is never stated publicly. Public name: Product Actualizer; internal and category descriptor: Product Actualizer Architect (D3).
+**Category:** evidence-gated product completion: one model of what is true about a product that is only partly real, software, hardware, or both, with specialist work ordered against it. Anchor for a first-time reader: agent skills and spec-driven development, which it carries past code to brand, design, motion, sound and physical engineering. It rejects the assumption that the spec, the plan, or an agent's or a demo's own report is the source of truth [C71]. **For:** first, technical founders and small teams who already build with a coding agent, have a working product, and have an owner who will read a verdict (A4); second, hardware and physical-AI builders with an incomplete unit, whose claims need a real unit to be exercised (A6, untested: U16); and studios that inherit an incomplete product (A5). **The change they face:** agents and tools made building and demonstrating cheap, so the hard part moved to completing, verifying and launching [C31]. **Their pain:** acute, a confident wrong "done", a demo nobody can tell is real [C69][C70], a working product with nothing to launch it with; unnamed, launch material and memory that drift from the product with nothing checking them (evidence/brand/icp.md). **What they do today instead of nothing:** build stopgaps, such as test gates, receipt tools and hand-rewritten copy [C55]. **The one difference:** every artifact cites graded claims from one model, goes stale when they change, and a gate can refuse the launch [C2][C3][C4][C6]; for a physical product the gate also refuses a claim that was never exercised on the real unit [C73]. **Not for:** buyers who want an agent to ship without an owner reading the verdict, buyers who need a hosted service, or buyers who need guarantees about code correctness. Tagline: "Finish the product. Show the evidence." The comparative claim that no other tool does this is PROPOSED (C36) and is never stated publicly. Public name: Product Actualizer; internal and category descriptor: Product Actualizer Architect (D3).
 
 ## Claims ledger
 
@@ -143,6 +144,16 @@ Traits with limits: direct, not curt; exact, not pedantic; dry, never jokey. Use
 | C66 | The narration was generated with fish-audio/s2.1-pro-free:free through OpenRouter, one audio/mpeg response per line with the voice id pinned and the generation ids logged | OBSERVED | actualize/evidence/audio-sound/tts-calls.jsonl |
 | C67 | The site's estimated first load, with text gzipped and excluding images and the film, is under 150 KB | VERIFIED | actualize/evidence/fidelity-qa/site-qa.md check P1 |
 | C68 | Partway through this run the repository gained a LICENSE file (commit 931a76f), which made the earlier claim that it had none false; the claim was corrected in a reconciliation and the artifacts that cited it were flagged stale | OBSERVED | git log -1 931a76f; actualize/history/model-v5.md and model-v6.md (C17); actualize/evidence/dogfood/findings.md F15 |
+| C69 | A Hacker News comment on the Launch HN for Nori Robotics (2026-09-01) asks: "Are these videos of it eg tidying up real or just staged / cherry picked?" | OBSERVED | https://news.ycombinator.com/item?id=49525494@2026-10-03, text matched through hacker-news.firebaseio.com |
+| C70 | Another comment on the same thread (2026-09-01) says: "None of the videos on website say how much are they speed up (or not), and is robot teleoperated or running autonomously." | OBSERVED | https://news.ycombinator.com/item?id=49529412@2026-10-03, text matched through hacker-news.firebaseio.com |
+| C71 | The 17 lenses include recon-physical, electronics, embedded-systems, robotics and product-visualization alongside brand, direction, experience, illustration, marketing, motion-editorial, audio-sound, fidelity-qa, provenance-licensing, legacy-modernization, recon-software and release-readiness | OBSERVED | skills/*/SKILL.md; actualize lenses, 2026-10-03 |
+| C72 | In the hardware worked example (Mote, a fictional desk robot) the release gate's verdict is no-go, and its physical evidence walk lists claims never exercised on the unit | OBSERVED | tests/walkthrough-mote/artifacts/release-readiness/gate.md |
+| C73 | The release-readiness lens states that a hardware release cannot pass on a firmware build, passing software tests, a schematic, a render, or documentation, and that the claim must be exercised on the real unit at the revision being shipped | OBSERVED | skills/release-readiness/SKILL.md, "Physical claims need physical evidence" |
+| C74 | A post in r/embedded dated 2026-01-20 says: "The previous hallucination I had was random numbers in calibration registers." | REPORTED | https://www.reddit.com/r/embedded/comments/1qhyyom/ai_hallucinations_in_embedded/@2026-10-03. Read in a search extract; reddit.com refused direct access on 2026-10-03 (evidence/brand/physical-wedge.md) |
+| C75 | A post in r/esp32 dated 2026-06-09 says an AI hardware-spec tool "was overconfident and would happily hand you a design that doesn't work" | REPORTED | https://www.reddit.com/r/esp32/comments/1u0zl1e/@2026-10-03. Read in a search extract; reddit.com refused direct access on 2026-10-03 (evidence/brand/physical-wedge.md) |
+| C76 | A post in r/hwstartups dated 2026-08-07 says: "I thought that meant I was ready to go to a manufacturer ... I was wrong." | REPORTED | https://www.reddit.com/r/hwstartups/comments/1vhnwb5/@2026-10-03. Read in a search extract; reddit.com refused direct access on 2026-10-03 (evidence/brand/physical-wedge.md) |
+| C77 | A post in r/claudeskills dated 2026-07-10 describes a slash command that "produces every marketing asset for a product in one run" | REPORTED | https://www.reddit.com/r/claudeskills/comments/1usd5hw/@2026-10-03. Read in a search extract; reddit.com refused direct access on 2026-10-03 (evidence/brand/physical-wedge.md) |
+| C78 | Hardware and physical-AI builders with an incomplete unit are a second buyer | PROPOSED | evidence/brand/physical-wedge.md; no hardware builder has run the process (U16) |
 
 ## Unknowns
 
@@ -162,6 +173,7 @@ Traits with limits: direct, not curt; exact, not pedantic; dry, never jokey. Use
 | U13 | Can the nine Reddit statements (C46-C54) be re-opened by someone with access? reddit.com refused automated access | quoting any of them publicly | the owner, by opening the links and confirming in writing |
 | U14 | May output from fish-audio/s2.1-pro-free:free be published commercially? The Model Terms for this endpoint were not found | publishing the film with its voiceover | the owner, from Fish Audio or OpenRouter |
 | U15 | Is the narration intelligible and is Actualizer pronounced correctly? No human has listened | releasing the audio | the owner, by listening and recording name and date |
+| U16 | Would a hardware or physical-AI builder adopt the process? None has run it | any claim about the second buyer | a trial with a hardware team |
 
 ## Decision log
 
@@ -183,6 +195,8 @@ Traits with limits: direct, not curt; exact, not pedantic; dry, never jokey. Use
 | D14 | Publish the film with its voiceover only after the owner confirms the narration terms (U14) or re-voices it; picture, script and captions do not depend on the voice | Fish Audio's pages say commercial use needs a separate license (C57); the endpoint's own terms were not found | constraints, decisions | 6 |
 | D15 | Record the license event as claim C68: the mechanism caught a claim on its own ledger going false, which is evidence for the staleness rule and is worth stating publicly | The event is true, re-openable, and bears directly on the product's central claim (C4) | claims:C68, decisions | 7 |
 | D16 | License is AGPL-3.0 by the owner's instruction: LICENSE replaced with the official text (5118770); public text names the AGPL; the remote shows it only after the push; U1 is answered and removed. Supersedes the description in D12 | The owner said it should be AGPL; the first file on main was GPL-3.0 | claims:C17, unknowns, constraints, decisions | 8 |
+| D17 | Widen the story: the category is evidence-gated completion of any partly real product, software, hardware, or both; lead the copy with the category truth, demo software in the browser, prove depth with the hardware example, keep A4 as the first buyer and add A6 as a second, untested one (U16). Supersedes the software-only framing of D4 | The owner pointed out the framing had narrowed to agent-built software; the product's lenses and worked examples span physical engineering, brand, motion and sound (C71, C72, C73) | positioning, actors, jobs, criteria, opportunities, decisions | 9 |
+| D18 | Record the hardware-side evidence as claims C69-C78 and the second-buyer unknown U16 | HN comments about demos are verbatim through the HN API; Reddit lines stay REPORTED (U13) | claims, unknowns | 9 |
 
 ## Jobs
 
@@ -191,6 +205,7 @@ Traits with limits: direct, not curt; exact, not pedantic; dry, never jokey. Use
 | J1 | A4 | Launch what the agents built with material that says no more than the product does | REPORTED | evidence/brand/icp.md; C46, C51 |
 | J2 | A4 | Know whether the agent's "done" is true before relying on it | REPORTED | evidence/brand/icp.md; C47 |
 | J3 | A5 | Hand over what is true and what is not about an agent-built product | OBSERVED | evidence/brand/icp.md; C33 |
+| J4 | A6 | Know which physical claims have been exercised on the real unit before saying them publicly | INFERRED | evidence/brand/physical-wedge.md; C69, C70 |
 
 ## Success criteria
 
@@ -199,6 +214,7 @@ Traits with limits: direct, not curt; exact, not pedantic; dry, never jokey. Use
 | S1 | J1 | avoid | count of public statements not backed by an OBSERVED or VERIFIED claim | the launch material | at publication | UNKNOWN | UNKNOWN | PROPOSED | evidence/brand/icp.md |
 | S2 | J2 | minimize | time to learn that an agent's done is false | an agent's completion report | before relying on it | UNKNOWN | UNKNOWN | PROPOSED | evidence/brand/icp.md |
 | S3 | J3 | ensure | share of statements whose source a reader can re-open | the handover package | at handover | UNKNOWN | UNKNOWN | PROPOSED | evidence/brand/icp.md |
+| S4 | J4 | avoid | count of public physical claims not exercised on the real unit at the shipping revision | the spec sheet and demo material | at publication | UNKNOWN | UNKNOWN | PROPOSED | evidence/brand/physical-wedge.md |
 
 ## Opportunities
 
@@ -207,3 +223,4 @@ Traits with limits: direct, not curt; exact, not pedantic; dry, never jokey. Use
 | OP1 | S1 | Launch copy is written from the builder's optimism or a generator's defaults, and nothing checks it against the product | hand-rewriting generated copy; landing-page generators; asking the agent to be honest | REPORTED | C51, C52 |
 | OP2 | S2 | Gates for done exist for code only | Stop-hook test gates; receipt tools; an adversarial second agent | REPORTED | C47, C55 |
 | OP3 | S3 | Handoff has no standard artifact of what is true | studio audit reports; a README | OBSERVED | C33 |
+| OP4 | S4 | Demo videos and spec sheets state capabilities nobody can tell are real, sped up, or teleoperated | commenters asking in threads; labels such as staged or teleoperated | INFERRED | C69, C70 |

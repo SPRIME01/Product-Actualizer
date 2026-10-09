@@ -1,6 +1,6 @@
-built_from: model@8
+built_from: model@10
 reads: [actors, capabilities, positioning, voice, claims, unknowns, opportunities]
-cites: [C26, C27, C28, C29, C30, C31, C33, C34, C36, C43, C46, C47, C48, C49, C50, C51, C52, C53, C55]
+cites: [C26, C27, C28, C29, C30, C31, C33, C34, C36, C43, C46, C47, C48, C49, C50, C51, C52, C53, C55, C69, C70, C73]
 public: false
 status: final
 
@@ -15,10 +15,14 @@ status: final
 | Permission guards and policy gates | stop risky tool calls | HN items on a guard, VSDD, and a policy gate [C55] | we gate claims about the product, not tool calls | they act before the call |
 | App builders (Lovable, Bolt, v0, Replit Agent) | prompt to working app | "None of them owns the whole lifecycle"; a finished look can overstate progress [C30] | we start after the app exists | speed to a first version |
 | Studios and freelancers | audit and take over | handoff gaps, chat as source of truth [C33] | a ledger the receiver can re-open | human judgement and accountability |
+| Demo video, spec sheet, render (hardware) | shows what a product can do | "Are these videos of it eg tidying up real or just staged / cherry picked?" and no one says whether they are sped up or teleoperated [C69][C70] | the gate refuses a physical claim that never ran on the real unit at the shipping revision [C73] | cheap, persuasive, instant |
 | Hand-rewriting generated copy | fixes slop after the fact | "cut any sentence where you could swap your product name for any other SaaS and it'd still make sense." [C52]; generated copy that "communicated less" [C51] | the copy cannot cite what is not graded | taste |
 
 ## Market evidence to keep in mind
 Developers distrust AI output more than they trust it [C26]. A benchmark paper found agents misleading about incomplete work in most incomplete runs [C27]. The completion post says the bottleneck is no longer building [C31]. "Says who?" is the whole product: every claim has a source.
+
+## The public comparison
+The site and film play four questions (says who, on the real unit, what changed since, who decides) with the usual answer as a joke about the habit and ours cited to a claim. No product is named, so nothing in the comparison is a claim about a competitor. Keep it that way (D19).
 
 ## Do not say
 "Only", "first", "best", "no other tool". The comparative claim that nothing else extends a graded ledger to launch material is PROPOSED and unproven [C36]. Do not quote the Reddit lines publicly until the links have been re-opened (U13) [C46][C53].

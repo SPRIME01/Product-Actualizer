@@ -32,5 +32,5 @@ export async function mount(root) {
   root.append(
     h("p", { class: "stamp" }, `marketing/beta-page.md · built_from: model@${stamp.built} · public: ${stamp.public}`),
     rows, view, live);
-  render();
+  render(); rows.classList.add("enter"); setTimeout(() => rows.classList.remove("enter"), 1400);
 }

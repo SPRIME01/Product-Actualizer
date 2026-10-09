@@ -1,0 +1,182 @@
+{
+ "lines": [
+  {
+   "id": 1,
+   "raw": "Your agent says it's done. So the board says it's done. The board has never met a customer.",
+   "text": "Your agent says it's done. So the board says it's done. The board has never met a customer.",
+   "breaks": [
+    2.179,
+    4.911
+   ],
+   "audioStart": 0,
+   "start": 0.5,
+   "end": 7.826,
+   "duration": 7.326,
+   "pad": 0
+  },
+  {
+   "id": 2,
+   "raw": "The tests pass, on the machine that wrote them. The demo is real, at eight times speed. The testimonial comes from a very satisfied placeholder.",
+   "text": "The tests pass, on the machine that wrote them. The demo is real, at eight times speed. The testimonial comes from a very satisfied placeholder.",
+   "breaks": [
+    3.495,
+    7.321
+   ],
+   "audioStart": 0,
+   "start": 8.376,
+   "end": 20.009,
+   "duration": 11.633,
+   "pad": 0
+  },
+  {
+   "id": 3,
+   "raw": "Making got fast. Believing did not. The gap between made and real has no owner, so it gets a launch week.",
+   "text": "Making got fast. Believing did not. The gap between made and real has no owner, so it gets a launch week.",
+   "breaks": [
+    1.754,
+    3.551
+   ],
+   "audioStart": 0,
+   "start": 20.559,
+   "end": 29.696,
+   "duration": 9.137,
+   "pad": 0
+  },
+  {
+   "id": 4,
+   "raw": "A render has never failed a drop test. [C73]",
+   "text": "A render has never failed a drop test.",
+   "breaks": [],
+   "audioStart": 0,
+   "start": 30.246,
+   "end": 32.937,
+   "duration": 2.691,
+   "pad": 0.476
+  },
+  {
+   "id": 5,
+   "raw": "Everything is already conspiring to get you over the line: agents, tools, suppliers, testers. Product Actualizer pins the plot to one board. One model, every claim graded, every lens reading it. [C2][C1]",
+   "text": "Everything is already conspiring to get you over the line: agents, tools, suppliers, testers. Product Actualizer pins the plot to one board. One model, every claim graded, every lens reading it.",
+   "breaks": [
+    7.909,
+    11.694
+   ],
+   "audioStart": 0,
+   "start": 33.963,
+   "end": 49.847,
+   "duration": 15.884,
+   "pad": 0
+  },
+  {
+   "id": 6,
+   "raw": "Says who? Trust me. On the real unit? On the render. Who decides it's done? Whatever did the work. Here the answers are a source, a gate, and you. [C2][C73][C12]",
+   "text": "Says who? Trust me. On the real unit? On the render. Who decides it's done? Whatever did the work. Here the answers are a source, a gate, and you.",
+   "breaks": [
+    1.233,
+    1.233,
+    4.053,
+    4.053,
+    7.171,
+    8.921
+   ],
+   "audioStart": 0,
+   "start": 50.397,
+   "end": 63.196,
+   "duration": 12.799,
+   "pad": 0
+  },
+  {
+   "id": 7,
+   "raw": "Even the agent cannot accept its own work. It tried. The cockpit declined, in capital letters. [C12]",
+   "text": "Even the agent cannot accept its own work. It tried. The cockpit declined, in capital letters.",
+   "breaks": [
+    3.318,
+    4.928
+   ],
+   "audioStart": 0,
+   "start": 63.746,
+   "end": 72.219,
+   "duration": 8.473,
+   "pad": 0
+  },
+  {
+   "id": 8,
+   "raw": "Product Actualizer. Finish the product. Show the evidence.",
+   "text": "Product Actualizer. Finish the product. Show the evidence.",
+   "breaks": [
+    1.87,
+    3.5
+   ],
+   "audioStart": 0,
+   "start": 72.769,
+   "end": 77.618,
+   "duration": 4.849,
+   "pad": 0
+  }
+ ],
+ "captions": [
+  {
+   "start": 0.5,
+   "end": 7.826,
+   "text": "Your agent says it's done. So the board says it's done. The board has never met a customer."
+  },
+  {
+   "start": 8.376,
+   "end": 15.697,
+   "text": "The tests pass, on the machine that wrote them. The demo is real, at eight times speed."
+  },
+  {
+   "start": 15.697,
+   "end": 20.009,
+   "text": "The testimonial comes from a very satisfied placeholder."
+  },
+  {
+   "start": 20.559,
+   "end": 24.11,
+   "text": "Making got fast. Believing did not."
+  },
+  {
+   "start": 24.11,
+   "end": 29.696,
+   "text": "The gap between made and real has no owner, so it gets a launch week."
+  },
+  {
+   "start": 30.246,
+   "end": 33.413,
+   "text": "A render has never failed a drop test."
+  },
+  {
+   "start": 33.963,
+   "end": 41.872,
+   "text": "Everything is already conspiring to get you over the line: agents, tools, suppliers, testers."
+  },
+  {
+   "start": 41.872,
+   "end": 49.847,
+   "text": "Product Actualizer pins the plot to one board. One model, every claim graded, every lens reading it."
+  },
+  {
+   "start": 50.397,
+   "end": 59.318,
+   "text": "Says who? Trust me. On the real unit? On the render. Who decides it's done? Whatever did the work."
+  },
+  {
+   "start": 59.318,
+   "end": 63.196,
+   "text": "Here the answers are a source, a gate, and you."
+  },
+  {
+   "start": 63.746,
+   "end": 72.219,
+   "text": "Even the agent cannot accept its own work. It tried. The cockpit declined, in capital letters."
+  },
+  {
+   "start": 72.769,
+   "end": 77.618,
+   "text": "Product Actualizer. Finish the product. Show the evidence."
+  }
+ ],
+ "total": 80.618,
+ "fps": 30,
+ "estimated": false
+}

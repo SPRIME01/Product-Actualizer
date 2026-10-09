@@ -10,9 +10,19 @@ root    := justfile_directory()
 project := env_var_or_default("PROJECT", invocation_directory())
 cli     := env_var_or_default("ACTUALIZE_BIN", "bun " + root + "/hooks/src/cli.mjs")
 
+# Tolerant overrides for command-line forms like `just websit=up` or `just website=up`
+websit  := ""
+website := ""
+
 [private]
 default:
-    @just --justfile {{justfile()}} --list --unsorted
+    @if [ "{{websit}}" = "up" ] || [ "{{website}}" = "up" ]; then \
+        just --justfile {{justfile()}} website-up; \
+    elif [ "{{websit}}" = "down" ] || [ "{{website}}" = "down" ]; then \
+        just --justfile {{justfile()}} website-down; \
+    else \
+        just --justfile {{justfile()}} --list --unsorted; \
+    fi
 
 # ---- the cockpit ------------------------------------------------------------------------------------------------
 
@@ -47,6 +57,31 @@ cockpit-context:
 # Owner responses waiting for the router
 inbox:
     cd "{{project}}" && {{cli}} inbox
+
+# ---- the website ------------------------------------------------------------------------------------------------
+
+# Put the public website up and open it in your browser (extra flags: --port N, --no-open)
+website-up *flags:
+    cd "{{root}}" && bun website/serve.mjs up {{flags}}
+
+# Take the website down
+website-down:
+    cd "{{root}}" && bun website/serve.mjs down
+
+# Is the website up?
+website-status:
+    cd "{{root}}" && bun website/serve.mjs status
+
+# Re-open the website in your browser without restarting
+website-open:
+    cd "{{root}}" && bun website/serve.mjs open
+
+# Down, then up again
+website-restart *flags: website-down
+    cd "{{root}}" && bun website/serve.mjs up {{flags}}
+
+alias website_up := website-up
+alias website_down := website-down
 
 # ---- development ------------------------------------------------------------------------------------------------
 

@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "active": true,
+  "active": false,
   "goal": "Product Actualizer Architect is understood, trusted and adoptable by its first buyers: grounded category and name, brand, public website with a live mechanism demo, JS-rendered voiced explainer, and a GTM kit, every public claim OBSERVED or VERIFIED",
   "bar": "release",
   "strict": true,
@@ -54,21 +54,25 @@
   "activeLenses": {},
   "completed": {
     "recon-software": 1,
-    "brand": 14,
-    "direction": 7,
-    "experience": 5,
-    "marketing": 7,
-    "illustration": 5,
-    "motion-editorial": 5,
-    "provenance-licensing": 2,
-    "audio-sound": 2,
-    "fidelity-qa": 1
+    "brand": 15,
+    "direction": 9,
+    "experience": 6,
+    "marketing": 8,
+    "illustration": 6,
+    "motion-editorial": 6,
+    "provenance-licensing": 3,
+    "audio-sound": 3,
+    "fidelity-qa": 2,
+    "release-readiness": 1
   },
   "unreconciled": [],
   "reconcile": null,
-  "modelVersion": 9,
-  "modelHash": "82c959571f70a330",
+  "modelVersion": 10,
+  "modelHash": "e8c2c400eaa2eee8",
   "stopBlocks": 0,
   "lastBlockSig": "",
-  "startedAt": "2026-10-03T19:16:38.572Z"
+  "startedAt": "2026-10-03T19:16:38.572Z",
+  "finishedAt": "2026-10-03T23:04:19.554Z",
+  "verdict": "defer",
+  "owner": "product owner"
 }

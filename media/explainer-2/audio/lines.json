@@ -1,0 +1,118 @@
+{
+ "voice": "b347db033a6549378b48d00acb0d06cd",
+ "method": "one synthesis per line; durations measured with ffprobe after trimming edge silence",
+ "lines": [
+  {
+   "id": 1,
+   "text": "A demo video says the robot works.",
+   "file": "audio/lines/L01.mp3",
+   "start": 0,
+   "duration": 2.707,
+   "words": 7,
+   "breaks": []
+  },
+  {
+   "id": 2,
+   "text": "Someone asks whether it is real, or sped up, or remote controlled.",
+   "file": "audio/lines/L02.mp3",
+   "start": 0,
+   "duration": 4.677,
+   "words": 12,
+   "breaks": []
+  },
+  {
+   "id": 3,
+   "text": "Code, a circuit board, or a launch page: the question is the same. What is true?",
+   "file": "audio/lines/L03.mp3",
+   "start": 0,
+   "duration": 7.237,
+   "words": 16,
+   "breaks": [
+    5.952
+   ]
+  },
+  {
+   "id": 4,
+   "text": "Product Actualizer keeps one model of what is true. Every claim carries a grade, and a source anyone can re-open.",
+   "file": "audio/lines/L04.mp3",
+   "start": 0,
+   "duration": 9.469,
+   "words": 20,
+   "breaks": [
+    4.22
+   ]
+  },
+  {
+   "id": 5,
+   "text": "Seventeen lenses read that model: brand and motion, electronics and firmware, three-dimensional renders.",
+   "file": "audio/lines/L05.mp3",
+   "start": 0,
+   "duration": 8.52,
+   "words": 13,
+   "breaks": []
+  },
+  {
+   "id": 6,
+   "text": "A hardware release cannot pass on a build, a schematic, or a render. The claim has to be exercised on the real unit.",
+   "file": "audio/lines/L06.mp3",
+   "start": 0,
+   "duration": 8.981,
+   "words": 23,
+   "breaks": [
+    5.388
+   ]
+  },
+  {
+   "id": 7,
+   "text": "In the hardware example, the gate said no. Most physical claims had never run on the unit.",
+   "file": "audio/lines/L07.mp3",
+   "start": 0,
+   "duration": 6.656,
+   "words": 17,
+   "breaks": [
+    3.423
+   ]
+  },
+  {
+   "id": 8,
+   "text": "A page cannot cite what was only reported.",
+   "file": "audio/lines/L08.mp3",
+   "start": 0,
+   "duration": 2.95,
+   "words": 8,
+   "breaks": []
+  },
+  {
+   "id": 9,
+   "text": "And when the model changes, whatever cites it goes stale.",
+   "file": "audio/lines/L09.mp3",
+   "start": 0,
+   "duration": 3.913,
+   "words": 10,
+   "breaks": []
+  },
+  {
+   "id": 10,
+   "text": "Agents and tools do the work. Only the owner accepts it.",
+   "file": "audio/lines/L10.mp3",
+   "start": 0,
+   "duration": 5.054,
+   "words": 11,
+   "breaks": [
+    2.985
+   ]
+  },
+  {
+   "id": 11,
+   "text": "Product Actualizer. Finish the product. Show the evidence.",
+   "file": "audio/lines/L11.mp3",
+   "start": 0,
+   "duration": 5.037,
+   "words": 8,
+   "breaks": [
+    1.848,
+    3.653
+   ]
+  }
+ ]
+}
